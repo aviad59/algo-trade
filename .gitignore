@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Local data / caches
+data/
+cache/
+*.jsonl
+*.sqlite
+*.duckdb
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
