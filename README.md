@@ -28,15 +28,15 @@ Reading these filings by hand for hundreds of companies is not realistic. So we 
                     ▼
         ┌────────────────────────┐      ┌──────────────────────┐
         │  EDGAR Fetcher         │ ───▶ │  Raw filing cache    │
-        │  (SEC EDGAR REST API)  │      │  (local, on disk)    │
+        │  (edgartools)          │      │  (handled by lib)    │
         └───────────┬────────────┘      └──────────────────────┘
                     │
                     ▼
         ┌────────────────────────────────────────┐
         │  Agent #1 — Extractor                  │
         │  Reads each filing and emits:          │
-        │    - planned_actions[]                 │
-        │    - dependent_sectors[]               │
+        │    - dated_effects[] (sector × time    │
+        │      window × direction × magnitude)   │
         │    - flagged_risks[]                   │
         │    - confidence + source spans         │
         └───────────┬────────────────────────────┘
@@ -49,59 +49,92 @@ Reading these filings by hand for hundreds of companies is not realistic. So we 
         │   per company×filing)  │
         └───────────┬────────────┘
                     │
-                    ▼
-        ┌────────────────────────────────────────┐
-        │  Agent #2 — Sector Recommender         │
-        │  Reads the full buffer and emits:      │
-        │    - ranked sectors                    │
-        │    - rationale per sector              │
-        │    - dissenting evidence               │
-        │    - cited company filings             │
-        └────────────────────────────────────────┘
+        ┌───────────┴───────────────────┐
+        ▼                               ▼
+┌──────────────────────────┐   ┌──────────────────────────────┐
+│  Sector Timeline         │   │  Agent #2 — Recommender      │
+│  Aggregator              │   │  Reads the full buffer       │
+│  Bins dated_effects by   │   │  and emits:                  │
+│  sector × month, builds  │   │    - ranked sectors          │
+│  per-sector time series  │   │    - rationale per sector    │
+└───────────┬──────────────┘   │    - dissenting evidence     │
+            │                  │    - cited filings           │
+            ▼                  └──────────────────────────────┘
+┌──────────────────────────┐
+│  Buy/Sell Timer          │
+│  Reads sector curves,    │
+│  emits BUY / SELL dates  │
+│  per sector (AUC-based)  │
+└───────────┬──────────────┘
+            │
+            ▼
+┌──────────────────────────┐
+│  Plot                    │
+│  Sector signal vs. time, │
+│  BUY/SELL markers        │
+└──────────────────────────┘
 ```
 
-Two agents, one buffer in between. The buffer is the contract — Agent #1 can be swapped out, Agent #2 can be swapped out, the buffer schema is what holds the system together.
+Two agents, one buffer in between. The buffer is the contract — Agent #1 can be swapped out, Agent #2 can be swapped out, the buffer schema is what holds the system together. Downstream of the buffer the recommender and the timeline aggregator run independently — one answers *which* sector, the other answers *when*.
 
 ---
 
 ## Components
 
-### 1. EDGAR Fetcher
+### 1. EDGAR Fetcher — built on [edgartools](https://github.com/dgunning/edgartools)
 
-Thin wrapper over the SEC EDGAR submissions and filings APIs.
+We don't write our own EDGAR client. `edgartools` (MIT-licensed) already gives us:
 
-- Resolves ticker → CIK
-- Pulls the most recent 10-K / 10-Q / 8-K (configurable)
-- Honors SEC's fair-access rules: `User-Agent` header with contact email, ≤10 requests/sec
-- Caches raw filings on disk so re-runs don't hammer EDGAR
+- Ticker → CIK resolution
+- Typed `Company` / `Filing` objects for 10-K, 10-Q, 8-K, Form 4, 13F, etc.
+- Section extraction out of the box (`Risk Factors`, `MD&A`, subsidiary lists)
+- HTML → clean text/markdown conversion (intended for LLM consumption)
+- Rate-limit awareness and smart caching — handles SEC's fair-access rules for us
+- Identity is set once via `set_identity("your.email@example.com")` (no API key)
+
+In practice our fetcher layer is a thin loop around `edgartools` that pulls the section text the extractor needs and passes it on. If we outgrow `edgartools` later we can drop in a custom client behind the same interface, but there's no reason to start there.
 
 ### 2. Agent #1 — Extractor
 
-Per-filing LLM call. Output is **strictly structured** (JSON schema enforced), not free text:
+Per-filing LLM call. Output is **strictly structured** (JSON schema enforced), not free text. The key idea: every planned action gets pinned to a **time window**, a **direction** (the company expects to *increase* or *decrease* its consumption / exposure), and a **magnitude** (qualitative, e.g. small / moderate / large). This is what lets us build a time-series later.
 
 ```json
 {
-  "ticker": "NVDA",
-  "cik": "0001045810",
-  "filing_type": "10-K",
-  "filing_date": "2025-02-21",
-  "planned_actions": [
+  "ticker": "TSLA",
+  "cik": "0001318605",
+  "filing_type": "10-Q",
+  "filing_date": "2026-04-30",
+  "dated_effects": [
     {
-      "action": "Expand data-center GPU production capacity",
-      "horizon": "12-24 months",
-      "source_span": "Item 7, MD&A, p.34"
+      "sector": "Lithium",
+      "direction": "increase",
+      "magnitude": "large",
+      "window_start": "2026-05-01",
+      "window_end": "2026-08-31",
+      "rationale": "Cell line ramp at Nevada gigafactory scheduled to begin May",
+      "source_span": "Item 2, MD&A, p.18"
+    },
+    {
+      "sector": "Gold",
+      "direction": "decrease",
+      "magnitude": "moderate",
+      "window_start": "2026-03-01",
+      "window_end": "2026-06-30",
+      "rationale": "Phasing out gold-plated connector SKU; substitute qualified Q1",
+      "source_span": "Item 1A, Risk Factors, p.42"
     }
   ],
-  "dependent_sectors": [
-    {"sector": "Semiconductor foundries", "criticality": "high"},
-    {"sector": "Hyperscale cloud providers", "criticality": "high"}
-  ],
-  "flagged_risks": ["Export controls to China", "Foundry concentration"],
-  "extractor_confidence": 0.82
+  "flagged_risks": ["Lithium supply concentration in Chile/Australia"],
+  "extractor_confidence": 0.79
 }
 ```
 
-The extractor is deliberately conservative: if a claim is not grounded in a source span, it gets dropped.
+Rules the extractor must follow:
+
+- Every effect must have `window_start` and `window_end`. If the filing only says "in the coming months" or "next year," the extractor resolves that against the **filing date** (e.g., "next year" from a 2026-04-30 filing → 2027-01-01 to 2027-12-31).
+- Every effect must have a `source_span` pointing back to the filing. No span → dropped.
+- `magnitude` is qualitative (`small` / `moderate` / `large`), not a dollar figure — companies rarely commit to exact numbers and we don't want to invent them. We convert magnitude to a numeric weight downstream (e.g., 0.3 / 0.6 / 1.0).
+- `direction` is `increase` or `decrease` only. "Stable" is not interesting and gets dropped.
 
 ### 3. Side buffer
 
@@ -133,6 +166,85 @@ Reads the entire buffer (or a date-bounded slice) and produces a ranked list of 
 
 Every claim the recommender makes must cite tickers from the buffer. If it can't cite, it can't claim.
 
+### 5. Sector Timeline Aggregator
+
+This is what turns the buffer into a graph you can actually look at.
+
+For each `dated_effect` in the buffer we have: `(sector, direction, magnitude, window_start, window_end)`. The aggregator:
+
+1. **Bins time** into monthly buckets (configurable — weekly is fine for short horizons).
+2. **For each effect, spreads its weight uniformly across the months it covers.** A "large increase" lasting 4 months contributes `+1.0 / 4 = +0.25` per month. A "moderate decrease" lasting 3 months contributes `-0.6 / 3 = -0.2` per month.
+3. **Sums across all companies, per sector, per month.** Result: one time series per sector.
+
+So for a sector like **Lithium**, you end up with something like:
+
+```
+month     signal
+2026-03   +0.10   (one company ramping early)
+2026-04   +0.10
+2026-05   +1.45   (Tesla + 3 others ramp in May)
+2026-06   +1.45
+2026-07   +1.20
+2026-08   +0.55
+2026-09   -0.10   (one company winding down)
+```
+
+That's the curve. Plot it (matplotlib / plotly), overlay all sectors, and you can literally see which sectors are pulling demand forward into which months.
+
+### 6. Buy/Sell Timer
+
+The graph is interesting, but the question the user actually cares about is *when to buy and when to sell* the sector. We compute that from the curve itself — no extra LLM call needed.
+
+**Default algorithm: forward-looking area under the curve.**
+
+For each sector and each month `t`, compute:
+
+```
+forward_AUC(t) = Σ signal(t+1), signal(t+2), ..., signal(t+W)
+```
+
+where `W` is a look-ahead window (default: 3 months). This answers: *if I buy this sector today, how much narrated demand is queued up over the next W months?*
+
+- **BUY signal:** the date where `forward_AUC` is rising and crosses a positive threshold. Intuition: demand is building and we're early.
+- **SELL signal:** the date where `forward_AUC` peaks and starts declining. Intuition: the queued demand has played out, what's ahead is thinner.
+
+In other words: **buy on the leading edge of the area, sell at the top of the area.** The "area under the graph" the user described is exactly `forward_AUC`.
+
+Alternative strategies the timer module will ship with (toggleable):
+
+- **Slope-based.** Buy when `d(signal)/dt` turns positive, sell when it turns negative. Faster, noisier.
+- **Peak detection.** Find local maxima of `signal(t)` as sell dates; the leading inflection as buy dates. Robust but lagging.
+- **Threshold + dwell.** Buy when `signal` exceeds threshold `θ` for `k` consecutive months. Conservative.
+
+Output for one sector:
+
+```json
+{
+  "sector": "Lithium",
+  "as_of": "2026-06-08",
+  "actions": [
+    {"date": "2026-04-01", "action": "BUY",  "rationale": "forward_AUC ramping into May ramp"},
+    {"date": "2026-08-01", "action": "SELL", "rationale": "forward_AUC peaked in July, declining"}
+  ],
+  "curve": [
+    {"month": "2026-03", "signal":  0.10, "forward_AUC": 3.00},
+    {"month": "2026-04", "signal":  0.10, "forward_AUC": 4.10},
+    ...
+  ]
+}
+```
+
+### 7. Plot
+
+Matplotlib (or Plotly for an interactive version). One line per sector, x-axis = time, y-axis = signal. BUY markers as green up-arrows, SELL markers as red down-arrows. Filing dates as faint vertical ticks so you can see *what* caused a spike.
+
+### Important caveats about the timing signal
+
+- This is a **narrative-derived** signal, not a price signal. It measures what companies *say* they will do, not what markets are pricing in. The market may have already priced it.
+- Companies are optimistic about their own plans. A "ramp in May" sometimes happens in November.
+- The signal is **strongest when many companies say the same thing about the same window**. A single ticker forecasting lithium demand is noise; ten of them is signal.
+- This is why a backtest harness (see roadmap) is non-negotiable before treating any of this as actionable.
+
 ---
 
 ## Why two agents instead of one big prompt?
@@ -148,21 +260,26 @@ Every claim the recommender makes must cite tickers from the buffer. If it can't
 
 - **Language:** Python 3.11+
 - **LLM client:** `anthropic` SDK (Claude Sonnet 4.6 for extraction, Claude Opus 4.7 for the recommender — extraction is volume-heavy and cheaper-model-friendly, recommendation is reasoning-heavy)
-- **EDGAR client:** `requests` against `data.sec.gov` (no third-party EDGAR library required)
+- **EDGAR client:** [`edgartools`](https://github.com/dgunning/edgartools) — handles fetching, section extraction, rate limits, caching
 - **Storage:** JSONL → SQLite → DuckDB depending on scale
 - **Validation:** `pydantic` for the buffer schema
+- **Timeline math:** `pandas` for the per-sector monthly bucketing, `numpy` for the forward-AUC sweep
+- **Plotting:** `matplotlib` for static plots, `plotly` for the interactive version
 - **Orchestration:** plain Python to start; consider a job queue once the universe of tickers grows
 
 ---
 
 ## Roadmap
 
-- [ ] EDGAR fetcher with on-disk cache
-- [ ] Extractor agent with strict JSON schema output
+- [ ] EDGAR fetcher wrapper around `edgartools`
+- [ ] Extractor agent with strict JSON schema output (including `dated_effects[]`)
 - [ ] Buffer (start with JSONL)
 - [ ] Recommender agent
-- [ ] CLI: `algo-trade extract --tickers nvda,msft,...` and `algo-trade recommend`
-- [ ] Backtest harness: replay the recommender's output against subsequent sector ETF returns to see if it's actually any good
+- [ ] **Sector timeline aggregator** (monthly bucketing, per-sector time series)
+- [ ] **Buy/Sell timer** (forward-AUC algorithm, with slope / peak / threshold alternatives)
+- [ ] **Plot** — static matplotlib + interactive plotly
+- [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, `algo-trade timeline --plot`
+- [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
 - [ ] Add earnings-call transcripts as a second input source alongside filings
 - [ ] Add a "diff" mode: highlight what changed in a company's plans between two filings
 
@@ -178,7 +295,7 @@ cd algo-trade
 
 You will need:
 - An Anthropic API key (`ANTHROPIC_API_KEY`)
-- A contact email for the SEC EDGAR `User-Agent` header (SEC requires this)
+- A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
 
 ---
 
