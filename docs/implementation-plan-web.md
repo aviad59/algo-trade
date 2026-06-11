@@ -186,13 +186,13 @@ gantt
 
 | ID | Task | Output |
 |----|------|--------|
-| 2.1 | `api/client.ts` — `get<T>(path)`, Zod parse on response | Safe fetch |
-| 2.2 | `api/endpoints.ts` — one function per HLD §6 endpoint | Typed getters |
-| 2.3 | `api/mockFilter.ts` — filter `extractions/index.json` by ticker, material, from, to | Explorer support |
-| 2.4 | Mock mode: map API paths to static files (see table below) | Path resolver |
-| 2.5 | Implement hooks wrapping TanStack Query | 7 hooks per HLD |
-| 2.6 | Unit tests: Zod schemas accept mock files | `tests/contract.test.ts` |
-| 2.7 | Unit tests: `mockFilter` Explorer cases | `tests/mockFilter.test.ts` |
+| 2.1 | `api/client.ts` — `get<T>(path)`, Zod parse on response | Safe fetch | **done** |
+| 2.2 | `api/endpoints.ts` — one function per HLD §6 endpoint | Typed getters | **done** |
+| 2.3 | `api/mockFilter.ts` — filter `extractions/index.json` by ticker, material, from, to | Explorer support | **done** |
+| 2.4 | Mock mode: map API paths to static files (see table below) | Path resolver | **done** |
+| 2.5 | Implement hooks wrapping TanStack Query | 7 hooks per HLD | **done** |
+| 2.6 | Unit tests: Zod schemas accept mock files | `tests/contract.test.ts` | **done** |
+| 2.7 | Unit tests: `mockFilter` Explorer cases | `tests/mockFilter.test.ts` | **done** |
 
 ### Mock path resolver
 
@@ -497,7 +497,7 @@ jobs:
 ```
 Phase 0  [x] mock bundle  [x] validate script  [ ] CI
 Phase 1  [x] vite scaffold  [x] routes  [x] layout  [x] about
-Phase 2  [ ] zod types  [ ] api client  [ ] hooks  [ ] tests
+Phase 2  [x] zod types  [x] api client  [x] hooks  [x] tests
 Phase 3  [ ] dashboard  [ ] ranking table  [ ] sparklines
 Phase 4  [ ] material page  [ ] forecast chart  [ ] BUY/SELL  [ ] instruments
 Phase 5  [ ] company page  [ ] filing page  [ ] SEC links

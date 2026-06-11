@@ -8,6 +8,7 @@
     "dev": "vite",
     "prebuild": "npm run sync-mock",
     "build": "tsc -b && vite build",
+    "test": "vitest run",
     "lint": "eslint .",
     "preview": "vite preview",
     "sync-mock": "node ./scripts/sync-mock.mjs"
@@ -34,6 +35,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.1.8"
   }
 }
