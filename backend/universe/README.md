@@ -10,7 +10,7 @@ extra tooling.
 
 ## How the files map to the pipeline
 
-Recall the pipeline from the top-level [README](../README.md): filings → **Agent #1
+Recall the pipeline from the top-level [README](../../README.md): filings → **Agent #1
 (Extractor)** → buffer → **Agent #2 (Recommender)** + timeline/timer → plot. The three
 data files sit at three different points:
 
@@ -121,7 +121,7 @@ Quick check that the vocabulary contract holds (every index key resolves to a ma
 is valid):
 
 ```bash
-py -c "import json; m={x['id'] for x in json.load(open('universe/materials.json',encoding='utf-8'))['materials']}; idx=json.load(open('universe/material-to-index.json',encoding='utf-8'))['indexes']; bad=[k for k in idx if k not in m]; print('OK, all index keys resolve' if not bad else 'DANGLING KEYS: '+str(bad)); missing=[i for i in m if i not in idx]; print('materials without an index entry:', missing or 'none')"
+py -c "import json; m={x['id'] for x in json.load(open('backend/universe/materials.json',encoding='utf-8'))['materials']}; idx=json.load(open('backend/universe/material-to-index.json',encoding='utf-8'))['indexes']; bad=[k for k in idx if k not in m]; print('OK, all index keys resolve' if not bad else 'DANGLING KEYS: '+str(bad)); missing=[i for i in m if i not in idx]; print('materials without an index entry:', missing or 'none')"
 ```
 
 ## A note on scope and disclaimers

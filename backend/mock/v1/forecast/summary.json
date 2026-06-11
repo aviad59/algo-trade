@@ -1,0 +1,59 @@
+{
+  "contract_version": "1.0",
+  "as_of": "2026-06-08",
+  "pipeline_run_at": "2026-06-08T14:30:00Z",
+  "universe_count": 262,
+  "extractions_count": 12,
+  "top_materials": [
+    {
+      "material_id": "electricity",
+      "name": "Electricity / Grid Power",
+      "rank": 1,
+      "score": 0.87,
+      "latest_action": "BUY",
+      "latest_action_date": "2026-03-01",
+      "current_signal": 2.1,
+      "supporting_ticker_count": 4
+    },
+    {
+      "material_id": "lithium",
+      "name": "Lithium",
+      "rank": 2,
+      "score": 0.82,
+      "latest_action": "BUY",
+      "latest_action_date": "2026-04-01",
+      "current_signal": 1.45,
+      "supporting_ticker_count": 3
+    },
+    {
+      "material_id": "copper",
+      "name": "Copper",
+      "rank": 3,
+      "score": 0.74,
+      "latest_action": "SELL",
+      "latest_action_date": "2026-07-01",
+      "current_signal": 0.85,
+      "supporting_ticker_count": 2
+    },
+    {
+      "material_id": "semiconductors",
+      "name": "Semiconductors",
+      "rank": 4,
+      "score": 0.71,
+      "latest_action": null,
+      "latest_action_date": null,
+      "current_signal": 1.2,
+      "supporting_ticker_count": 2
+    },
+    {
+      "material_id": "natural-gas",
+      "name": "Natural Gas",
+      "rank": 5,
+      "score": 0.58,
+      "latest_action": null,
+      "latest_action_date": null,
+      "current_signal": 0.4,
+      "supporting_ticker_count": 1
+    }
+  ]
+}

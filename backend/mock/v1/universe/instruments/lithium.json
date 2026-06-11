@@ -1,0 +1,12 @@
+{
+  "contract_version": "1.0",
+  "material_id": "lithium",
+  "buckets": {
+    "producers": ["ALB", "SQM", "LAC", "PLL"],
+    "etfs": ["LIT", "BATT"],
+    "physical": [],
+    "futures": ["Lithium hydroxide / carbonate (CME, GFEX)"],
+    "transporters": [],
+    "downstream_consumers": ["TSLA", "GM", "F"]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "contract_version": "1.0",
+  "material_id": "electricity",
+  "as_of": "2026-06-08",
+  "actions": [
+    {
+      "date": "2026-03-01",
+      "action": "BUY",
+      "rationale": "forward_AUC climbing as multiple filers cite grid interconnect queues for 2026 capacity"
+    }
+  ],
+  "curve": [
+    { "month": "2026-01", "signal": 0.4, "forward_AUC": 3.0 },
+    { "month": "2026-02", "signal": 0.8, "forward_AUC": 4.2 },
+    { "month": "2026-03", "signal": 1.2, "forward_AUC": 5.1 },
+    { "month": "2026-04", "signal": 1.8, "forward_AUC": 5.8 },
+    { "month": "2026-05", "signal": 2.1, "forward_AUC": 5.5 },
+    { "month": "2026-06", "signal": 2.1, "forward_AUC": 4.9 },
+    { "month": "2026-07", "signal": 1.9, "forward_AUC": 4.0 },
+    { "month": "2026-08", "signal": 1.5, "forward_AUC": 3.2 }
+  ],
+  "contributing_ticker_count": 4,
+  "universe_curve": null
+}

@@ -6,6 +6,16 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 ---
 
+## Repository layout
+
+| Path | Role |
+|------|------|
+| [`backend/`](backend/README.md) | Agent pipeline (in progress), [`universe/`](backend/universe/README.md) reference data, [`mock/v1/`](backend/mock/v1/manifest.json) API snapshots, validation scripts |
+| [`frontend/`](frontend/README.md) | Web UI (React) — forecast dashboard, Explorer, audit drill-down |
+| [`docs/`](docs/hld-web-interface.md) | [HLD](docs/hld-web-interface.md) and [implementation plan](docs/implementation-plan-web.md) for the web interface |
+
+---
+
 ## The idea
 
 Public companies in the U.S. are required to file detailed disclosures with the SEC (10-K, 10-Q, 8-K, S-1, etc.). Buried inside the boilerplate are the parts that actually matter to an investor:

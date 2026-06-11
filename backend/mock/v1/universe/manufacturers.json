@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "description": "Mock subset of filing companies for web UI autocomplete (8 companies)",
+  "generated": "2026-06-11",
+  "count": 8,
+  "companies": [
+    {
+      "ticker": "AAPL",
+      "cik": "0000320193",
+      "name": "Apple Inc.",
+      "indexes": ["SP500", "DJIA"],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "AMD",
+      "cik": "0000002488",
+      "name": "Advanced Micro Devices",
+      "indexes": ["SP500"],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "DELL",
+      "cik": "0001571996",
+      "name": "Dell Technologies",
+      "indexes": ["SP500"],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "FCX",
+      "cik": "0000831259",
+      "name": "Freeport-McMoRan",
+      "indexes": ["SP500"],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Copper"
+    },
+    {
+      "ticker": "GM",
+      "cik": "0001467858",
+      "name": "General Motors",
+      "indexes": ["SP500"],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automobile Manufacturers"
+    },
+    {
+      "ticker": "NEE",
+      "cik": "0000753308",
+      "name": "NextEra Energy",
+      "indexes": ["SP500"],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "NVDA",
+      "cik": "0001045810",
+      "name": "Nvidia",
+      "indexes": ["SP500", "DJIA"],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "TSLA",
+      "cik": "0001318605",
+      "name": "Tesla, Inc.",
+      "indexes": ["SP500"],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automobile Manufacturers"
+    }
+  ]
+}
