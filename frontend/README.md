@@ -2,21 +2,44 @@
 
 Web interface for the algo-trade forecast demo (React + TypeScript + Vite).
 
-**Status:** Not scaffolded yet — see [implementation plan](../docs/implementation-plan-web.md) Phase 1.
+## Setup
 
-## Planned layout
-
-```
-frontend/
-  public/mock/v1/     # Copy or symlink from ../backend/mock/v1 at dev time
-  src/
-    routes/           # Dashboard, Material, Company, Filing, Explorer, About
-    components/
-    api/
-    types/
-    hooks/
+```bash
+cd frontend
+npm install
+npm run sync-mock   # copy backend/mock/v1 -> public/mock/v1
+npm run dev
 ```
 
-## Data source
+Open http://localhost:5173
 
-The UI reads JSON from `/mock/v1/*` (static) or `/api/v1/*` (live backend). Contract: [HLD §8](../docs/hld-web-interface.md).
+## Environment
+
+Copy `.env.example` to `.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_API_BASE` | `/mock/v1` | JSON base path |
+| `VITE_DATA_SOURCE` | `mock` | `mock` or `api` |
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run sync-mock` | Refresh mock JSON from `backend/mock/v1` |
+
+## Routes
+
+| Path | Page |
+|------|------|
+| `/` | Forecast dashboard |
+| `/materials/:materialId` | Material detail |
+| `/companies/:ticker` | Company detail |
+| `/filings/:extractionId` | Filing audit |
+| `/explorer` | Ticker + date query |
+| `/about` | Disclaimer + about |
+
+See [implementation plan](../docs/implementation-plan-web.md) for phased delivery status.

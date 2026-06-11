@@ -160,21 +160,21 @@ gantt
 
 | ID | Task | Output |
 |----|------|--------|
-| 1.1 | `npm create vite@latest frontend -- --template react-ts` | Base project |
-| 1.2 | Add Tailwind, React Router, TanStack Query, Zod, Recharts | `package.json` |
-| 1.3 | Configure `VITE_API_BASE` env (`/mock/v1` default) | `.env.example` |
-| 1.4 | Copy or symlink `backend/mock/v1` → `frontend/public/mock/v1` | Static assets |
-| 1.5 | Define Zod schemas in `src/types/contract.ts` from HLD §8 | All v1 types |
-| 1.6 | Stub routes in `App.tsx` with placeholder pages | 6 routes |
-| 1.7 | Build `AppShell`, `NavBar`, `DisclaimerBanner` | Layout |
-| 1.8 | `AboutPage` with project disclaimer + link to repo README | Static page |
+| 1.1 | `npm create vite@latest frontend -- --template react-ts` | Base project | **done** |
+| 1.2 | Add Tailwind, React Router, TanStack Query, Zod, Recharts | `package.json` | **done** |
+| 1.3 | Configure `VITE_API_BASE` env (`/mock/v1` default) | `.env.example` | **done** |
+| 1.4 | Copy or symlink `backend/mock/v1` → `frontend/public/mock/v1` | Static assets | **done** |
+| 1.5 | Define Zod schemas in `src/types/contract.ts` from HLD §8 | All v1 types | **done** |
+| 1.6 | Stub routes in `App.tsx` with placeholder pages | 6 routes | **done** |
+| 1.7 | Build `AppShell`, `NavBar`, `DisclaimerBanner` | Layout | **done** |
+| 1.8 | `AboutPage` with project disclaimer + link to repo README | Static page | **done** |
 
 ### Definition of done
 
-- [ ] `npm run dev` serves app at localhost
-- [ ] All routes navigable
-- [ ] Disclaimer on every page
-- [ ] `npm run build` succeeds
+- [x] `npm run dev` serves app at localhost
+- [x] All routes navigable
+- [x] Disclaimer on every page
+- [x] `npm run build` succeeds
 
 ---
 
@@ -495,8 +495,8 @@ jobs:
 ## Appendix C — Implementation checklist (copy for tracking)
 
 ```
-Phase 0  [ ] mock bundle  [ ] validate script  [ ] CI
-Phase 1  [ ] vite scaffold  [ ] routes  [ ] layout  [ ] about
+Phase 0  [x] mock bundle  [x] validate script  [ ] CI
+Phase 1  [x] vite scaffold  [x] routes  [x] layout  [x] about
 Phase 2  [ ] zod types  [ ] api client  [ ] hooks  [ ] tests
 Phase 3  [ ] dashboard  [ ] ranking table  [ ] sparklines
 Phase 4  [ ] material page  [ ] forecast chart  [ ] BUY/SELL  [ ] instruments
