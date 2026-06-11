@@ -4,7 +4,7 @@ Browser automation for the algo-trade web UI: **Playwright E2E tests** in CI/loc
 
 ## Playwright MCP (Cursor)
 
-Project config: [`.cursor/mcp.json`](../.cursor/mcp.json)
+Create locally (gitignored): `.cursor/mcp.json`
 
 ```json
 {

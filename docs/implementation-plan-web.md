@@ -36,7 +36,7 @@ Deliver a **demo-ready web application** that:
 | Lint / format | ESLint + Prettier | Standard |
 | Test | **Vitest** + React Testing Library | Unit + component tests |
 | E2E | **Playwright** (`frontend/e2e/`) | Route smoke + mock API |
-| Browser MCP | **@playwright/mcp** (`.cursor/mcp.json`) | Interactive UI checks in Cursor |
+| Browser MCP | **@playwright/mcp** (local `.cursor/mcp.json`, gitignored) | Interactive UI checks in Cursor |
 
 **Not in v1:** Next.js SSR, auth, state management library (Query + URL params sufficient).
 

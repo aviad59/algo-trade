@@ -38,6 +38,7 @@ Copy `.env.example` to `.env`:
 | `npm run test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright E2E (port 5174) |
 | `npm run sync-mock` | Copy `backend/mock/v1` → `public/mock/v1` |
+| `npm run record-demo` | Record UI walkthrough → `docs/demo/` (gitignored) |
 | `npm run lint` | ESLint |
 
 ## Routes

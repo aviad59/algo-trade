@@ -13,8 +13,13 @@ cache/
 *.sqlite
 *.duckdb
 
-# Editor
+# Editor / IDE (local only)
 .vscode/
 .idea/
+.cursor/
 *.swp
 .DS_Store
+Thumbs.db
+
+# Generated demo artifacts (see frontend: npm run record-demo)
+docs/demo/
