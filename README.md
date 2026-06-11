@@ -11,7 +11,7 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 | Path | Role |
 |------|------|
 | [`backend/`](backend/README.md) | Agent pipeline (in progress), [`universe/`](backend/universe/README.md) reference data, [`mock/v1/`](backend/mock/v1/manifest.json) API snapshots, validation scripts |
-| [`frontend/`](frontend/README.md) | Web UI (React) — forecast dashboard, Explorer, audit drill-down |
+| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down |
 | [`docs/`](docs/hld-web-interface.md) | [HLD](docs/hld-web-interface.md), [implementation plan](docs/implementation-plan-web.md), [Playwright MCP](docs/playwright-mcp.md) |
 
 ---

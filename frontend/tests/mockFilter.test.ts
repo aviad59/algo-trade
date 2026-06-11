@@ -46,6 +46,16 @@ describe('filterExtractions', () => {
     expect(result.items.some((r) => r.ticker === 'FCX')).toBe(true)
   })
 
+  it('filters TSLA with lithium in date range', () => {
+    const result = filterExtractions(mockIndex.items, {
+      ticker: ['TSLA'],
+      from: '2026-01-01',
+      to: '2026-06-30',
+      material: 'lithium',
+    })
+    expect(result.total).toBeGreaterThanOrEqual(1)
+  })
+
   it('returns empty for out-of-range dates', () => {
     const result = filterExtractions(mockIndex.items, {
       from: '2099-01-01',

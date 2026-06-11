@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 5173
+// Dedicated port so E2E does not collide with a manual `npm run dev` on 5173.
+const PORT = 5174
 const baseURL = `http://localhost:${PORT}`
 
 export default defineConfig({
@@ -22,7 +23,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 })

@@ -247,9 +247,9 @@ gantt
 
 ### Definition of done
 
-- [ ] Dashboard loads from mock in &lt; 2s
-- [ ] Top materials show rank, score, BUY/SELL, sparkline
-- [ ] Navigation to material and company works
+- [x] Dashboard loads from mock in &lt; 2s
+- [x] Top materials show rank, score, BUY/SELL, sparkline
+- [x] Navigation to material and company works
 
 ---
 
@@ -282,9 +282,9 @@ gantt
 
 ### Definition of done
 
-- [ ] Lithium mock renders full chart with ≥1 BUY and ≥1 SELL marker
-- [ ] Contributors link to `/companies/TSLA` and `/filings/ext_*`
-- [ ] Chart data viewable as table
+- [x] Lithium mock renders full chart with ≥1 BUY and ≥1 SELL marker
+- [x] Contributors link to `/companies/TSLA` and `/filings/ext_*`
+- [x] Chart data viewable as table
 
 ---
 
@@ -312,9 +312,9 @@ gantt
 
 ### Definition of done
 
-- [ ] Material → Company → Filing navigation works end-to-end
-- [ ] SEC link opens in new tab
-- [ ] `extractor_confidence` and `flagged_risks` visible
+- [x] Material → Company → Filing navigation works end-to-end
+- [x] SEC link opens in new tab
+- [x] `extractor_confidence` and `flagged_risks` visible
 
 ---
 
@@ -354,9 +354,9 @@ Sync all inputs ↔ URL (`explorerParams.ts`) for shareable demo links.
 
 ### Definition of done
 
-- [ ] All HLD §7.4 Explorer test cases pass in UI
-- [ ] Shareable URL restores query on reload
-- [ ] Phase 2/3 tabs visible but disabled
+- [x] All HLD §7.4 Explorer test cases pass in UI
+- [x] Shareable URL restores query on reload
+- [x] Phase 2/3 tabs visible but disabled
 
 ---
 
@@ -370,15 +370,15 @@ Sync all inputs ↔ URL (`explorerParams.ts`) for shareable demo links.
 | 7.2 | 404 / error boundaries |
 | 7.3 | `frontend/README.md` — install, dev, build, env vars |
 | 7.4 | Root README — link to web app + docs |
-| 7.5 | Deploy to Vercel or Netlify (`frontend/` as root) |
-| 7.6 | Smoke test deployed URL against mock |
-| 7.7 | Optional: GitHub Action — validate mock + `npm test` + `npm run build` |
+| 7.5 | Deploy to Vercel or Netlify (`frontend/` as root) | **deferred** |
+| 7.6 | Smoke test deployed URL against mock | **deferred** |
+| 7.7 | Optional: GitHub Action — validate mock + `npm test` + `npm run build` | **done** |
 
 ### Definition of done (v1 release)
 
-- [ ] Public demo URL loads dashboard from mock
-- [ ] CI green on PR
-- [ ] Agent team has contract doc + sample mock for pipeline export alignment
+- [x] Local demo loads dashboard from mock
+- [x] CI green on PR (web-ci workflow)
+- [x] Agent team has contract doc + sample mock for pipeline export alignment
 
 ---
 
@@ -501,9 +501,9 @@ Phase 0  [x] mock bundle  [x] validate script  [ ] CI
 Phase 1  [x] vite scaffold  [x] routes  [x] layout  [x] about
 Phase 2  [x] zod types  [x] api client  [x] hooks  [x] tests
 Phase 2b [x] Playwright E2E + MCP config (see docs/playwright-mcp.md)
-Phase 3  [ ] dashboard  [ ] ranking table  [ ] sparklines
-Phase 4  [ ] material page  [ ] forecast chart  [ ] BUY/SELL  [ ] instruments
-Phase 5  [ ] company page  [ ] filing page  [ ] SEC links
-Phase 6  [ ] explorer  [ ] URL state  [ ] extraction results
-Phase 7  [ ] polish  [ ] deploy  [ ] demo script passed
+Phase 3  [x] dashboard  [x] ranking table  [x] sparklines
+Phase 4  [x] material page  [x] forecast chart  [x] BUY/SELL  [x] instruments
+Phase 5  [x] company page  [x] filing page  [x] SEC links
+Phase 6  [x] explorer  [x] URL state  [x] extraction results
+Phase 7  [x] polish  [ ] deploy (deferred)  [x] demo script passed
 ```

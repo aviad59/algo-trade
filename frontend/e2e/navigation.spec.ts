@@ -16,6 +16,7 @@ test.describe('App navigation', () => {
   })
 
   test('navigates main routes', async ({ page }) => {
+    await expect(page.getByRole('link', { name: 'FilingSignal' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Forecast dashboard' })).toBeVisible()
 
     await page.getByRole('link', { name: 'Explorer' }).click()
@@ -24,7 +25,7 @@ test.describe('App navigation', () => {
 
     await page.getByRole('link', { name: 'About' }).click()
     await expect(page).toHaveURL(/\/about/)
-    await expect(page.getByRole('heading', { name: 'About algo-trade' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'About FilingSignal' })).toBeVisible()
 
     await page.getByRole('link', { name: 'Forecast' }).click()
     await expect(page).toHaveURL('/')
@@ -32,13 +33,13 @@ test.describe('App navigation', () => {
 
   test('supports deep-linked routes', async ({ page }) => {
     await page.goto('/materials/lithium')
-    await expect(page.getByRole('heading', { name: 'lithium' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Lithium' })).toBeVisible()
 
     await page.goto('/companies/TSLA')
-    await expect(page.getByRole('heading', { name: 'TSLA' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Tesla, Inc.' })).toBeVisible()
 
     await page.goto('/filings/ext_00001')
-    await expect(page.getByRole('heading', { name: /Filing ext_00001/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Filing audit' })).toBeVisible()
   })
 
   test('shows 404 for unknown routes', async ({ page }) => {

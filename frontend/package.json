@@ -1,5 +1,5 @@
 {
-  "name": "algo-trade-frontend",
+  "name": "filingsignal-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,14 +14,24 @@
     "test:e2e:headed": "playwright test --headed",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sync-mock": "node ./scripts/sync-mock.mjs"
+    "sync-mock": "node ./scripts/sync-mock.mjs",
+    "record-demo": "node ./scripts/record-demo.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
     "@tanstack/react-query": "^5.101.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.17.0",
+    "radix-ui": "^1.5.0",
     "react": "^19.2.6",
+    "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.17.0",
     "recharts": "^3.8.1",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
