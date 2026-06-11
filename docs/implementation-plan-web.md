@@ -35,6 +35,8 @@ Deliver a **demo-ready web application** that:
 | Mock serving | **Vite `public/mock/v1/`** | Static files; copy from `mock/v1/` at build |
 | Lint / format | ESLint + Prettier | Standard |
 | Test | **Vitest** + React Testing Library | Unit + component tests |
+| E2E | **Playwright** (`frontend/e2e/`) | Route smoke + mock API |
+| Browser MCP | **@playwright/mcp** (`.cursor/mcp.json`) | Interactive UI checks in Cursor |
 
 **Not in v1:** Next.js SSR, auth, state management library (Query + URL params sufficient).
 
@@ -498,6 +500,7 @@ jobs:
 Phase 0  [x] mock bundle  [x] validate script  [ ] CI
 Phase 1  [x] vite scaffold  [x] routes  [x] layout  [x] about
 Phase 2  [x] zod types  [x] api client  [x] hooks  [x] tests
+Phase 2b [x] Playwright E2E + MCP config (see docs/playwright-mcp.md)
 Phase 3  [ ] dashboard  [ ] ranking table  [ ] sparklines
 Phase 4  [ ] material page  [ ] forecast chart  [ ] BUY/SELL  [ ] instruments
 Phase 5  [ ] company page  [ ] filing page  [ ] SEC links

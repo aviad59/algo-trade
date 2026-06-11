@@ -15,6 +15,12 @@ dist-ssr
 # Synced from backend/mock/v1 via npm run sync-mock
 public/mock/
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
