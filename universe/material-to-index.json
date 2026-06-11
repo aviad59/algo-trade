@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "description": "Maps each material id (from materials.json) to investable instruments, grouped into typed buckets. This is the ACTIONABILITY layer: once Agent #2 (the recommender) or the buy/sell timer picks a material, this file says what you could actually buy to express that view. Buckets are: producers (companies that mine/extract/make the material), etfs (exchange-traded funds tracking it or its miners), physical (the raw commodity itself), futures (exchange-traded contracts), transporters (companies that move/store it), downstream_consumers (notable buyers whose fortunes rise/fall with it). Empty arrays mean 'no clean instrument in that bucket'. Tickers are US listings unless noted. NOT investment advice; lists are illustrative and not exhaustive.",
+  "buckets": ["producers", "etfs", "physical", "futures", "transporters", "downstream_consumers"],
+  "indexes": {
+    "lithium": {
+      "producers": ["ALB", "SQM", "LAC", "PLL"],
+      "etfs": ["LIT", "BATT"],
+      "physical": [],
+      "futures": ["Lithium hydroxide / carbonate (CME, GFEX)"],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "GM", "F"]
+    },
+    "cobalt": {
+      "producers": ["GLNCY", "VALE"],
+      "etfs": ["BATT"],
+      "physical": [],
+      "futures": ["Cobalt (LME)"],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "AAPL"]
+    },
+    "nickel": {
+      "producers": ["VALE", "BHP", "GLNCY"],
+      "etfs": ["BATT"],
+      "physical": [],
+      "futures": ["Nickel (LME)"],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "NUE"]
+    },
+    "manganese": {
+      "producers": ["S32", "GLNCY"],
+      "etfs": [],
+      "physical": [],
+      "futures": ["Manganese ore (steel-index swaps)"],
+      "transporters": [],
+      "downstream_consumers": ["NUE", "STLD"]
+    },
+    "graphite": {
+      "producers": ["SYR", "NVX"],
+      "etfs": ["BATT"],
+      "physical": [],
+      "futures": [],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "PCRFY"]
+    },
+    "copper": {
+      "producers": ["FCX", "SCCO", "BHP", "RIO"],
+      "etfs": ["COPX", "CPER"],
+      "physical": [],
+      "futures": ["Copper (COMEX HG, LME)"],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "GE", "EMR", "ETN"]
+    },
+    "aluminum": {
+      "producers": ["AA", "RIO", "NHYDY"],
+      "etfs": ["JJU"],
+      "physical": [],
+      "futures": ["Aluminum (LME, COMEX)"],
+      "transporters": [],
+      "downstream_consumers": ["BA", "F", "BALL"]
+    },
+    "steel": {
+      "producers": ["NUE", "STLD", "X", "CLF", "VALE", "RIO"],
+      "etfs": ["SLX"],
+      "physical": [],
+      "futures": ["Iron ore (SGX), HRC steel (CME)"],
+      "transporters": [],
+      "downstream_consumers": ["CAT", "DE", "F", "PCAR"]
+    },
+    "zinc": {
+      "producers": ["TECK", "GLNCY"],
+      "etfs": [],
+      "physical": [],
+      "futures": ["Zinc (LME)"],
+      "transporters": [],
+      "downstream_consumers": ["NUE", "F"]
+    },
+    "tin": {
+      "producers": ["AFMJF", "MLXEF"],
+      "etfs": [],
+      "physical": [],
+      "futures": ["Tin (LME)"],
+      "transporters": [],
+      "downstream_consumers": ["AAPL", "TXN"]
+    },
+    "gold": {
+      "producers": ["NEM", "GOLD", "AEM", "FNV"],
+      "etfs": ["GLD", "IAU", "GDX", "GDXJ"],
+      "physical": ["Physical gold bullion / coins"],
+      "futures": ["Gold (COMEX GC)"],
+      "transporters": ["BCO"],
+      "downstream_consumers": []
+    },
+    "silver": {
+      "producers": ["PAAS", "WPM", "HL", "CDE"],
+      "etfs": ["SLV", "SIVR", "SIL"],
+      "physical": ["Physical silver bullion / coins"],
+      "futures": ["Silver (COMEX SI)"],
+      "transporters": ["BCO"],
+      "downstream_consumers": ["FSLR"]
+    },
+    "platinum": {
+      "producers": ["SBSW", "AGPPF", "IMPUY"],
+      "etfs": ["PPLT", "PLTM"],
+      "physical": ["Physical platinum bullion"],
+      "futures": ["Platinum (NYMEX PL)"],
+      "transporters": [],
+      "downstream_consumers": ["GM", "F", "PLUG"]
+    },
+    "palladium": {
+      "producers": ["SBSW", "NILSY"],
+      "etfs": ["PALL"],
+      "physical": ["Physical palladium bullion"],
+      "futures": ["Palladium (NYMEX PA)"],
+      "transporters": [],
+      "downstream_consumers": ["GM", "F"]
+    },
+    "crude-oil": {
+      "producers": ["XOM", "CVX", "COP", "OXY", "EOG"],
+      "etfs": ["XLE", "USO", "XOP"],
+      "physical": [],
+      "futures": ["WTI (NYMEX CL)", "Brent (ICE)"],
+      "transporters": ["KMI", "ENB", "WMB"],
+      "downstream_consumers": ["DAL", "UAL", "DOW"]
+    },
+    "natural-gas": {
+      "producers": ["EQT", "EXE", "RRC", "AR"],
+      "etfs": ["UNG", "FCG"],
+      "physical": [],
+      "futures": ["Henry Hub (NYMEX NG)"],
+      "transporters": ["KMI", "WMB", "LNG"],
+      "downstream_consumers": ["CF", "MOS", "DOW", "LIN"]
+    },
+    "uranium": {
+      "producers": ["CCJ", "UEC", "DNN"],
+      "etfs": ["URA", "URNM", "SRUUF"],
+      "physical": ["Sprott Physical Uranium Trust (SRUUF)"],
+      "futures": ["Uranium U3O8 (CME UX)"],
+      "transporters": [],
+      "downstream_consumers": ["CEG", "VST", "D"]
+    },
+    "coal": {
+      "producers": ["BTU", "ARCH", "AMR", "CEIX"],
+      "etfs": ["KOL"],
+      "physical": [],
+      "futures": ["Newcastle thermal coal (ICE), coking coal (SGX)"],
+      "transporters": ["UNP", "CSX", "NSC"],
+      "downstream_consumers": ["NUE", "X"]
+    },
+    "semiconductors": {
+      "producers": ["NVDA", "TSM", "AVGO", "AMD", "INTC", "QCOM", "TXN", "MU"],
+      "etfs": ["SMH", "SOXX", "XSD"],
+      "physical": [],
+      "futures": [],
+      "transporters": [],
+      "downstream_consumers": ["AAPL", "DELL", "TSLA", "F"]
+    },
+    "silicon": {
+      "producers": ["WFRD", "FQVLF", "DQ", "GCL"],
+      "etfs": ["TAN"],
+      "physical": [],
+      "futures": [],
+      "transporters": [],
+      "downstream_consumers": ["FSLR", "TSM", "NVDA"]
+    },
+    "rare-earths": {
+      "producers": ["MP", "LYSCF", "ARRNF"],
+      "etfs": ["REMX"],
+      "physical": [],
+      "futures": [],
+      "transporters": [],
+      "downstream_consumers": ["TSLA", "GE", "RTX"]
+    },
+    "gallium": {
+      "producers": ["AXT", "IIVI"],
+      "etfs": ["REMX"],
+      "physical": [],
+      "futures": [],
+      "transporters": [],
+      "downstream_consumers": ["QCOM", "RTX", "WOLF"]
+    },
+    "electricity": {
+      "producers": ["NEE", "CEG", "VST", "DUK", "SO", "D"],
+      "etfs": ["XLU", "VPU"],
+      "physical": [],
+      "futures": ["PJM / ERCOT power (ICE, Nodal)"],
+      "transporters": ["AEP", "EXC", "ED"],
+      "downstream_consumers": ["NVDA", "AMD"]
+    },
+    "water": {
+      "producers": ["AWK", "WTRG", "AWR", "CWT"],
+      "etfs": ["PHO", "FIW", "CGW"],
+      "physical": [],
+      "futures": ["Nasdaq Veles California Water (CME NQH2O)"],
+      "transporters": [],
+      "downstream_consumers": ["INTC", "TSM"]
+    },
+    "lumber": {
+      "producers": ["WY", "RYN", "PCH", "WFG"],
+      "etfs": ["WOOD", "CUT"],
+      "physical": [],
+      "futures": ["Lumber (CME LBR)"],
+      "transporters": [],
+      "downstream_consumers": ["DHI", "LEN", "PHM"]
+    },
+    "corn": {
+      "producers": ["ADM", "BG"],
+      "etfs": ["CORN", "DBA"],
+      "physical": [],
+      "futures": ["Corn (CBOT ZC)"],
+      "transporters": ["ADM", "BG"],
+      "downstream_consumers": ["TSN", "GIS", "DAR"]
+    }
+  }
+}

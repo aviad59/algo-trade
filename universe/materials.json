@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "description": "Controlled vocabulary of materials/commodities the producer universe depends on. The `id` of each material is the CANONICAL token Agent #1 (the extractor) must emit as dated_effects[].sector. `aliases` let the extractor normalize filing language onto the id; `used_in` + `consuming_sectors` are the reasoning bridge from a company's products to a material.",
+  "materials": [
+    {
+      "id": "lithium",
+      "name": "Lithium",
+      "category": "Battery metals",
+      "aliases": ["lithium carbonate", "lithium hydroxide", "spodumene", "Li"],
+      "used_in": ["EV battery cells", "grid-scale storage batteries", "consumer-electronics batteries"],
+      "consuming_sectors": ["Automakers", "Consumer Electronics", "Utilities", "Battery Manufacturers"],
+      "description": "Cathode/anode input for rechargeable lithium-ion batteries; demand tracks EV adoption and grid-storage buildout."
+    },
+    {
+      "id": "cobalt",
+      "name": "Cobalt",
+      "category": "Battery metals",
+      "aliases": ["Co", "cobalt sulfate"],
+      "used_in": ["high-energy-density battery cathodes", "superalloys", "jet-engine components"],
+      "consuming_sectors": ["Automakers", "Consumer Electronics", "Aerospace & Defense"],
+      "description": "Cathode stabilizer in NMC/NCA batteries and a superalloy ingredient; supply heavily concentrated in the DRC."
+    },
+    {
+      "id": "nickel",
+      "name": "Nickel",
+      "category": "Battery metals",
+      "aliases": ["Ni", "nickel sulfate", "class 1 nickel"],
+      "used_in": ["high-nickel battery cathodes", "stainless steel", "superalloys"],
+      "consuming_sectors": ["Automakers", "Steel & Metals", "Aerospace & Defense"],
+      "description": "Raises battery energy density and is the key alloying element in stainless steel."
+    },
+    {
+      "id": "manganese",
+      "name": "Manganese",
+      "category": "Battery metals",
+      "aliases": ["Mn", "manganese sulfate"],
+      "used_in": ["LMFP/LMO battery cathodes", "steel deoxidizing and alloying"],
+      "consuming_sectors": ["Steel & Metals", "Automakers", "Battery Manufacturers"],
+      "description": "Cheap cathode element gaining share in lower-cost batteries; also essential to virtually all steelmaking."
+    },
+    {
+      "id": "graphite",
+      "name": "Graphite",
+      "category": "Battery metals",
+      "aliases": ["natural graphite", "synthetic graphite", "anode material"],
+      "used_in": ["lithium-ion battery anodes", "electrodes", "refractories"],
+      "consuming_sectors": ["Battery Manufacturers", "Automakers", "Steel & Metals"],
+      "description": "Dominant anode material in lithium-ion cells; the single largest material by mass in most batteries."
+    },
+    {
+      "id": "copper",
+      "name": "Copper",
+      "category": "Industrial metals",
+      "aliases": ["Cu", "copper cathode", "copper concentrate"],
+      "used_in": ["electrical wiring", "motors", "EV powertrains", "data-center power", "grid transmission"],
+      "consuming_sectors": ["Utilities", "Automakers", "Construction", "Electrical Equipment", "Semiconductors"],
+      "description": "The backbone conductor of electrification; demand is a broad proxy for capex in power, EVs, and buildings."
+    },
+    {
+      "id": "aluminum",
+      "name": "Aluminum",
+      "category": "Industrial metals",
+      "aliases": ["Al", "aluminium", "alumina", "bauxite"],
+      "used_in": ["vehicle bodies", "aircraft structures", "beverage cans", "transmission lines", "building facades"],
+      "consuming_sectors": ["Automakers", "Aerospace & Defense", "Packaging", "Construction"],
+      "description": "Lightweight structural metal; smelting is power-intensive, so its cost tracks electricity prices."
+    },
+    {
+      "id": "steel",
+      "name": "Steel / Iron Ore",
+      "category": "Industrial metals",
+      "aliases": ["iron ore", "hot-rolled coil", "rebar", "Fe", "carbon steel"],
+      "used_in": ["construction", "machinery", "vehicles", "pipelines", "appliances"],
+      "consuming_sectors": ["Construction", "Industrial Machinery", "Automakers", "Energy"],
+      "description": "The dominant structural metal of the economy; iron ore is its primary feedstock."
+    },
+    {
+      "id": "zinc",
+      "name": "Zinc",
+      "category": "Industrial metals",
+      "aliases": ["Zn", "galvanizing"],
+      "used_in": ["galvanized (rust-proof) steel", "die castings", "brass"],
+      "consuming_sectors": ["Construction", "Automakers", "Industrial Machinery"],
+      "description": "Primarily a corrosion-resistant coating for steel; demand tracks construction and infrastructure."
+    },
+    {
+      "id": "tin",
+      "name": "Tin",
+      "category": "Industrial metals",
+      "aliases": ["Sn", "solder"],
+      "used_in": ["electronics solder", "tinplate", "alloys"],
+      "consuming_sectors": ["Semiconductors", "Consumer Electronics", "Packaging"],
+      "description": "Solder is the largest use, making tin a quiet but direct read on electronics manufacturing."
+    },
+    {
+      "id": "gold",
+      "name": "Gold",
+      "category": "Precious metals",
+      "aliases": ["Au", "bullion"],
+      "used_in": ["jewelry", "electronics connectors/plating", "central-bank reserves", "investment"],
+      "consuming_sectors": ["Consumer Electronics", "Jewelry", "Financial / Reserve Asset"],
+      "description": "Monetary and store-of-value metal with a minor but real industrial use in high-reliability electronics."
+    },
+    {
+      "id": "silver",
+      "name": "Silver",
+      "category": "Precious metals",
+      "aliases": ["Ag"],
+      "used_in": ["solar PV cells", "electronics contacts", "jewelry", "investment"],
+      "consuming_sectors": ["Solar / Clean Energy", "Consumer Electronics", "Jewelry"],
+      "description": "Most conductive metal; solar photovoltaics are now a major and growing demand driver."
+    },
+    {
+      "id": "platinum",
+      "name": "Platinum",
+      "category": "Precious metals",
+      "aliases": ["Pt", "PGM", "platinum-group metals"],
+      "used_in": ["catalytic converters (diesel)", "hydrogen electrolyzers/fuel cells", "jewelry"],
+      "consuming_sectors": ["Automakers", "Hydrogen / Clean Energy", "Chemicals"],
+      "description": "Autocatalyst and emerging hydrogen-economy metal; demand splits between combustion engines and fuel cells."
+    },
+    {
+      "id": "palladium",
+      "name": "Palladium",
+      "category": "Precious metals",
+      "aliases": ["Pd", "PGM", "platinum-group metals"],
+      "used_in": ["catalytic converters (gasoline)", "electronics"],
+      "consuming_sectors": ["Automakers", "Consumer Electronics"],
+      "description": "Gasoline-engine autocatalyst metal; structurally exposed to the decline of internal-combustion vehicles."
+    },
+    {
+      "id": "crude-oil",
+      "name": "Crude Oil",
+      "category": "Energy",
+      "aliases": ["oil", "WTI", "Brent", "petroleum"],
+      "used_in": ["transportation fuels", "petrochemical feedstock", "plastics", "lubricants"],
+      "consuming_sectors": ["Energy", "Chemicals", "Transportation", "Airlines"],
+      "description": "Primary liquid-fuel and petrochemical feedstock; its price feeds through to fuels, plastics, and freight."
+    },
+    {
+      "id": "natural-gas",
+      "name": "Natural Gas",
+      "category": "Energy",
+      "aliases": ["LNG", "methane", "Henry Hub"],
+      "used_in": ["power generation", "heating", "ammonia/fertilizer", "hydrogen feedstock"],
+      "consuming_sectors": ["Utilities", "Chemicals", "Fertilizer", "Industrial Manufacturing"],
+      "description": "Major power-generation and heating fuel and the feedstock for ammonia/fertilizer and most hydrogen."
+    },
+    {
+      "id": "uranium",
+      "name": "Uranium",
+      "category": "Energy",
+      "aliases": ["U3O8", "yellowcake", "enriched uranium"],
+      "used_in": ["nuclear reactor fuel"],
+      "consuming_sectors": ["Utilities", "Nuclear Power"],
+      "description": "Nuclear fuel; demand is reviving with data-center power needs and reactor life extensions."
+    },
+    {
+      "id": "coal",
+      "name": "Coal",
+      "category": "Energy",
+      "aliases": ["thermal coal", "metallurgical coal", "coking coal"],
+      "used_in": ["power generation (thermal)", "steelmaking (metallurgical)"],
+      "consuming_sectors": ["Utilities", "Steel & Metals"],
+      "description": "Thermal coal fuels power plants; metallurgical coal is a near-irreplaceable input to blast-furnace steel."
+    },
+    {
+      "id": "semiconductors",
+      "name": "Semiconductors",
+      "category": "Tech inputs",
+      "aliases": ["chips", "wafers", "logic", "memory", "DRAM", "NAND", "GPUs"],
+      "used_in": ["computers", "phones", "data-center AI accelerators", "vehicles", "industrial controls"],
+      "consuming_sectors": ["Consumer Electronics", "Automakers", "Data Centers / AI", "Industrial Machinery"],
+      "description": "Finished chips rather than a raw material, but the binding input for nearly all modern hardware; AI compute is the swing driver."
+    },
+    {
+      "id": "silicon",
+      "name": "Silicon / Polysilicon",
+      "category": "Tech inputs",
+      "aliases": ["polysilicon", "metallurgical silicon", "Si", "silicon wafer"],
+      "used_in": ["semiconductor wafers", "solar PV modules", "aluminum alloys"],
+      "consuming_sectors": ["Semiconductors", "Solar / Clean Energy"],
+      "description": "Feedstock for both chip wafers and solar panels; high-purity polysilicon supply gates solar expansion."
+    },
+    {
+      "id": "rare-earths",
+      "name": "Rare Earth Elements",
+      "category": "Tech inputs",
+      "aliases": ["REE", "neodymium", "praseodymium", "dysprosium", "NdFeB magnets"],
+      "used_in": ["permanent magnets for EV/wind motors", "electronics", "defense systems"],
+      "consuming_sectors": ["Automakers", "Wind / Clean Energy", "Aerospace & Defense", "Consumer Electronics"],
+      "description": "Magnet metals essential to EV traction motors and wind turbines; supply is dominated by China."
+    },
+    {
+      "id": "gallium",
+      "name": "Gallium",
+      "category": "Tech inputs",
+      "aliases": ["Ga", "gallium arsenide", "GaN", "gallium nitride"],
+      "used_in": ["RF/power semiconductors", "LEDs", "solar cells", "radar"],
+      "consuming_sectors": ["Semiconductors", "Aerospace & Defense", "Telecom Equipment"],
+      "description": "Compound-semiconductor metal for RF, power, and defense electronics; subject to export controls."
+    },
+    {
+      "id": "electricity",
+      "name": "Electricity / Grid Power",
+      "category": "Infrastructure",
+      "aliases": ["power generation", "grid", "electric power", "power capacity"],
+      "used_in": ["data centers", "electrified manufacturing", "EV charging", "electrolysis"],
+      "consuming_sectors": ["Data Centers / AI", "Utilities", "Industrial Manufacturing", "Automakers"],
+      "description": "Grid power availability is increasingly a binding constraint on planned capex (notably AI data centers)."
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "category": "Infrastructure",
+      "aliases": ["freshwater", "process water", "ultrapure water"],
+      "used_in": ["semiconductor fabrication", "data-center cooling", "agriculture", "mining", "power-plant cooling"],
+      "consuming_sectors": ["Semiconductors", "Data Centers / AI", "Utilities", "Agriculture"],
+      "description": "Process and cooling input whose scarcity can gate siting of fabs, data centers, and power plants."
+    },
+    {
+      "id": "lumber",
+      "name": "Lumber / Timber",
+      "category": "Agriculture & soft",
+      "aliases": ["timber", "wood", "framing lumber", "pulp"],
+      "used_in": ["residential construction", "packaging", "paper/pulp"],
+      "consuming_sectors": ["Homebuilders", "Construction", "Packaging"],
+      "description": "Primary structural input for housing; demand is a direct read on residential construction activity."
+    },
+    {
+      "id": "corn",
+      "name": "Corn",
+      "category": "Agriculture & soft",
+      "aliases": ["maize", "feed corn"],
+      "used_in": ["animal feed", "ethanol fuel", "food ingredients (sweeteners, starch)"],
+      "consuming_sectors": ["Food Producers", "Ethanol / Biofuels", "Agriculture"],
+      "description": "Staple feedstock for food, animal feed, and ethanol; a bellwether soft commodity for the food complex."
+    }
+  ]
+}

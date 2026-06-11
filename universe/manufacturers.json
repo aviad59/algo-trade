@@ -1,0 +1,2647 @@
+{
+  "generated": "2026-06-11",
+  "sources": [
+    "Wikipedia: List of S&P 500 companies",
+    "Wikipedia: Dow Jones Industrial Average",
+    "SEC company_tickers.json"
+  ],
+  "filter": "physical-goods producers + energy + utilities (non-producers dropped)",
+  "count": 262,
+  "companies": [
+    {
+      "ticker": "A",
+      "cik": "0001090872",
+      "name": "Agilent Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "AAPL",
+      "cik": "0000320193",
+      "name": "Apple Inc.",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "ABBV",
+      "cik": "0001551152",
+      "name": "AbbVie",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "ABT",
+      "cik": "0000001800",
+      "name": "Abbott Laboratories",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "ADI",
+      "cik": "0000006281",
+      "name": "Analog Devices",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "ADM",
+      "cik": "0000007084",
+      "name": "Archer Daniels Midland",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Agricultural Products & Services"
+    },
+    {
+      "ticker": "AEE",
+      "cik": "0001002910",
+      "name": "Ameren",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "AEP",
+      "cik": "0000004904",
+      "name": "American Electric Power",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "AES",
+      "cik": "0000874761",
+      "name": "AES Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Independent Power Producers & Energy Traders"
+    },
+    {
+      "ticker": "ALB",
+      "cik": "0000915913",
+      "name": "Albemarle Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "ALGN",
+      "cik": "0001097149",
+      "name": "Align Technology",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Supplies"
+    },
+    {
+      "ticker": "ALLE",
+      "cik": "0001579241",
+      "name": "Allegion",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "AMAT",
+      "cik": "0000006951",
+      "name": "Applied Materials",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "ticker": "AMCR",
+      "cik": "0001748790",
+      "name": "Amcor",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "ticker": "AMD",
+      "cik": "0000002488",
+      "name": "Advanced Micro Devices",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "AME",
+      "cik": "0001037868",
+      "name": "Ametek",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "AMGN",
+      "cik": "0000318154",
+      "name": "Amgen",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "ANET",
+      "cik": "0001596532",
+      "name": "Arista Networks",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "AOS",
+      "cik": "0000091142",
+      "name": "A. O. Smith",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "APA",
+      "cik": "0001841666",
+      "name": "APA Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "APD",
+      "cik": "0000002969",
+      "name": "Air Products",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Industrial Gases"
+    },
+    {
+      "ticker": "APH",
+      "cik": "0000820313",
+      "name": "Amphenol",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Components"
+    },
+    {
+      "ticker": "APTV",
+      "cik": "0001521332",
+      "name": "Aptiv",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automotive Parts & Equipment"
+    },
+    {
+      "ticker": "ATO",
+      "cik": "0000731802",
+      "name": "Atmos Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Gas Utilities"
+    },
+    {
+      "ticker": "AVGO",
+      "cik": "0001730168",
+      "name": "Broadcom",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "AVY",
+      "cik": "0000008818",
+      "name": "Avery Dennison",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "ticker": "AWK",
+      "cik": "0001410636",
+      "name": "American Water Works",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Water Utilities"
+    },
+    {
+      "ticker": "AXON",
+      "cik": "0001069183",
+      "name": "Axon Enterprise",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "BA",
+      "cik": "0000012927",
+      "name": "Boeing",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "BALL",
+      "cik": "0000009389",
+      "name": "Ball Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Metal, Glass & Plastic Containers"
+    },
+    {
+      "ticker": "BAX",
+      "cik": "0000010456",
+      "name": "Baxter International",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "BDX",
+      "cik": "0000010795",
+      "name": "Becton Dickinson",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "BF.B",
+      "cik": "0000014693",
+      "name": "Brown–Forman",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Distillers & Vintners"
+    },
+    {
+      "ticker": "BG",
+      "cik": "0001996862",
+      "name": "Bunge Global",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Agricultural Products & Services"
+    },
+    {
+      "ticker": "BIIB",
+      "cik": "0000875045",
+      "name": "Biogen",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "BKR",
+      "cik": "0001701605",
+      "name": "Baker Hughes",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "ticker": "BLDR",
+      "cik": "0001316835",
+      "name": "Builders FirstSource",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "BMY",
+      "cik": "0000014272",
+      "name": "Bristol Myers Squibb",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "BSX",
+      "cik": "0000885725",
+      "name": "Boston Scientific",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "CAG",
+      "cik": "0000023217",
+      "name": "Conagra Brands",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "CARR",
+      "cik": "0001783180",
+      "name": "Carrier Global",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "CAT",
+      "cik": "0000018230",
+      "name": "Caterpillar Inc.",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "ticker": "CEG",
+      "cik": "0001868275",
+      "name": "Constellation Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "CF",
+      "cik": "0001324404",
+      "name": "CF Industries",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "ticker": "CHD",
+      "cik": "0000313927",
+      "name": "Church & Dwight",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Household Products"
+    },
+    {
+      "ticker": "CIEN",
+      "cik": "0000936395",
+      "name": "Ciena",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "CL",
+      "cik": "0000021665",
+      "name": "Colgate-Palmolive",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Household Products"
+    },
+    {
+      "ticker": "CLX",
+      "cik": "0000021076",
+      "name": "Clorox",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Household Products"
+    },
+    {
+      "ticker": "CMI",
+      "cik": "0000026172",
+      "name": "Cummins",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "ticker": "CMS",
+      "cik": "0000811156",
+      "name": "CMS Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "CNP",
+      "cik": "0001130310",
+      "name": "CenterPoint Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "COHR",
+      "cik": "0000820318",
+      "name": "Coherent Corp.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Components"
+    },
+    {
+      "ticker": "COO",
+      "cik": "0000711404",
+      "name": "Cooper Companies (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Supplies"
+    },
+    {
+      "ticker": "COP",
+      "cik": "0001163165",
+      "name": "ConocoPhillips",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "CPB",
+      "cik": "0000016732",
+      "name": "Campbell's Company (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "CRH",
+      "cik": "0000849395",
+      "name": "CRH plc",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Construction Materials"
+    },
+    {
+      "ticker": "CRL",
+      "cik": "0001100682",
+      "name": "Charles River Laboratories",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "CSCO",
+      "cik": "0000858877",
+      "name": "Cisco",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "CTVA",
+      "cik": "0001755672",
+      "name": "Corteva",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "ticker": "CVX",
+      "cik": "0000093410",
+      "name": "Chevron Corporation",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Integrated Oil & Gas"
+    },
+    {
+      "ticker": "D",
+      "cik": "0000715957",
+      "name": "Dominion Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "DASH",
+      "cik": "0001792789",
+      "name": "DoorDash",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Specialized Consumer Services"
+    },
+    {
+      "ticker": "DD",
+      "cik": "0001666700",
+      "name": "DuPont",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "DE",
+      "cik": "0000315189",
+      "name": "Deere & Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Agricultural & Farm Machinery"
+    },
+    {
+      "ticker": "DECK",
+      "cik": "0000910521",
+      "name": "Deckers Brands",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Footwear"
+    },
+    {
+      "ticker": "DELL",
+      "cik": "0001571996",
+      "name": "Dell Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "DHI",
+      "cik": "0000882184",
+      "name": "D. R. Horton",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Homebuilding"
+    },
+    {
+      "ticker": "DHR",
+      "cik": "0000313616",
+      "name": "Danaher Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "DOV",
+      "cik": "0000029905",
+      "name": "Dover Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "DOW",
+      "cik": "0001751788",
+      "name": "Dow Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Commodity Chemicals"
+    },
+    {
+      "ticker": "DTE",
+      "cik": "0000936340",
+      "name": "DTE Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "DUK",
+      "cik": "0001326160",
+      "name": "Duke Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "DVN",
+      "cik": "0001090012",
+      "name": "Devon Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "DXCM",
+      "cik": "0001093557",
+      "name": "Dexcom",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "ECL",
+      "cik": "0000031462",
+      "name": "Ecolab",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "ED",
+      "cik": "0001047862",
+      "name": "Consolidated Edison",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "EIX",
+      "cik": "0000827052",
+      "name": "Edison International",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "EL",
+      "cik": "0001001250",
+      "name": "Estée Lauder Companies (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Personal Care Products"
+    },
+    {
+      "ticker": "EME",
+      "cik": "0000105634",
+      "name": "Emcor",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction & Engineering"
+    },
+    {
+      "ticker": "EMR",
+      "cik": "0000032604",
+      "name": "Emerson Electric",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "EOG",
+      "cik": "0000821189",
+      "name": "EOG Resources",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "EQT",
+      "cik": "0000033213",
+      "name": "EQT Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "ES",
+      "cik": "0000072741",
+      "name": "Eversource Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "ETN",
+      "cik": "0001551182",
+      "name": "Eaton Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "ETR",
+      "cik": "0000065984",
+      "name": "Entergy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "EVRG",
+      "cik": "0001711269",
+      "name": "Evergy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "EW",
+      "cik": "0001099800",
+      "name": "Edwards Lifesciences",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "EXC",
+      "cik": "0001109357",
+      "name": "Exelon",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "EXE",
+      "cik": "0000895126",
+      "name": "Expand Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "F",
+      "cik": "0000037996",
+      "name": "Ford Motor Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automobile Manufacturers"
+    },
+    {
+      "ticker": "FANG",
+      "cik": "0001539838",
+      "name": "Diamondback Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "FCX",
+      "cik": "0000831259",
+      "name": "Freeport-McMoRan",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Copper"
+    },
+    {
+      "ticker": "FE",
+      "cik": "0001031296",
+      "name": "FirstEnergy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "FFIV",
+      "cik": "0001048695",
+      "name": "F5, Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "FIX",
+      "cik": "0001035983",
+      "name": "Comfort Systems USA",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction & Engineering"
+    },
+    {
+      "ticker": "FSLR",
+      "cik": "0001274494",
+      "name": "First Solar",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "FTV",
+      "cik": "0001659166",
+      "name": "Fortive",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "GD",
+      "cik": "0000040533",
+      "name": "General Dynamics",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "GE",
+      "cik": "0000040545",
+      "name": "GE Aerospace",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "GEHC",
+      "cik": "0001932393",
+      "name": "GE HealthCare",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "GEV",
+      "cik": "0001996810",
+      "name": "GE Vernova",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Heavy Electrical Equipment"
+    },
+    {
+      "ticker": "GILD",
+      "cik": "0000882095",
+      "name": "Gilead Sciences",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "GIS",
+      "cik": "0000040704",
+      "name": "General Mills",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "GLW",
+      "cik": "0000024741",
+      "name": "Corning Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Components"
+    },
+    {
+      "ticker": "GM",
+      "cik": "0001467858",
+      "name": "General Motors",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automobile Manufacturers"
+    },
+    {
+      "ticker": "GNRC",
+      "cik": "0001474735",
+      "name": "Generac",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "GRMN",
+      "cik": "0001121788",
+      "name": "Garmin",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Consumer Electronics"
+    },
+    {
+      "ticker": "GWW",
+      "cik": "0000277135",
+      "name": "W. W. Grainger",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "HAL",
+      "cik": "0000045012",
+      "name": "Halliburton",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "ticker": "HII",
+      "cik": "0001501585",
+      "name": "Huntington Ingalls Industries",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "HON",
+      "cik": "0000773840",
+      "name": "Honeywell",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Conglomerates"
+    },
+    {
+      "ticker": "HPE",
+      "cik": "0001645590",
+      "name": "Hewlett Packard Enterprise",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "HPQ",
+      "cik": "0000047217",
+      "name": "HP Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "HRL",
+      "cik": "0000048465",
+      "name": "Hormel Foods",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "HSY",
+      "cik": "0000047111",
+      "name": "Hershey Company (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "HUBB",
+      "cik": "0000048898",
+      "name": "Hubbell Incorporated",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "HWM",
+      "cik": "0000004281",
+      "name": "Howmet Aerospace",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "IDXX",
+      "cik": "0000874716",
+      "name": "Idexx Laboratories",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "IEX",
+      "cik": "0000832101",
+      "name": "IDEX Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "IFF",
+      "cik": "0000051253",
+      "name": "International Flavors & Fragrances",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "INCY",
+      "cik": "0000879169",
+      "name": "Incyte",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "INTC",
+      "cik": "0000050863",
+      "name": "Intel",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "IP",
+      "cik": "0000051434",
+      "name": "International Paper",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "ticker": "IQV",
+      "cik": "0001478242",
+      "name": "IQVIA",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "IR",
+      "cik": "0001699150",
+      "name": "Ingersoll Rand",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "ISRG",
+      "cik": "0001035267",
+      "name": "Intuitive Surgical",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "ITW",
+      "cik": "0000049826",
+      "name": "Illinois Tool Works",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "J",
+      "cik": "0000052988",
+      "name": "Jacobs Solutions",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction & Engineering"
+    },
+    {
+      "ticker": "JBL",
+      "cik": "0000898293",
+      "name": "Jabil",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Manufacturing Services"
+    },
+    {
+      "ticker": "JCI",
+      "cik": "0000833444",
+      "name": "Johnson Controls",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "JNJ",
+      "cik": "0000200406",
+      "name": "Johnson & Johnson",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "KDP",
+      "cik": "0001418135",
+      "name": "Keurig Dr Pepper",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "ticker": "KEYS",
+      "cik": "0001601046",
+      "name": "Keysight Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Equipment & Instruments"
+    },
+    {
+      "ticker": "KHC",
+      "cik": "0001637459",
+      "name": "Kraft Heinz",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "KLAC",
+      "cik": "0000319201",
+      "name": "KLA Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "ticker": "KMB",
+      "cik": "0000055785",
+      "name": "Kimberly-Clark",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Household Products"
+    },
+    {
+      "ticker": "KMI",
+      "cik": "0001506307",
+      "name": "Kinder Morgan",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "ticker": "KO",
+      "cik": "0000021344",
+      "name": "Coca-Cola Company (The)",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "ticker": "KVUE",
+      "cik": "0001944048",
+      "name": "Kenvue",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Personal Care Products"
+    },
+    {
+      "ticker": "LEN",
+      "cik": "0000920760",
+      "name": "Lennar",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Homebuilding"
+    },
+    {
+      "ticker": "LHX",
+      "cik": "0000202058",
+      "name": "L3Harris",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "LII",
+      "cik": "0001069202",
+      "name": "Lennox International",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "LIN",
+      "cik": "0001707925",
+      "name": "Linde plc",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Industrial Gases"
+    },
+    {
+      "ticker": "LITE",
+      "cik": "0001633978",
+      "name": "Lumentum",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "LLY",
+      "cik": "0000059478",
+      "name": "Lilly (Eli)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "LMT",
+      "cik": "0000936468",
+      "name": "Lockheed Martin",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "LNT",
+      "cik": "0000352541",
+      "name": "Alliant Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "LRCX",
+      "cik": "0000707549",
+      "name": "Lam Research",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "ticker": "LULU",
+      "cik": "0001397187",
+      "name": "Lululemon Athletica",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "ticker": "LYB",
+      "cik": "0001489393",
+      "name": "LyondellBasell",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "MAS",
+      "cik": "0000062996",
+      "name": "Masco",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "MCHP",
+      "cik": "0000827054",
+      "name": "Microchip Technology",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "MDLZ",
+      "cik": "0001103982",
+      "name": "Mondelez International",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "MDT",
+      "cik": "0001613103",
+      "name": "Medtronic",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "MKC",
+      "cik": "0000063754",
+      "name": "McCormick & Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "MLM",
+      "cik": "0000916076",
+      "name": "Martin Marietta Materials",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Construction Materials"
+    },
+    {
+      "ticker": "MMM",
+      "cik": "0000066740",
+      "name": "3M",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Conglomerates"
+    },
+    {
+      "ticker": "MNST",
+      "cik": "0000865752",
+      "name": "Monster Beverage",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "ticker": "MO",
+      "cik": "0000764180",
+      "name": "Altria",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Tobacco"
+    },
+    {
+      "ticker": "MOS",
+      "cik": "0001285785",
+      "name": "Mosaic Company (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Fertilizers & Agricultural Chemicals"
+    },
+    {
+      "ticker": "MPC",
+      "cik": "0001510295",
+      "name": "Marathon Petroleum",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "ticker": "MPWR",
+      "cik": "0001280452",
+      "name": "Monolithic Power Systems",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "MRK",
+      "cik": "0000310158",
+      "name": "Merck & Co.",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "MRNA",
+      "cik": "0001682852",
+      "name": "Moderna",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "MSI",
+      "cik": "0000068505",
+      "name": "Motorola Solutions",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Communications Equipment"
+    },
+    {
+      "ticker": "MTD",
+      "cik": "0001037646",
+      "name": "Mettler Toledo",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "MU",
+      "cik": "0000723125",
+      "name": "Micron Technology",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "NDSN",
+      "cik": "0000072331",
+      "name": "Nordson Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "NEE",
+      "cik": "0000753308",
+      "name": "NextEra Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "NEM",
+      "cik": "0001164727",
+      "name": "Newmont",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Gold"
+    },
+    {
+      "ticker": "NI",
+      "cik": "0001111711",
+      "name": "NiSource",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "NKE",
+      "cik": "0000320187",
+      "name": "Nike, Inc.",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "ticker": "NOC",
+      "cik": "0001133421",
+      "name": "Northrop Grumman",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "NRG",
+      "cik": "0001013871",
+      "name": "NRG Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Independent Power Producers & Energy Traders"
+    },
+    {
+      "ticker": "NTAP",
+      "cik": "0001002047",
+      "name": "NetApp",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "NUE",
+      "cik": "0000073309",
+      "name": "Nucor",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Steel"
+    },
+    {
+      "ticker": "NVDA",
+      "cik": "0001045810",
+      "name": "Nvidia",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "NVR",
+      "cik": "0000906163",
+      "name": "NVR, Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Homebuilding"
+    },
+    {
+      "ticker": "NXPI",
+      "cik": "0001413447",
+      "name": "NXP Semiconductors",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "OKE",
+      "cik": "0001039684",
+      "name": "Oneok",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "ticker": "ON",
+      "cik": "0001097864",
+      "name": "ON Semiconductor",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "OTIS",
+      "cik": "0001781335",
+      "name": "Otis Worldwide",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "OXY",
+      "cik": "0000797468",
+      "name": "Occidental Petroleum",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "PCAR",
+      "cik": "0000075362",
+      "name": "Paccar",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "ticker": "PCG",
+      "cik": "0001004980",
+      "name": "PG&E Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "PEG",
+      "cik": "0000788784",
+      "name": "Public Service Enterprise Group",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "PEP",
+      "cik": "0000077476",
+      "name": "PepsiCo",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Soft Drinks & Non-alcoholic Beverages"
+    },
+    {
+      "ticker": "PFE",
+      "cik": "0000078003",
+      "name": "Pfizer",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "PG",
+      "cik": "0000080424",
+      "name": "Procter & Gamble",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Personal Care Products"
+    },
+    {
+      "ticker": "PH",
+      "cik": "0000076334",
+      "name": "Parker Hannifin",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "PHM",
+      "cik": "0000822416",
+      "name": "PulteGroup",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Homebuilding"
+    },
+    {
+      "ticker": "PKG",
+      "cik": "0000075677",
+      "name": "Packaging Corporation of America",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "ticker": "PM",
+      "cik": "0001413329",
+      "name": "Philip Morris International",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Tobacco"
+    },
+    {
+      "ticker": "PNR",
+      "cik": "0000077360",
+      "name": "Pentair",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "PNW",
+      "cik": "0000764622",
+      "name": "Pinnacle West Capital",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "PODD",
+      "cik": "0001145197",
+      "name": "Insulet Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "PPG",
+      "cik": "0000079879",
+      "name": "PPG Industries",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "PPL",
+      "cik": "0000922224",
+      "name": "PPL Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "PSX",
+      "cik": "0001534701",
+      "name": "Phillips 66",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "ticker": "PWR",
+      "cik": "0001050915",
+      "name": "Quanta Services",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction & Engineering"
+    },
+    {
+      "ticker": "Q",
+      "cik": "0002058873",
+      "name": "Qnity Electronics",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "ticker": "QCOM",
+      "cik": "0000804328",
+      "name": "Qualcomm",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "REGN",
+      "cik": "0000872589",
+      "name": "Regeneron Pharmaceuticals",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "RL",
+      "cik": "0001037038",
+      "name": "Ralph Lauren Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "ticker": "RMD",
+      "cik": "0000943819",
+      "name": "ResMed",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "ROK",
+      "cik": "0001024478",
+      "name": "Rockwell Automation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "ROL",
+      "cik": "0000084839",
+      "name": "Rollins, Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Environmental & Facilities Services"
+    },
+    {
+      "ticker": "ROP",
+      "cik": "0000882835",
+      "name": "Roper Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Equipment & Instruments"
+    },
+    {
+      "ticker": "RSG",
+      "cik": "0001060391",
+      "name": "Republic Services",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Environmental & Facilities Services"
+    },
+    {
+      "ticker": "RTX",
+      "cik": "0000101829",
+      "name": "RTX Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "RVTY",
+      "cik": "0000031791",
+      "name": "Revvity",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "SHW",
+      "cik": "0000089800",
+      "name": "Sherwin-Williams",
+      "indexes": [
+        "SP500",
+        "DJIA"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Specialty Chemicals"
+    },
+    {
+      "ticker": "SJM",
+      "cik": "0000091419",
+      "name": "J.M. Smucker Company (The)",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "SLB",
+      "cik": "0000087347",
+      "name": "Schlumberger",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Equipment & Services"
+    },
+    {
+      "ticker": "SMCI",
+      "cik": "0001375365",
+      "name": "Supermicro",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "SNA",
+      "cik": "0000091440",
+      "name": "Snap-on",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "SNDK",
+      "cik": "0002023554",
+      "name": "Sandisk",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "SO",
+      "cik": "0000092122",
+      "name": "Southern Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "SRE",
+      "cik": "0001032208",
+      "name": "Sempra",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "STE",
+      "cik": "0001757898",
+      "name": "Steris",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "STLD",
+      "cik": "0001022671",
+      "name": "Steel Dynamics",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Steel"
+    },
+    {
+      "ticker": "STX",
+      "cik": "0001137789",
+      "name": "Seagate Technology",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "STZ",
+      "cik": "0000016918",
+      "name": "Constellation Brands",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Distillers & Vintners"
+    },
+    {
+      "ticker": "SW",
+      "cik": "0002005951",
+      "name": "Smurfit Westrock",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Paper & Plastic Packaging Products & Materials"
+    },
+    {
+      "ticker": "SWK",
+      "cik": "0000093556",
+      "name": "Stanley Black & Decker",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "SWKS",
+      "cik": "0000004127",
+      "name": "Skyworks Solutions",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "SYK",
+      "cik": "0000310764",
+      "name": "Stryker Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "TAP",
+      "cik": "0000024545",
+      "name": "Molson Coors Beverage Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Brewers"
+    },
+    {
+      "ticker": "TDG",
+      "cik": "0001260221",
+      "name": "TransDigm Group",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "TDY",
+      "cik": "0001094285",
+      "name": "Teledyne Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Equipment & Instruments"
+    },
+    {
+      "ticker": "TECH",
+      "cik": "0000842023",
+      "name": "Bio-Techne",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "TEL",
+      "cik": "0001385157",
+      "name": "TE Connectivity",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Manufacturing Services"
+    },
+    {
+      "ticker": "TER",
+      "cik": "0000097210",
+      "name": "Teradyne",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductor Materials & Equipment"
+    },
+    {
+      "ticker": "TMO",
+      "cik": "0000097745",
+      "name": "Thermo Fisher Scientific",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "TPL",
+      "cik": "0001811074",
+      "name": "Texas Pacific Land Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Exploration & Production"
+    },
+    {
+      "ticker": "TPR",
+      "cik": "0001116132",
+      "name": "Tapestry, Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Apparel, Accessories & Luxury Goods"
+    },
+    {
+      "ticker": "TRGP",
+      "cik": "0001389170",
+      "name": "Targa Resources",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "ticker": "TSLA",
+      "cik": "0001318605",
+      "name": "Tesla, Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Discretionary",
+      "gics_sub_industry": "Automobile Manufacturers"
+    },
+    {
+      "ticker": "TSN",
+      "cik": "0000100493",
+      "name": "Tyson Foods",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Consumer Staples",
+      "gics_sub_industry": "Packaged Foods & Meats"
+    },
+    {
+      "ticker": "TT",
+      "cik": "0001466258",
+      "name": "Trane Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Building Products"
+    },
+    {
+      "ticker": "TXN",
+      "cik": "0000097476",
+      "name": "Texas Instruments",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Semiconductors"
+    },
+    {
+      "ticker": "TXT",
+      "cik": "0000217346",
+      "name": "Textron",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Aerospace & Defense"
+    },
+    {
+      "ticker": "VLO",
+      "cik": "0001035002",
+      "name": "Valero Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Refining & Marketing"
+    },
+    {
+      "ticker": "VLTO",
+      "cik": "0001967680",
+      "name": "Veralto",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Environmental & Facilities Services"
+    },
+    {
+      "ticker": "VMC",
+      "cik": "0001396009",
+      "name": "Vulcan Materials Company",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Materials",
+      "gics_sub_industry": "Construction Materials"
+    },
+    {
+      "ticker": "VRT",
+      "cik": "0001674101",
+      "name": "Vertiv",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Electrical Components & Equipment"
+    },
+    {
+      "ticker": "VRTX",
+      "cik": "0000875320",
+      "name": "Vertex Pharmaceuticals",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Biotechnology"
+    },
+    {
+      "ticker": "VST",
+      "cik": "0001692819",
+      "name": "Vistra Corp .",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "VTRS",
+      "cik": "0001792044",
+      "name": "Viatris",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    },
+    {
+      "ticker": "WAB",
+      "cik": "0000943452",
+      "name": "Wabtec",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Construction Machinery & Heavy Transportation Equipment"
+    },
+    {
+      "ticker": "WAT",
+      "cik": "0001000697",
+      "name": "Waters Corporation",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Life Sciences Tools & Services"
+    },
+    {
+      "ticker": "WDC",
+      "cik": "0000106040",
+      "name": "Western Digital",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Technology Hardware, Storage & Peripherals"
+    },
+    {
+      "ticker": "WEC",
+      "cik": "0000783325",
+      "name": "WEC Energy Group",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Electric Utilities"
+    },
+    {
+      "ticker": "WM",
+      "cik": "0000823768",
+      "name": "Waste Management",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Environmental & Facilities Services"
+    },
+    {
+      "ticker": "WMB",
+      "cik": "0000107263",
+      "name": "Williams Companies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Oil & Gas Storage & Transportation"
+    },
+    {
+      "ticker": "WST",
+      "cik": "0000105770",
+      "name": "West Pharmaceutical Services",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Supplies"
+    },
+    {
+      "ticker": "XEL",
+      "cik": "0000072903",
+      "name": "Xcel Energy",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Utilities",
+      "gics_sub_industry": "Multi-Utilities"
+    },
+    {
+      "ticker": "XOM",
+      "cik": "0000034088",
+      "name": "ExxonMobil",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Energy",
+      "gics_sub_industry": "Integrated Oil & Gas"
+    },
+    {
+      "ticker": "XYL",
+      "cik": "0001524472",
+      "name": "Xylem Inc.",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Industrials",
+      "gics_sub_industry": "Industrial Machinery & Supplies & Components"
+    },
+    {
+      "ticker": "ZBH",
+      "cik": "0001136869",
+      "name": "Zimmer Biomet",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Health Care Equipment"
+    },
+    {
+      "ticker": "ZBRA",
+      "cik": "0000877212",
+      "name": "Zebra Technologies",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Information Technology",
+      "gics_sub_industry": "Electronic Equipment & Instruments"
+    },
+    {
+      "ticker": "ZTS",
+      "cik": "0001555280",
+      "name": "Zoetis",
+      "indexes": [
+        "SP500"
+      ],
+      "gics_sector": "Health Care",
+      "gics_sub_industry": "Pharmaceuticals"
+    }
+  ]
+}
