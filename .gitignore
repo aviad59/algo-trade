@@ -13,8 +13,14 @@ cache/
 *.sqlite
 *.duckdb
 
-# Editor
+# Editor / agent local state
 .vscode/
 .idea/
+.claude/
 *.swp
 .DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

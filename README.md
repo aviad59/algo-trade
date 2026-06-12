@@ -271,7 +271,7 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 
 ## Roadmap
 
-- [ ] EDGAR fetcher wrapper around `edgartools`
+- [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
 - [ ] Extractor agent with strict JSON schema output (including `dated_effects[]`)
 - [ ] Buffer (start with JSONL)
 - [ ] Recommender agent
@@ -290,15 +290,43 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 ```bash
 git clone https://github.com/aviad59/algo-trade.git
 cd algo-trade
-# (code coming — this repo currently contains the design only)
+python -m pip install -e ".[dev]"
+```
+
+Fetch NVIDIA's latest 10-K (MD&A + Risk Factors) into stdout as JSONL:
+
+```bash
+algo-trade-fetch \
+    --identity "Your Name you@example.com" \
+    --ticker NVDA \
+    --form 10-K \
+    --limit 1
+```
+
+Or, from Python:
+
+```python
+from algo_trade import Fetcher
+
+fetcher = Fetcher(identity="Your Name you@example.com")
+for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
+    print(f.ticker, f.form, f.filing_date, f.accession_number)
+    print(" mda chars:", len(f.section("mda") or ""))
+    print(" risk_factors chars:", len(f.section("risk_factors") or ""))
+```
+
+Run the tests:
+
+```bash
+python -m pytest
 ```
 
 You will need:
-- An Anthropic API key (`ANTHROPIC_API_KEY`)
 - A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
+- An Anthropic API key (`ANTHROPIC_API_KEY`) — not needed yet, will be required once Agent #1 lands
 
 ---
 
 ## Project status
 
-Early. This README is the design doc — code lands next.
+Step 1 of the roadmap (the EDGAR fetcher) is implemented. Everything downstream of the fetcher — the extractor agent, the buffer, the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
