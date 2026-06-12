@@ -27,6 +27,9 @@ algo-trade-fetch = "algo_trade.fetcher:_cli"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"algo_trade.buffer" = ["schema.sql"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
