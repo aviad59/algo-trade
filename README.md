@@ -272,7 +272,7 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 ## Roadmap
 
 - [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
-- [ ] Extractor agent with strict JSON schema output (including `dated_effects[]`)
+- [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
 - [ ] Buffer (start with JSONL)
 - [ ] Recommender agent
 - [ ] **Sector timeline aggregator** (monthly bucketing, per-sector time series)
@@ -315,6 +315,25 @@ for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
     print(" risk_factors chars:", len(f.section("risk_factors") or ""))
 ```
 
+Fetch + run Agent #1 (the Extractor) on the result:
+
+```python
+import os
+from algo_trade import Extractor, Fetcher
+
+os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-...")
+
+fetcher = Fetcher(identity="Your Name you@example.com")
+extractor = Extractor()  # defaults to claude-opus-4-7
+
+for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
+    extracted = extractor.extract(f)
+    print(f"confidence: {extracted.extractor_confidence:.2f}")
+    for e in extracted.dated_effects:
+        print(f"  {e.sector:<28} {e.direction.value:<9} {e.magnitude.value:<9} "
+              f"{e.window_start} -> {e.window_end}  @ {e.source_span}")
+```
+
 Run the tests:
 
 ```bash
@@ -323,10 +342,10 @@ python -m pytest
 
 You will need:
 - A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
-- An Anthropic API key (`ANTHROPIC_API_KEY`) — not needed yet, will be required once Agent #1 lands
+- An Anthropic API key (`ANTHROPIC_API_KEY`) — required for the Extractor
 
 ---
 
 ## Project status
 
-Step 1 of the roadmap (the EDGAR fetcher) is implemented. Everything downstream of the fetcher — the extractor agent, the buffer, the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
+Steps 1 and 2 of the roadmap are implemented: the EDGAR fetcher and the Extractor agent. Everything downstream — the buffer, the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
