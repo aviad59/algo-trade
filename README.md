@@ -10,9 +10,23 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 | Path | Role |
 |------|------|
-| [`backend/`](backend/README.md) | Agent pipeline (in progress), [`universe/`](backend/universe/README.md) reference data, [`mock/v1/`](backend/mock/v1/manifest.json) API snapshots, validation scripts |
-| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down |
-| [`docs/`](docs/hld-web-interface.md) | [HLD](docs/hld-web-interface.md), [implementation plan](docs/implementation-plan-web.md), [Playwright MCP](docs/playwright-mcp.md) |
+| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline package** — EDGAR fetcher, extractor (Agent #1), buffer schema. Install via `pip install -e ".[dev]"`. |
+| [`tests/`](tests/) | Python tests for the pipeline (`pytest`) |
+| [`backend/`](backend/README.md) | **Mock / contract support** — [`universe/`](backend/universe/README.md) reference JSON, [`mock/v1/`](backend/mock/v1/manifest.json) demo API snapshots, validation scripts. Not the live pipeline code. |
+| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down. Runs on mock JSON until a live API exists. |
+| [`docs/`](docs/ARCHITECTURE.md) | Technical docs — see links below |
+| [`examples/`](examples/) | Small pipeline usage examples |
+
+### Documentation
+
+| Doc | Audience |
+|-----|----------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Pipeline stages, contracts, SQLite schema, design decisions |
+| [hld-web-interface.md](docs/hld-web-interface.md) | Web UI boundaries and JSON API contract (v1) |
+| [implementation-plan-web.md](docs/implementation-plan-web.md) | Web delivery phases and checklist |
+| [playwright-mcp.md](docs/playwright-mcp.md) | E2E tests and optional Cursor browser MCP |
+
+The **live Python pipeline** lives under `src/algo_trade/`. The **web app** reads static mock files from `backend/mock/v1/` in development (`VITE_DATA_SOURCE=mock`). Connecting the UI to pipeline output is future work (`feature/buffer-store` and beyond).
 
 ---
 
@@ -362,6 +376,16 @@ Run the tests:
 ```bash
 python -m pytest
 ```
+
+### Web UI (mock mode)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 — the app reads static JSON from `backend/mock/v1/` (see [`frontend/README.md`](frontend/README.md)).
 
 You will need:
 - A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
