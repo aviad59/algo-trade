@@ -17,9 +17,14 @@ cache/
 .vscode/
 .idea/
 .cursor/
+.claude/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+build/
+dist/
 
 # Generated demo artifacts (see frontend: npm run record-demo)
 docs/demo/

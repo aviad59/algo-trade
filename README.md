@@ -54,9 +54,9 @@ Reading these filings by hand for hundreds of companies is not realistic. So we 
                     ▼
         ┌────────────────────────┐
         │  Side buffer           │
-        │  (JSONL / SQLite /     │
-        │   DuckDB — one row     │
-        │   per company×filing)  │
+        │  SQLite (canonical)    │
+        │  + DuckDB attached for │
+        │  analytical reads      │
         └───────────┬────────────┘
                     │
         ┌───────────┴───────────────────┐
@@ -148,12 +148,25 @@ Rules the extractor must follow:
 
 ### 3. Side buffer
 
-One row per `(company, filing)`. Append-only. Easy to query later — the recommender does not re-read raw filings, only this buffer.
+Three normalized SQLite tables. The schema is committed at [`src/algo_trade/buffer/schema.sql`](src/algo_trade/buffer/schema.sql) and is the contract between the extractor (writes) and everything downstream (reads): the timeline aggregator, the recommender, the web app, the backtest harness.
 
-Format options (pick whichever fits — they're interchangeable):
-- JSONL on disk (simplest)
-- SQLite (good for ad-hoc SQL)
-- DuckDB (good if buffer grows past a few hundred MB)
+```
+filings          (accession_number PK, ticker, cik, filing_type, filing_date, ...)
+extractions      (id PK, accession_number FK, extractor_model, extractor_confidence, ...)
+                  UNIQUE (accession_number, extractor_model)   — re-running upserts
+dated_effects    (id PK, extraction_id FK, sector, direction, magnitude,
+                  window_start, window_end, rationale, source_span)
+flagged_risks    (id PK, extraction_id FK, risk)
+extraction_warnings (id PK, extraction_id FK, warning)
+```
+
+Why SQLite:
+
+- **One file**, ACID, indexed. A read-only web app can render the Lithium curve over the last 12 months from a single query (`(sector, window_start, window_end)` index) — JSONL would mean scanning every line on every page load.
+- **CHECK constraints** at write time (`direction IN ('increase','decrease')`, `window_end >= window_start`, `length(source_span) > 0`) catch extractor regressions immediately, not three weeks later in the recommender.
+- **Re-run semantics.** The UNIQUE `(accession_number, extractor_model)` means re-running with the same model is idempotent; re-running with a *different* model keeps both versions side-by-side. Useful for A/B-ing prompts and models without losing history.
+- **DuckDB attaches the SQLite file for analytical reads** when the timeline aggregator needs columnar perf — `ATTACH 'buffer.sqlite' (TYPE sqlite, READ_ONLY)` — no copy, no second store to keep in sync.
+- **Postgres is the upgrade path** if this ever gets a real multi-user web backend. Same DDL with two trivial type changes (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §"Upgrade path").
 
 ### 4. Agent #2 — Sector Recommender
 
@@ -271,8 +284,8 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - **Language:** Python 3.11+
 - **LLM client:** `anthropic` SDK (Claude Sonnet 4.6 for extraction, Claude Opus 4.7 for the recommender — extraction is volume-heavy and cheaper-model-friendly, recommendation is reasoning-heavy)
 - **EDGAR client:** [`edgartools`](https://github.com/dgunning/edgartools) — handles fetching, section extraction, rate limits, caching
-- **Storage:** JSONL → SQLite → DuckDB depending on scale
-- **Validation:** `pydantic` for the buffer schema
+- **Storage:** SQLite as the canonical buffer (one file, ACID, indexed); DuckDB attached for analytical reads when needed. Schema in [`src/algo_trade/buffer/schema.sql`](src/algo_trade/buffer/schema.sql).
+- **Validation:** `pydantic` for the in-process pipeline contract, SQL CHECK constraints for the on-disk one
 - **Timeline math:** `pandas` for the per-sector monthly bucketing, `numpy` for the forward-AUC sweep
 - **Plotting:** `matplotlib` for static plots, `plotly` for the interactive version
 - **Orchestration:** plain Python to start; consider a job queue once the universe of tickers grows
@@ -281,9 +294,9 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 
 ## Roadmap
 
-- [ ] EDGAR fetcher wrapper around `edgartools`
-- [ ] Extractor agent with strict JSON schema output (including `dated_effects[]`)
-- [ ] Buffer (start with JSONL)
+- [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
+- [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
+- [~] Buffer — SQLite schema committed at [`src/algo_trade/buffer/schema.sql`](src/algo_trade/buffer/schema.sql); `Buffer` Python class (upsert + curve queries) still to come.
 - [ ] Recommender agent
 - [ ] **Sector timeline aggregator** (monthly bucketing, per-sector time series)
 - [ ] **Buy/Sell timer** (forward-AUC algorithm, with slope / peak / threshold alternatives)
@@ -300,15 +313,68 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 ```bash
 git clone https://github.com/aviad59/algo-trade.git
 cd algo-trade
-# (code coming — this repo currently contains the design only)
+python -m pip install -e ".[dev]"
+```
+
+Fetch NVIDIA's latest 10-K (MD&A + Risk Factors) into stdout as JSONL:
+
+```bash
+algo-trade-fetch \
+    --identity "Your Name you@example.com" \
+    --ticker NVDA \
+    --form 10-K \
+    --limit 1
+```
+
+Or, from Python:
+
+```python
+from algo_trade import Fetcher
+
+fetcher = Fetcher(identity="Your Name you@example.com")
+for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
+    print(f.ticker, f.form, f.filing_date, f.accession_number)
+    print(" mda chars:", len(f.section("mda") or ""))
+    print(" risk_factors chars:", len(f.section("risk_factors") or ""))
+```
+
+Fetch + run Agent #1 (the Extractor) on the result:
+
+```python
+import os
+from algo_trade import Extractor, Fetcher
+
+os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-...")
+
+fetcher = Fetcher(identity="Your Name you@example.com")
+extractor = Extractor()  # defaults to claude-opus-4-7
+
+for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
+    extracted = extractor.extract(f)
+    print(f"confidence: {extracted.extractor_confidence:.2f}")
+    for e in extracted.dated_effects:
+        print(f"  {e.sector:<28} {e.direction.value:<9} {e.magnitude.value:<9} "
+              f"{e.window_start} -> {e.window_end}  @ {e.source_span}")
+```
+
+Run the tests:
+
+```bash
+python -m pytest
 ```
 
 You will need:
-- An Anthropic API key (`ANTHROPIC_API_KEY`)
 - A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
+- An Anthropic API key (`ANTHROPIC_API_KEY`) — required for the Extractor
 
 ---
 
 ## Project status
 
-Early. This README is the design doc — code lands next.
+Steps 1 and 2 of the roadmap are implemented: the EDGAR fetcher and the Extractor agent. Step 3 (the buffer) has its schema committed; the Python wrapper is still to come. Everything further downstream — the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
+
+---
+
+## For contributors and AI successors
+
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is the deep technical reference. Read it before you touch the code. It documents every stage's contract, the SQLite schema, the design decisions (and *why* each one), the file map, and how to extend the pipeline. The README is the intro; ARCHITECTURE is the manual.
