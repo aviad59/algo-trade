@@ -1,0 +1,30 @@
+{
+  "contract_version": "1.0",
+  "material_id": "lithium",
+  "as_of": "2026-06-08",
+  "actions": [
+    {
+      "date": "2026-04-01",
+      "action": "BUY",
+      "rationale": "forward_AUC ramping into May cell-line ramp cited by TSLA and GM"
+    },
+    {
+      "date": "2026-08-01",
+      "action": "SELL",
+      "rationale": "forward_AUC peaked in July; narrated ramp windows begin to roll off"
+    }
+  ],
+  "curve": [
+    { "month": "2026-01", "signal": 0.15, "forward_AUC": 2.4 },
+    { "month": "2026-02", "signal": 0.2, "forward_AUC": 2.8 },
+    { "month": "2026-03", "signal": 0.25, "forward_AUC": 3.2 },
+    { "month": "2026-04", "signal": 0.35, "forward_AUC": 3.8 },
+    { "month": "2026-05", "signal": 1.45, "forward_AUC": 4.1 },
+    { "month": "2026-06", "signal": 1.45, "forward_AUC": 3.9 },
+    { "month": "2026-07", "signal": 1.2, "forward_AUC": 2.5 },
+    { "month": "2026-08", "signal": 0.55, "forward_AUC": 1.1 },
+    { "month": "2026-09", "signal": 0.1, "forward_AUC": 0.3 }
+  ],
+  "contributing_ticker_count": 3,
+  "universe_curve": null
+}

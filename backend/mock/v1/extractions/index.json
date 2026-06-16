@@ -1,0 +1,287 @@
+{
+  "contract_version": "1.0",
+  "total": 12,
+  "limit": 50,
+  "offset": 0,
+  "items": [
+    {
+      "id": "ext_00001",
+      "ticker": "TSLA",
+      "cik": "0001318605",
+      "filing_type": "10-Q",
+      "filing_date": "2026-04-30",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001318605&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "lithium",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-05-01",
+          "window_end": "2026-08-31",
+          "rationale": "Cell line ramp at Nevada gigafactory scheduled to begin May",
+          "source_span": "Item 2, MD&A, p.18"
+        }
+      ],
+      "flagged_risks": ["Lithium supply concentration in Chile/Australia"],
+      "extractor_confidence": 0.79
+    },
+    {
+      "id": "ext_00002",
+      "ticker": "TSLA",
+      "cik": "0001318605",
+      "filing_type": "10-K",
+      "filing_date": "2026-02-15",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001318605&type=10-K",
+      "dated_effects": [
+        {
+          "sector": "copper",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-03-01",
+          "window_end": "2026-06-30",
+          "rationale": "Megapack and vehicle wiring harness volumes rising with Austin output",
+          "source_span": "Item 1A, Risk Factors, p.42"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.74
+    },
+    {
+      "id": "ext_00003",
+      "ticker": "GM",
+      "cik": "0001467858",
+      "filing_type": "10-Q",
+      "filing_date": "2026-05-12",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001467858&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "lithium",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-05-01",
+          "window_end": "2026-09-30",
+          "rationale": "Ultium cell procurement accelerating for SUV launches",
+          "source_span": "Item 2, MD&A, p.22"
+        }
+      ],
+      "flagged_risks": ["Battery module supplier concentration"],
+      "extractor_confidence": 0.81
+    },
+    {
+      "id": "ext_00004",
+      "ticker": "GM",
+      "cik": "0001467858",
+      "filing_type": "10-Q",
+      "filing_date": "2026-03-20",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001467858&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "lithium",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-04-01",
+          "window_end": "2026-07-31",
+          "rationale": "Qualification of domestic cathode supply for Q2 builds",
+          "source_span": "Item 2, MD&A, p.15"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.72
+    },
+    {
+      "id": "ext_00005",
+      "ticker": "FCX",
+      "cik": "0000831259",
+      "filing_type": "10-Q",
+      "filing_date": "2026-04-10",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000831259&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "copper",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-04-01",
+          "window_end": "2026-08-31",
+          "rationale": "Grasberg and North America mine plans point to higher cathode sales into electrification",
+          "source_span": "Item 2, MD&A, p.9"
+        }
+      ],
+      "flagged_risks": ["Treatment and refining charges volatility"],
+      "extractor_confidence": 0.85
+    },
+    {
+      "id": "ext_00006",
+      "ticker": "FCX",
+      "cik": "0000831259",
+      "filing_type": "10-K",
+      "filing_date": "2026-01-28",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000831259&type=10-K",
+      "dated_effects": [
+        {
+          "sector": "copper",
+          "direction": "decrease",
+          "magnitude": "small",
+          "window_start": "2026-07-01",
+          "window_end": "2026-12-31",
+          "rationale": "Management expects softer spot TC/RC environment in second half",
+          "source_span": "Item 7, MD&A, p.31"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.68
+    },
+    {
+      "id": "ext_00007",
+      "ticker": "NEE",
+      "cik": "0000753308",
+      "filing_type": "10-Q",
+      "filing_date": "2026-06-01",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000753308&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "electricity",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-06-01",
+          "window_end": "2026-12-31",
+          "rationale": "Solar and storage interconnect backlog implies higher contracted grid deliveries",
+          "source_span": "Item 2, MD&A, p.11"
+        },
+        {
+          "sector": "natural-gas",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-06-01",
+          "window_end": "2026-09-30",
+          "rationale": "Peaking gas turbines cited as bridge for regional reliability",
+          "source_span": "Item 2, MD&A, p.12"
+        }
+      ],
+      "flagged_risks": ["Regional transmission timelines remain uncertain"],
+      "extractor_confidence": 0.77
+    },
+    {
+      "id": "ext_00008",
+      "ticker": "NVDA",
+      "cik": "0001045810",
+      "filing_type": "10-Q",
+      "filing_date": "2026-05-28",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "electricity",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-05-01",
+          "window_end": "2026-10-31",
+          "rationale": "Data-center GPU clusters require incremental MW secured for 2026 builds",
+          "source_span": "Item 2, MD&A, p.8"
+        },
+        {
+          "sector": "semiconductors",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-05-01",
+          "window_end": "2026-08-31",
+          "rationale": "CoWoS and HBM supply agreements extended through Q3",
+          "source_span": "Item 2, MD&A, p.9"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.88
+    },
+    {
+      "id": "ext_00009",
+      "ticker": "NVDA",
+      "cik": "0001045810",
+      "filing_type": "10-K",
+      "filing_date": "2026-02-10",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=10-K",
+      "dated_effects": [
+        {
+          "sector": "semiconductors",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-03-01",
+          "window_end": "2026-06-30",
+          "rationale": "Advanced packaging capacity reservations for inference accelerators",
+          "source_span": "Item 1A, Risk Factors, p.19"
+        }
+      ],
+      "flagged_risks": ["Supplier concentration in Taiwan"],
+      "extractor_confidence": 0.83
+    },
+    {
+      "id": "ext_00010",
+      "ticker": "AAPL",
+      "cik": "0000320193",
+      "filing_type": "10-Q",
+      "filing_date": "2026-04-25",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000320193&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "lithium",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-04-01",
+          "window_end": "2026-07-31",
+          "rationale": "iPhone and wearable battery cell volumes up for fall cycle",
+          "source_span": "Item 2, MD&A, p.14"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.76
+    },
+    {
+      "id": "ext_00011",
+      "ticker": "AMD",
+      "cik": "0000002488",
+      "filing_type": "10-Q",
+      "filing_date": "2026-05-15",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000002488&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "electricity",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-05-01",
+          "window_end": "2026-08-31",
+          "rationale": "Colocation partners cite power as gating item for MI300 rack deployments",
+          "source_span": "Item 2, MD&A, p.7"
+        },
+        {
+          "sector": "semiconductors",
+          "direction": "increase",
+          "magnitude": "large",
+          "window_start": "2026-05-01",
+          "window_end": "2026-09-30",
+          "rationale": "Wafer supply agreements increased for data-center GPUs",
+          "source_span": "Item 2, MD&A, p.8"
+        }
+      ],
+      "flagged_risks": [],
+      "extractor_confidence": 0.8
+    },
+    {
+      "id": "ext_00012",
+      "ticker": "DELL",
+      "cik": "0001571996",
+      "filing_type": "10-Q",
+      "filing_date": "2026-03-08",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001571996&type=10-Q",
+      "dated_effects": [
+        {
+          "sector": "electricity",
+          "direction": "increase",
+          "magnitude": "moderate",
+          "window_start": "2026-03-01",
+          "window_end": "2026-06-30",
+          "rationale": "AI server rack deliveries tied to customer site power readiness",
+          "source_span": "Item 2, MD&A, p.10"
+        }
+      ],
+      "flagged_risks": ["Customer facility power delays"],
+      "extractor_confidence": 0.71
+    }
+  ]
+}

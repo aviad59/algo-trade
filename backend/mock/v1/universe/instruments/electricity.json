@@ -1,0 +1,12 @@
+{
+  "contract_version": "1.0",
+  "material_id": "electricity",
+  "buckets": {
+    "producers": ["NEE", "CEG", "VST", "DUK", "SO", "D"],
+    "etfs": ["XLU", "VPU"],
+    "physical": [],
+    "futures": ["PJM / ERCOT power (ICE, Nodal)"],
+    "transporters": ["AEP", "EXC", "ED"],
+    "downstream_consumers": ["NVDA", "AMD"]
+  }
+}

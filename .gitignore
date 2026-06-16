@@ -13,14 +13,18 @@ cache/
 *.sqlite
 *.duckdb
 
-# Editor / agent local state
+# Editor / IDE (local only)
 .vscode/
 .idea/
+.cursor/
 .claude/
 *.swp
 .DS_Store
+Thumbs.db
 
 # Build artifacts
 build/
 dist/
-*.egg-info/
+
+# Generated demo artifacts (see frontend: npm run record-demo)
+docs/demo/

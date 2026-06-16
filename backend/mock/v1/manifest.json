@@ -1,0 +1,19 @@
+{
+  "contract_version": "1.0",
+  "generated_at": "2026-06-11T00:00:00Z",
+  "as_of": "2026-06-08",
+  "description": "Minimal demo bundle for web UI v1",
+  "files": {
+    "health": "meta/health.json",
+    "forecast_summary": "forecast/summary.json",
+    "forecast_ranking": "forecast/ranking.json",
+    "forecast_materials": [
+      "forecast/materials/lithium.json",
+      "forecast/materials/copper.json",
+      "forecast/materials/electricity.json"
+    ],
+    "extractions": "extractions/index.json",
+    "manufacturers": "universe/manufacturers.json",
+    "materials": "universe/materials.json"
+  }
+}

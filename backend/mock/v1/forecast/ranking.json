@@ -1,0 +1,46 @@
+{
+  "contract_version": "1.0",
+  "as_of": "2026-06-08",
+  "ranked_materials": [
+    {
+      "material_id": "electricity",
+      "name": "Electricity / Grid Power",
+      "score": 0.87,
+      "rationale": "4 companies in the demo buffer flag grid power as a binding constraint on planned capex, led by data-center and EV expansion.",
+      "supporting_tickers": ["NVDA", "AMD", "DELL", "NEE"],
+      "dissenting_evidence": ["NEE notes regional transmission timelines remain uncertain"]
+    },
+    {
+      "material_id": "lithium",
+      "name": "Lithium",
+      "score": 0.82,
+      "rationale": "TSLA and GM both flag large battery-grade lithium purchases ramping into Q2–Q3 2026; AAPL signals steady consumer-electronics cell demand.",
+      "supporting_tickers": ["TSLA", "GM", "AAPL"],
+      "dissenting_evidence": []
+    },
+    {
+      "material_id": "copper",
+      "name": "Copper",
+      "score": 0.74,
+      "rationale": "FCX and downstream electrification names describe sustained conductor demand, though one producer expects moderation after mid-2026.",
+      "supporting_tickers": ["FCX", "TSLA"],
+      "dissenting_evidence": ["FCX cites softer spot treatment charges in H2"]
+    },
+    {
+      "material_id": "semiconductors",
+      "name": "Semiconductors",
+      "score": 0.71,
+      "rationale": "NVDA and AMD describe AI accelerator buildouts extending lead times on advanced packaging inputs.",
+      "supporting_tickers": ["NVDA", "AMD"],
+      "dissenting_evidence": []
+    },
+    {
+      "material_id": "natural-gas",
+      "name": "Natural Gas",
+      "score": 0.58,
+      "rationale": "NEE references gas-peaking capacity as bridge fuel for regional grid upgrades.",
+      "supporting_tickers": ["NEE"],
+      "dissenting_evidence": ["Single-ticker signal; treat as weak"]
+    }
+  ]
+}

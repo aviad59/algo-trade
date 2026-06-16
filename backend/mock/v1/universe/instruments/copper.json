@@ -1,0 +1,12 @@
+{
+  "contract_version": "1.0",
+  "material_id": "copper",
+  "buckets": {
+    "producers": ["FCX", "SCCO", "BHP", "RIO"],
+    "etfs": ["COPX", "CPER"],
+    "physical": [],
+    "futures": ["Copper (COMEX HG, LME)"],
+    "transporters": [],
+    "downstream_consumers": ["TSLA", "GE", "EMR", "ETN"]
+  }
+}
