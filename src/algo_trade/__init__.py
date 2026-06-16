@@ -12,8 +12,10 @@ from .models import (
 )
 from .fetcher import Fetcher
 from .extractor import Extractor
+from .buffer import Buffer
 
 __all__ = [
+    "Buffer",
     "DatedEffect",
     "Direction",
     "ExtractedFiling",

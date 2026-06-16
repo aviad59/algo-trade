@@ -10,7 +10,7 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 | Path | Role |
 |------|------|
-| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline package** — EDGAR fetcher, extractor (Agent #1), buffer schema. Install via `pip install -e ".[dev]"`. |
+| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline package** — EDGAR fetcher, extractor (Agent #1), buffer store (SQLite). Install via `pip install -e ".[dev]"`. |
 | [`tests/`](tests/) | Python tests for the pipeline (`pytest`) |
 | [`backend/`](backend/README.md) | **Mock / contract support** — [`universe/`](backend/universe/README.md) reference JSON, [`mock/v1/`](backend/mock/v1/manifest.json) demo API snapshots, validation scripts. Not the live pipeline code. |
 | [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down. Runs on mock JSON until a live API exists. |
@@ -310,7 +310,7 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 
 - [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
 - [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
-- [~] Buffer — SQLite schema committed at [`src/algo_trade/buffer/schema.sql`](src/algo_trade/buffer/schema.sql); `Buffer` Python class (upsert + curve queries) still to come.
+- [x] Buffer -- SQLite schema + `Buffer` Python class (`upsert`, `effects_for_sector`, `filings_citing`). CLI: `algo-trade-extract`. 23 hermetic tests. See [`src/algo_trade/buffer/`](src/algo_trade/buffer/).
 - [ ] Recommender agent
 - [ ] **Sector timeline aggregator** (monthly bucketing, per-sector time series)
 - [ ] **Buy/Sell timer** (forward-AUC algorithm, with slope / peak / threshold alternatives)
@@ -395,10 +395,11 @@ You will need:
 
 ## Project status
 
-Steps 1 and 2 of the roadmap are implemented: the EDGAR fetcher and the Extractor agent. Step 3 (the buffer) has its schema committed; the Python wrapper is still to come. Everything further downstream — the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
+Steps 1, 2, and 3 of the roadmap are implemented: the EDGAR fetcher, the Extractor agent (Agent #1), and the Buffer store (SQLite schema + Python `Buffer` class + `algo-trade-extract` CLI). Everything further downstream — the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
 
 ---
 
 ## For contributors and AI successors
 
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is the deep technical reference. Read it before you touch the code. It documents every stage's contract, the SQLite schema, the design decisions (and *why* each one), the file map, and how to extend the pipeline. The README is the intro; ARCHITECTURE is the manual.
+
