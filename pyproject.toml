@@ -23,6 +23,7 @@ dev = [
 
 [project.scripts]
 algo-trade-fetch = "algo_trade.fetcher:_cli"
+algo-trade-extract = "algo_trade.extract_cli:_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]

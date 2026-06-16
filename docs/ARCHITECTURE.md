@@ -121,10 +121,12 @@ The whole thing is a 6-stage pipeline. Stages communicate through pydantic model
 
 | | |
 |---|---|
-| **Status** | SCHEMA DONE (DDL committed), CODE PLANNED |
+| **Status** | DONE |
 | **Schema** | [`src/algo_trade/buffer/schema.sql`](../src/algo_trade/buffer/schema.sql) |
-| **Planned code** | `src/algo_trade/buffer/store.py` (TBD) |
+| **Code** | [`src/algo_trade/buffer/store.py`](../src/algo_trade/buffer/store.py) |
 | **DB** | SQLite (single file: `data/buffer.sqlite`) |
+| **CLI** | `algo-trade-extract --identity "Name email" TSLA --form 10-K --limit 1` |
+| **Tests** | [`tests/test_buffer_store.py`](../tests/test_buffer_store.py) (23 tests, hermetic — no network) |
 
 **What it is.** The persistent contract between Agent #1 (writes) and everything downstream (reads): the timeline aggregator, the recommender, the web app, the backtest harness.
 
@@ -150,21 +152,25 @@ Three normalized tables for the core data + two child tables for the secondary m
 
 **Re-run semantics.** The UNIQUE constraint on `extractions(accession_number, extractor_model)` means re-running the extractor with the same model is an upsert, not a duplicate. Re-running with a *different* model produces a second `extractions` row alongside the first — both versions stay queryable side-by-side, which is what you want for A/B-ing models without losing history.
 
-**Planned Python API** (not yet implemented — sketch for the successor):
+**Python API** (`src/algo_trade/buffer/store.py`):
 
 ```python
 from algo_trade.buffer import Buffer
 
-buf = Buffer("data/buffer.sqlite")
-buf.upsert(extracted_filing)               # idempotent on (accession, model)
-buf.curve(sector="Lithium",                # for the timeline aggregator
-          since=date(2026,1,1),
-          until=date(2027,1,1)) -> DataFrame
-buf.top_sectors(window=...) -> DataFrame   # for the recommender's first pass
-buf.filings_citing(sector="Lithium")       # for the web app's drill-down
+with Buffer("data/buffer.sqlite") as buf:
+    buf.upsert(extracted_filing, company_name="Tesla, Inc.")  # idempotent on (accession, model)
+
+    rows = buf.effects_for_sector(                # window-intersection query
+        "Lithium",
+        since=date(2026, 1, 1),
+        until=date(2026, 12, 31),
+    )  # -> list[SectorEffectRow]
+
+    buf.filings_citing("Lithium")                # for the web app's drill-down
+    buf.count_extractions()                      # quick sanity check
 ```
 
-The class would internally hold a `sqlite3.Connection` with `PRAGMA foreign_keys = ON` and `PRAGMA journal_mode = WAL` for read-while-writing.
+Internally holds a `sqlite3.Connection` with `PRAGMA foreign_keys = ON` and `PRAGMA journal_mode = WAL` for read-while-writing. `curve()` / `top_sectors()` (columnar aggregation) are deferred to Stage 4 (DuckDB).
 
 **Sample queries the web app will run** (full Lithium curve in a window):
 
