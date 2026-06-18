@@ -1,15 +1,27 @@
 /** Tracks whether any request fell back to static mock data this session. */
 
-let active = false
-const listeners = new Set<() => void>()
+export type MockFallbackReason = 'network' | 'server_error' | 'buffer_unavailable'
 
-export function isMockFallbackActive(): boolean {
-  return active
+export type MockFallbackInfo = {
+  reason: MockFallbackReason
+  message: string
 }
 
-export function markMockFallbackUsed(): void {
-  if (active) return
-  active = true
+let info: MockFallbackInfo | null = null
+const listeners = new Set<() => void>()
+
+export function getMockFallbackInfo(): MockFallbackInfo | null {
+  return info
+}
+
+export function isMockFallbackActive(): boolean {
+  return info !== null
+}
+
+export function markMockFallbackUsed(next: MockFallbackInfo): void {
+  if (!info) {
+    info = next
+  }
   for (const listener of listeners) {
     listener()
   }
@@ -22,5 +34,5 @@ export function subscribeMockFallback(listener: () => void): () => void {
 
 /** Test helper — reset session state between tests. */
 export function resetMockFallbackState(): void {
-  active = false
+  info = null
 }

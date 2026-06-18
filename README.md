@@ -29,6 +29,31 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 The **live Python pipeline** lives under `src/algo_trade/`. The **web app** reads either static mock JSON (`VITE_DATA_SOURCE=mock`) or the FastAPI backend (`VITE_DATA_SOURCE=api`) — both controlled from the repo-root [`.env`](.env.example).
 
+### Run the servers
+
+From the repo root after `pip install -e ".[dev]"`:
+
+```bash
+# API server (FastAPI) — http://localhost:8000  (docs: /docs)
+algo-trade-api
+```
+
+```bash
+# Frontend (separate terminal) — http://localhost:5173
+cd frontend
+npm install
+npm run dev
+```
+
+By default the UI uses static mock JSON (`VITE_DATA_SOURCE=mock`). To serve live forecast data from the buffer, set in repo-root `.env`:
+
+```
+VITE_API_BASE=/api/v1
+VITE_DATA_SOURCE=api
+```
+
+Then run **both** commands above. Vite proxies `/api/v1` → `http://localhost:8000` (`ALGO_TRADE_API_PORT`).
+
 ---
 
 ## The idea

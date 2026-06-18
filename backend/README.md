@@ -22,12 +22,30 @@ backend/
 
 ## Run the live API
 
+From the **repository root** (after `pip install -e ".[dev]"`):
+
 ```bash
-pip install -e ".[dev]"
 algo-trade-api
 ```
 
-## Configuration
+Serves `GET /api/v1/*` at http://localhost:8000 (host/port from `ALGO_TRADE_API_HOST` / `ALGO_TRADE_API_PORT` in `.env`). Interactive docs: http://localhost:8000/docs
+
+## Run the frontend against the API
+
+Terminal 1 — API:
+
+```bash
+algo-trade-api
+```
+
+Terminal 2 — UI (set `VITE_API_BASE=/api/v1` and `VITE_DATA_SOURCE=api` in repo-root `.env` first):
+
+```bash
+cd frontend
+npm run dev
+```
+
+Vite proxies `/api/v1` → `http://localhost:8000`.
 
 Copy [`.env.example`](../.env.example) to `.env` at the **repository root** and edit values there. All backend, pipeline, and frontend (`VITE_*`) settings live in that one file.
 
@@ -62,16 +80,7 @@ Copy [`.env.example`](../.env.example) to `.env` at the **repository root** and 
 
 Shell exports override `.env` (useful in CI).
 
-## Run the live API
-
-```bash
-cd frontend
-VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
-```
-
-Vite proxies `/api/v1` → `http://localhost:8000`.
-
-## Validate mock bundle
+## Configuration
 
 From repo root:
 

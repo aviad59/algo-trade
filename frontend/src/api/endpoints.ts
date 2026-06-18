@@ -8,9 +8,9 @@ import {
   instrumentsSchema,
   materialForecastSchema,
 } from '../types/contract'
-import { getJson, getMockJson } from './client'
+import { getJson, getMockJson, ApiError } from './client'
 import { DATA_SOURCE, MOCK_FALLBACK } from './config'
-import { markMockFallbackUsed } from './fallback'
+import { markMockFallbackUsed, type MockFallbackReason } from './fallback'
 import { filterExtractions, type ExtractionFilters } from './mockFilter'
 
 export type { ExtractionFilters }
@@ -102,6 +102,16 @@ async function fetchExtractionsFromMock(filters: ExtractionFilters) {
   return filterExtractions(index.items, filters)
 }
 
+function markExtractionFallback(error: unknown): void {
+  const message =
+    error instanceof ApiError
+      ? error.message
+      : 'Could not load extractions from the live API. Showing demo data instead.'
+  const reason: MockFallbackReason =
+    error instanceof ApiError && error.status === 0 ? 'network' : 'server_error'
+  markMockFallbackUsed({ reason, message })
+}
+
 export async function fetchExtractions(filters: ExtractionFilters = {}) {
   if (DATA_SOURCE === 'mock') {
     return fetchExtractionsFromMock(filters)
@@ -124,8 +134,10 @@ export async function fetchExtractions(filters: ExtractionFilters = {}) {
     if (!MOCK_FALLBACK) {
       throw error
     }
-    markMockFallbackUsed()
-    console.warn('[FilingSignal] API extractions failed; using filtered mock index')
+    markExtractionFallback(error)
+    if (import.meta.env.DEV) {
+      console.warn('[FilingSignal] Live API unavailable — using demo extractions.')
+    }
     return fetchExtractionsFromMock(filters)
   }
 }
@@ -146,7 +158,10 @@ export async function fetchExtractionById(extractionId: string) {
     if (!MOCK_FALLBACK) {
       throw error
     }
-    markMockFallbackUsed()
+    markExtractionFallback(error)
+    if (import.meta.env.DEV) {
+      console.warn('[FilingSignal] Live API unavailable — using demo extraction.')
+    }
     const index = await getMockJson('/extractions/index.json', extractionListSchema)
     const row = index.items.find((item) => item.id === extractionId)
     if (!row) {

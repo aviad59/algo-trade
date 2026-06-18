@@ -7,6 +7,7 @@ from functools import lru_cache
 from algo_trade.buffer import Buffer
 
 from .config import Settings
+from .errors import open_buffer
 
 
 @lru_cache(maxsize=1)
@@ -16,4 +17,4 @@ def get_settings() -> Settings:
 
 def get_buffer() -> Buffer:
     settings = get_settings()
-    return Buffer(str(settings.buffer_path))
+    return open_buffer(str(settings.buffer_path))

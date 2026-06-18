@@ -215,6 +215,8 @@ class Buffer:
                 ``":memory:"`` for an in-process ephemeral database.
         """
         self._path = str(path)
+        if self._path != ":memory:":
+            Path(self._path).parent.mkdir(parents=True, exist_ok=True)
         self._con = sqlite3.connect(self._path)
         self._con.row_factory = sqlite3.Row
         self._con.execute("PRAGMA foreign_keys = ON")
