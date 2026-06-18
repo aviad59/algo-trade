@@ -316,3 +316,71 @@ def test_count_extractions_increments(buf: Buffer) -> None:
     buf.upsert(_make_extracted(accession="ACC-001"))
     buf.upsert(_make_extracted(accession="ACC-002"))
     assert buf.count_extractions() == 2
+
+
+# --------------------------------------------------------------------------- #
+# all_effects
+# --------------------------------------------------------------------------- #
+
+
+def test_all_effects_returns_all_sectors(buf: Buffer) -> None:
+    buf.upsert(
+        _make_extracted(
+            effects=[_make_effect("Lithium"), _make_effect("Copper", window_start="2026-06-01", window_end="2026-09-30")],
+        )
+    )
+    rows = buf.all_effects(since=date(2026, 1, 1), until=date(2026, 12, 31))
+    sectors = {r.sector for r in rows}
+    assert sectors == {"Lithium", "Copper"}
+
+
+def test_all_effects_sector_filter(buf: Buffer) -> None:
+    buf.upsert(
+        _make_extracted(
+            effects=[_make_effect("Lithium"), _make_effect("Copper", window_start="2026-06-01", window_end="2026-09-30")],
+        )
+    )
+    rows = buf.all_effects(
+        since=date(2026, 1, 1),
+        until=date(2026, 12, 31),
+        sector="Lithium",
+    )
+    assert len(rows) == 1
+    assert rows[0].sector == "Lithium"
+
+
+def test_all_effects_dedupes_to_latest_model(buf: Buffer) -> None:
+    early = _make_extracted(
+        model="claude-opus-4-7",
+        effects=[_make_effect("Lithium", rationale="opus")],
+        warnings=[],
+    )
+    early.extracted_at = datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc)
+    late = _make_extracted(
+        model="claude-sonnet-4-6",
+        effects=[_make_effect("Lithium", rationale="sonnet")],
+        warnings=[],
+    )
+    late.extracted_at = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+    buf.upsert(early)
+    buf.upsert(late)
+    rows = buf.all_effects(since=date(2026, 1, 1), until=date(2026, 12, 31))
+    assert len(rows) == 1
+    assert rows[0].extractor_model == "claude-sonnet-4-6"
+    assert rows[0].rationale == "sonnet"
+
+
+def test_all_effects_extractor_model_override(buf: Buffer) -> None:
+    early = _make_extracted(model="claude-opus-4-7", effects=[_make_effect("Lithium", rationale="opus")])
+    early.extracted_at = datetime(2026, 5, 1, 12, 0, 0, tzinfo=timezone.utc)
+    late = _make_extracted(model="claude-sonnet-4-6", effects=[_make_effect("Lithium", rationale="sonnet")])
+    late.extracted_at = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+    buf.upsert(early)
+    buf.upsert(late)
+    rows = buf.all_effects(
+        since=date(2026, 1, 1),
+        until=date(2026, 12, 31),
+        extractor_model="claude-opus-4-7",
+    )
+    assert len(rows) == 1
+    assert rows[0].rationale == "opus"

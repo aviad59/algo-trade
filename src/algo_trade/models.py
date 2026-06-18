@@ -126,3 +126,29 @@ class ExtractedFiling(BaseModel):
     # caching is working. Zeroed when not available.
     cache_read_input_tokens: int = 0
     cache_creation_input_tokens: int = 0
+
+
+# --------------------------------------------------------------------------- #
+# Timer output -- buy/sell signals and curve points for the web forecast API.
+# --------------------------------------------------------------------------- #
+
+
+class TimerAction(str, Enum):
+    BUY = "BUY"
+    SELL = "SELL"
+
+
+class TimerSignal(BaseModel):
+    """One BUY or SELL action emitted by the timer."""
+
+    date: date
+    action: TimerAction
+    rationale: str
+
+
+class CurvePoint(BaseModel):
+    """One month on a material forecast curve (matches mock ISOMonth + signal)."""
+
+    month: str
+    signal: float
+    forward_auc: float
