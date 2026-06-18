@@ -8,8 +8,9 @@ import {
   instrumentsSchema,
   materialForecastSchema,
 } from '../types/contract'
-import { getJson } from './client'
-import { DATA_SOURCE } from './config'
+import { getJson, getMockJson } from './client'
+import { DATA_SOURCE, MOCK_FALLBACK } from './config'
+import { markMockFallbackUsed } from './fallback'
 import { filterExtractions, type ExtractionFilters } from './mockFilter'
 
 export type { ExtractionFilters }
@@ -19,6 +20,14 @@ function resourcePath(mockPath: string): string {
     return mockPath
   }
   return mockPath.replace(/\.json$/, '').replace('/index', '')
+}
+
+function getResource<T>(mockPath: string, schema: z.ZodType<T>) {
+  const path = resourcePath(mockPath)
+  if (DATA_SOURCE === 'mock') {
+    return getJson(path, schema)
+  }
+  return getJson(path, schema, { mockPath })
 }
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
@@ -61,37 +70,41 @@ const materialsFileSchema = z.object({
 })
 
 export async function fetchHealth() {
-  return getJson(resourcePath('/meta/health.json'), healthSchema)
+  return getResource('/meta/health.json', healthSchema)
 }
 
 export async function fetchForecastSummary() {
-  return getJson(resourcePath('/forecast/summary.json'), forecastSummarySchema)
+  return getResource('/forecast/summary.json', forecastSummarySchema)
 }
 
 export async function fetchForecastRanking() {
-  return getJson(resourcePath('/forecast/ranking.json'), forecastRankingSchema)
+  return getResource('/forecast/ranking.json', forecastRankingSchema)
 }
 
 export async function fetchMaterialForecast(materialId: string) {
-  return getJson(resourcePath(`/forecast/materials/${materialId}.json`), materialForecastSchema)
+  return getResource(`/forecast/materials/${materialId}.json`, materialForecastSchema)
 }
 
 export async function fetchInstruments(materialId: string) {
-  return getJson(resourcePath(`/universe/instruments/${materialId}.json`), instrumentsSchema)
+  return getResource(`/universe/instruments/${materialId}.json`, instrumentsSchema)
 }
 
 export async function fetchManufacturersList() {
-  return getJson(resourcePath('/universe/manufacturers.json'), manufacturersFileSchema)
+  return getResource('/universe/manufacturers.json', manufacturersFileSchema)
 }
 
 export async function fetchMaterialsList() {
-  return getJson(resourcePath('/universe/materials.json'), materialsFileSchema)
+  return getResource('/universe/materials.json', materialsFileSchema)
+}
+
+async function fetchExtractionsFromMock(filters: ExtractionFilters) {
+  const index = await getMockJson('/extractions/index.json', extractionListSchema)
+  return filterExtractions(index.items, filters)
 }
 
 export async function fetchExtractions(filters: ExtractionFilters = {}) {
   if (DATA_SOURCE === 'mock') {
-    const index = await getJson('/extractions/index.json', extractionListSchema)
-    return filterExtractions(index.items, filters)
+    return fetchExtractionsFromMock(filters)
   }
 
   const query = buildQuery({
@@ -102,17 +115,43 @@ export async function fetchExtractions(filters: ExtractionFilters = {}) {
     limit: filters.limit,
     offset: filters.offset,
   })
-  return getJson(`/extractions${query}`, extractionListSchema)
+
+  try {
+    return await getJson(`/extractions${query}`, extractionListSchema, {
+      mockPath: '/extractions/index.json',
+    })
+  } catch (error) {
+    if (!MOCK_FALLBACK) {
+      throw error
+    }
+    markMockFallbackUsed()
+    console.warn('[FilingSignal] API extractions failed; using filtered mock index')
+    return fetchExtractionsFromMock(filters)
+  }
 }
 
 export async function fetchExtractionById(extractionId: string) {
   if (DATA_SOURCE === 'mock') {
-    const index = await getJson('/extractions/index.json', extractionListSchema)
+    const index = await getMockJson('/extractions/index.json', extractionListSchema)
     const row = index.items.find((item) => item.id === extractionId)
     if (!row) {
       throw new Error(`Extraction not found: ${extractionId}`)
     }
     return extractionSchema.parse(row)
   }
-  return getJson(`/extractions/${extractionId}`, extractionSchema)
+
+  try {
+    return await getJson(`/extractions/${extractionId}`, extractionSchema)
+  } catch (error) {
+    if (!MOCK_FALLBACK) {
+      throw error
+    }
+    markMockFallbackUsed()
+    const index = await getMockJson('/extractions/index.json', extractionListSchema)
+    const row = index.items.find((item) => item.id === extractionId)
+    if (!row) {
+      throw error
+    }
+    return extractionSchema.parse(row)
+  }
 }

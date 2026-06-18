@@ -27,6 +27,7 @@ All frontend and backend settings live in the **repo-root** `.env`. Copy [`.env.
 |----------|---------|-------------|
 | `VITE_API_BASE` | `/mock/v1` | JSON base path |
 | `VITE_DATA_SOURCE` | `mock` | `mock` (static JSON) or `api` (FastAPI backend) |
+| `VITE_MOCK_FALLBACK` | `true` | When `api`, use `/mock/v1` if live requests fail |
 
 See [backend/README.md](../backend/README.md) for the full variable list.
 

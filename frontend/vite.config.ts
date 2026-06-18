@@ -4,7 +4,8 @@ import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { IncomingMessage } from 'node:http'
-import { defineConfig, loadEnv, type Plugin } from 'vitest/config'
+import { defineConfig } from 'vitest/config'
+import { loadEnv, type Plugin } from 'vite'
 
 const repoRoot = path.resolve(__dirname, '..')
 const mockRoot = path.resolve(repoRoot, 'backend/mock/v1')

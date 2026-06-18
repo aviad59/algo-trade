@@ -368,6 +368,7 @@ Loaded by [`src/algo_trade/env.py`](src/algo_trade/env.py) for the Python pipeli
 | `ALGO_TRADE_EXTRACT_LIMIT` | `1` | Default filings-per-form for `algo-trade-extract` |
 | `VITE_API_BASE` | `/mock/v1` | Frontend data path (`/api/v1` for live API) |
 | `VITE_DATA_SOURCE` | `mock` | `mock` (static JSON) or `api` (FastAPI) |
+| `VITE_MOCK_FALLBACK` | `true` (when `api`) | Retry against `/mock/v1` if the live API fails |
 
 Full reference: [`.env.example`](.env.example) and [`backend/README.md`](backend/README.md).
 
