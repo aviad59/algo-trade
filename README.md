@@ -312,8 +312,8 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
 - [x] Buffer -- SQLite schema + `Buffer` Python class (`upsert`, `effects_for_sector`, `filings_citing`). CLI: `algo-trade-extract`. 23 hermetic tests. See [`src/algo_trade/buffer/`](src/algo_trade/buffer/).
 - [ ] Recommender agent
-- [ ] **Sector timeline aggregator** (monthly bucketing, per-sector time series)
-- [ ] **Buy/Sell timer** (forward-AUC algorithm, with slope / peak / threshold alternatives)
+- [x] **Sector timeline aggregator** — monthly bucketing via [`src/algo_trade/timeline.py`](src/algo_trade/timeline.py) (`build_curve`, `build_all_curves`). Hermetic tests in `tests/test_timeline.py`.
+- [x] **Buy/Sell timer** — forward-AUC algorithm in [`src/algo_trade/timer.py`](src/algo_trade/timer.py) (`detect_actions`, `material_forecast`). Alternative strategies stubbed. Tests in `tests/test_timer.py`.
 - [ ] **Plot** — static matplotlib + interactive plotly
 - [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, `algo-trade timeline --plot`
 - [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
@@ -395,7 +395,7 @@ You will need:
 
 ## Project status
 
-Steps 1, 2, and 3 of the roadmap are implemented: the EDGAR fetcher, the Extractor agent (Agent #1), and the Buffer store (SQLite schema + Python `Buffer` class + `algo-trade-extract` CLI). Everything further downstream — the timeline aggregator, the buy/sell timer, the recommender — is still in the design above.
+Steps 1–5 of the roadmap are implemented: the EDGAR fetcher, Extractor (Agent #1), Buffer store, sector timeline aggregator, and buy/sell timer. The recommender (Agent #2), plot module, and live web API are still ahead.
 
 ---
 

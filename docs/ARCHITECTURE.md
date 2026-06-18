@@ -29,11 +29,9 @@ The whole thing is a 6-stage pipeline. Stages communicate through pydantic model
                                              │ ExtractedFiling
                                              ▼
                                 ┌─────────────────────────┐
-                                │ 3. Buffer (SCHEMA DONE) │
-                                │   src/algo_trade/buffer/schema.sql
+                                │ 3. Buffer (DONE)        │
+                                │   src/algo_trade/buffer/store.py
                                 │   SQLite (canonical)    │
-                                │   + DuckDB attach for   │
-                                │     analytical reads    │
                                 └────────────┬────────────┘
                                              │ SQL
                        ┌─────────────────────┼─────────────────────┬───────────────┐
@@ -41,7 +39,7 @@ The whole thing is a 6-stage pipeline. Stages communicate through pydantic model
             ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐
             │ 4. Timeline      │  │ 6. Recommender   │  │ Web app          │  │ Backtest     │
             │    Aggregator    │  │    (Agent #2)    │  │ (read-only)      │  │ harness      │
-            │    (PLANNED)     │  │    (PLANNED)     │  │ (PLANNED)        │  │ (PLANNED)    │
+            │    (DONE)        │  │    (PLANNED)     │  │ (PLANNED)        │  │ (PLANNED)    │
             │ → per-sector     │  │ → ranked sectors │  │ → curves + BUY/  │  │ → measure    │
             │   monthly curves │  │   with citations │  │   SELL markers   │  │   prediction │
             └────────┬─────────┘  └──────────────────┘  └──────────────────┘  │   vs sector  │
@@ -49,7 +47,7 @@ The whole thing is a 6-stage pipeline. Stages communicate through pydantic model
                      ▼                                                        └──────────────┘
             ┌──────────────────┐
             │ 5. Buy/Sell Timer│
-            │   (PLANNED)      │
+            │   (DONE)         │
             │ forward-AUC      │
             │ over the curve   │
             └──────────────────┘
@@ -219,17 +217,29 @@ SQLite is canonical (one writer, ACID); DuckDB is the analytical read layer when
 
 | | |
 |---|---|
-| **Status** | PLANNED |
-| **Planned code** | `src/algo_trade/timeline.py` |
-| **Input** | Buffer (via SQLite or DuckDB) |
+| **Status** | DONE |
+| **Code** | [`src/algo_trade/timeline.py`](../src/algo_trade/timeline.py) |
+| **Input** | `Buffer` via `all_effects()` |
 | **Output** | `pandas.DataFrame` with `(month, sector, signal)` rows |
+| **Tests** | [`tests/test_timeline.py`](../tests/test_timeline.py) |
 
 **Algorithm:**
 1. For each `dated_effect`, compute its weight: `magnitude_weight × direction_sign` where `magnitude_weight ∈ {small: 0.3, moderate: 0.6, large: 1.0}` and `direction_sign ∈ {increase: +1, decrease: -1}`.
-2. Spread the weight uniformly across the months between `window_start` and `window_end`. A "large increase" over 4 months contributes `+0.25` per month.
-3. Sum across all filings, per sector, per month. Result: one time series per sector.
+2. Spread the weight uniformly across the calendar months overlapping `window_start`–`window_end`.
+3. Sum across all filings, per sector, per month. Result: one dense time series per sector.
 
-The aggregation is straightforward SQL; the choice between SQLite (transactional path) and DuckDB (analytical path) is documented in Stage 3. Start with SQLite; switch to DuckDB if perf becomes a bottleneck.
+**Python API:**
+
+```python
+from algo_trade import build_curve, build_all_curves
+
+curve = build_curve(buf, "lithium", since=date(2026, 1, 1), until=date(2026, 12, 31))
+# columns: month, sector, signal — dense monthly index, zero-filled gaps
+
+all_curves = build_all_curves(buf, since=..., until=...)
+```
+
+When `extractor_model` is omitted, `Buffer.all_effects()` dedupes to the latest extraction per accession so A/B model runs are not double-counted.
 
 ---
 
@@ -237,10 +247,11 @@ The aggregation is straightforward SQL; the choice between SQLite (transactional
 
 | | |
 |---|---|
-| **Status** | PLANNED |
-| **Planned code** | `src/algo_trade/timer.py` |
+| **Status** | DONE |
+| **Code** | [`src/algo_trade/timer.py`](../src/algo_trade/timer.py) |
 | **Input** | The aggregator's per-sector curve |
-| **Output** | List of `(date, action: "BUY"|"SELL", rationale)` per sector |
+| **Output** | `list[TimerSignal]` and mock-shaped `material_forecast()` dict |
+| **Tests** | [`tests/test_timer.py`](../tests/test_timer.py) |
 
 **Default algorithm — forward-looking area under the curve:**
 
@@ -251,7 +262,18 @@ forward_AUC(t) = Σ signal(t+1), signal(t+2), ..., signal(t+W)    # W = 3 months
 - **BUY** at the leading edge of the area: where `forward_AUC` is rising and crosses a positive threshold.
 - **SELL** at the top of the area: where `forward_AUC` peaks and starts declining.
 
-This is intentionally simple — it gives the web app something to render and the backtest harness something to evaluate. Alternative strategies the module will ship as toggleable options: slope-based, peak detection, threshold + dwell. See README §"Buy/Sell Timer" for the full description.
+This is intentionally simple — it gives the web app something to render and the backtest harness something to evaluate. Alternative strategies (`slope`, `peak`, `threshold_dwell`) are stubbed in `TimerStrategy` and raise `NotImplementedError` for now.
+
+**Python API:**
+
+```python
+from algo_trade import material_forecast, detect_actions, TimerConfig
+
+forecast = material_forecast(buf, "lithium", since=..., until=...)
+# dict aligned with mock MaterialForecast: actions, curve (signal + forward_AUC), etc.
+
+actions = detect_actions(enriched_curve, config=TimerConfig(lookahead_months=3))
+```
 
 ---
 
@@ -285,12 +307,18 @@ algo-trade/
 │       ├── fetcher.py                 # Stage 1 + algo-trade-fetch CLI
 │       ├── extractor.py               # Stage 2 (Agent #1)
 │       ├── buffer/                    # Stage 3
-│       │   ├── __init__.py            # schema_sql() loader
+│       │   ├── __init__.py            # Buffer export + schema_sql()
+│       │   ├── store.py               # Buffer class
 │       │   └── schema.sql             # canonical DDL
-│       └── (planned: timeline.py, timer.py, recommender.py)
+│       ├── timeline.py                # Stage 4 — monthly aggregation
+│       ├── timer.py                   # Stage 5 — forward-AUC BUY/SELL
+│       └── (planned: recommender.py)
 ├── tests/
 │   ├── test_fetcher.py                # fake Filing objects — no network
-│   └── test_extractor.py              # fake Anthropic client — no API calls
+│   ├── test_extractor.py              # fake Anthropic client — no API calls
+│   ├── test_buffer_store.py           # Buffer upsert + query
+│   ├── test_timeline.py               # monthly curve aggregation
+│   └── test_timer.py                  # forward-AUC + action detection
 ├── examples/
 │   ├── fetch_one.py                   # fetch NVDA's latest 10-K
 │   └── extract_one.py                 # fetch + extract end-to-end

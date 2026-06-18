@@ -69,6 +69,26 @@ class SectorEffectRow:
     extractor_confidence: float
 
 
+def _row_to_sector_effect(r: sqlite3.Row) -> SectorEffectRow:
+    return SectorEffectRow(
+        sector=r["sector"],
+        direction=Direction(r["direction"]),
+        magnitude=Magnitude(r["magnitude"]),
+        window_start=date.fromisoformat(r["window_start"]),
+        window_end=date.fromisoformat(r["window_end"]),
+        rationale=r["rationale"],
+        source_span=r["source_span"],
+        ticker=r["ticker"],
+        cik=r["cik"],
+        filing_type=r["filing_type"],
+        filing_date=date.fromisoformat(r["filing_date"]),
+        accession_number=r["accession_number"],
+        company_name=r["company_name"],
+        extractor_model=r["extractor_model"],
+        extractor_confidence=r["extractor_confidence"],
+    )
+
+
 class Buffer:
     """Persistent store for pipeline output.
 
@@ -297,26 +317,79 @@ class Buffer:
             (sector, until.isoformat(), since.isoformat()),
         ).fetchall()
 
-        return [
-            SectorEffectRow(
-                sector=r["sector"],
-                direction=Direction(r["direction"]),
-                magnitude=Magnitude(r["magnitude"]),
-                window_start=date.fromisoformat(r["window_start"]),
-                window_end=date.fromisoformat(r["window_end"]),
-                rationale=r["rationale"],
-                source_span=r["source_span"],
-                ticker=r["ticker"],
-                cik=r["cik"],
-                filing_type=r["filing_type"],
-                filing_date=date.fromisoformat(r["filing_date"]),
-                accession_number=r["accession_number"],
-                company_name=r["company_name"],
-                extractor_model=r["extractor_model"],
-                extractor_confidence=r["extractor_confidence"],
-            )
-            for r in rows
-        ]
+        return [_row_to_sector_effect(r) for r in rows]
+
+    def all_effects(
+        self,
+        since: date,
+        until: date,
+        *,
+        sector: str | None = None,
+        extractor_model: str | None = None,
+    ) -> list[SectorEffectRow]:
+        """Return dated effects whose window overlaps ``[since, until]``.
+
+        Unlike :meth:`effects_for_sector`, *sector* is optional — omit it to
+        pull every sector in the window.
+
+        When *extractor_model* is ``None``, only the **latest** extraction per
+        ``accession_number`` (by ``extracted_at``) is included so A/B model
+        runs are not double-counted.  Pass an explicit model name to pin a
+        specific version.
+        """
+        params: list[str] = [until.isoformat(), since.isoformat()]
+        sector_clause = ""
+        if sector is not None:
+            sector_clause = "AND de.sector = ?"
+            params.append(sector)
+
+        if extractor_model is not None:
+            extraction_join = """
+                JOIN extractions x ON x.id = de.extraction_id
+                  AND x.extractor_model = ?
+            """
+            params.insert(0, extractor_model)
+        else:
+            extraction_join = """
+                JOIN extractions x ON x.id = de.extraction_id
+                JOIN (
+                    SELECT accession_number, MAX(extracted_at) AS latest_at
+                    FROM   extractions
+                    GROUP  BY accession_number
+                ) latest ON latest.accession_number = x.accession_number
+                        AND latest.latest_at = x.extracted_at
+            """
+
+        rows = self._con.execute(
+            f"""
+            SELECT
+                de.sector,
+                de.direction,
+                de.magnitude,
+                de.window_start,
+                de.window_end,
+                de.rationale,
+                de.source_span,
+                f.ticker,
+                f.cik,
+                f.filing_type,
+                f.filing_date,
+                f.accession_number,
+                f.company_name,
+                x.extractor_model,
+                x.extractor_confidence
+            FROM   dated_effects de
+            {extraction_join}
+            JOIN   filings f ON f.accession_number = x.accession_number
+            WHERE  de.window_start <= ?
+              AND  de.window_end   >= ?
+              {sector_clause}
+            ORDER  BY de.sector, de.window_start, f.filing_date
+            """,
+            params,
+        ).fetchall()
+
+        return [_row_to_sector_effect(r) for r in rows]
 
     def filings_citing(self, sector: str) -> list[dict]:
         """Return one record per distinct filing that mentions *sector*.
