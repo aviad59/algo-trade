@@ -26,7 +26,19 @@ Copy `.env.example` to `.env`:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `VITE_API_BASE` | `/mock/v1` | JSON base path |
-| `VITE_DATA_SOURCE` | `mock` | `mock` (client-side filters) or `api` |
+| `VITE_DATA_SOURCE` | `mock` | `mock` (static JSON) or `api` (FastAPI backend) |
+
+### Live API dev (two terminals)
+
+```bash
+# Terminal 1 — repo root
+algo-trade-api
+
+# Terminal 2 — frontend (Vite proxies /api/v1 → localhost:8000)
+VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
+```
+
+Populate the buffer first, e.g. `algo-trade-extract TSLA --identity "you@example.com"`.
 
 ## Scripts
 

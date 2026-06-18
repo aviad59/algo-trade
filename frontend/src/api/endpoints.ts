@@ -14,6 +14,13 @@ import { filterExtractions, type ExtractionFilters } from './mockFilter'
 
 export type { ExtractionFilters }
 
+function resourcePath(mockPath: string): string {
+  if (DATA_SOURCE === 'mock') {
+    return mockPath
+  }
+  return mockPath.replace(/\.json$/, '').replace('/index', '')
+}
+
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -54,31 +61,31 @@ const materialsFileSchema = z.object({
 })
 
 export async function fetchHealth() {
-  return getJson('/meta/health.json', healthSchema)
+  return getJson(resourcePath('/meta/health.json'), healthSchema)
 }
 
 export async function fetchForecastSummary() {
-  return getJson('/forecast/summary.json', forecastSummarySchema)
+  return getJson(resourcePath('/forecast/summary.json'), forecastSummarySchema)
 }
 
 export async function fetchForecastRanking() {
-  return getJson('/forecast/ranking.json', forecastRankingSchema)
+  return getJson(resourcePath('/forecast/ranking.json'), forecastRankingSchema)
 }
 
 export async function fetchMaterialForecast(materialId: string) {
-  return getJson(`/forecast/materials/${materialId}.json`, materialForecastSchema)
+  return getJson(resourcePath(`/forecast/materials/${materialId}.json`), materialForecastSchema)
 }
 
 export async function fetchInstruments(materialId: string) {
-  return getJson(`/universe/instruments/${materialId}.json`, instrumentsSchema)
+  return getJson(resourcePath(`/universe/instruments/${materialId}.json`), instrumentsSchema)
 }
 
 export async function fetchManufacturersList() {
-  return getJson('/universe/manufacturers.json', manufacturersFileSchema)
+  return getJson(resourcePath('/universe/manufacturers.json'), manufacturersFileSchema)
 }
 
 export async function fetchMaterialsList() {
-  return getJson('/universe/materials.json', materialsFileSchema)
+  return getJson(resourcePath('/universe/materials.json'), materialsFileSchema)
 }
 
 export async function fetchExtractions(filters: ExtractionFilters = {}) {
@@ -107,5 +114,5 @@ export async function fetchExtractionById(extractionId: string) {
     }
     return extractionSchema.parse(row)
   }
-  return getJson(`/extractions/${extractionId}.json`, extractionSchema)
+  return getJson(`/extractions/${extractionId}`, extractionSchema)
 }

@@ -311,9 +311,10 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
 - [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
 - [x] Buffer -- SQLite schema + `Buffer` Python class (`upsert`, `effects_for_sector`, `filings_citing`). CLI: `algo-trade-extract`. 23 hermetic tests. See [`src/algo_trade/buffer/`](src/algo_trade/buffer/).
-- [ ] Recommender agent
 - [x] **Sector timeline aggregator** — monthly bucketing via [`src/algo_trade/timeline.py`](src/algo_trade/timeline.py) (`build_curve`, `build_all_curves`). Hermetic tests in `tests/test_timeline.py`.
 - [x] **Buy/Sell timer** — forward-AUC algorithm in [`src/algo_trade/timer.py`](src/algo_trade/timer.py) (`detect_actions`, `material_forecast`). Alternative strategies stubbed. Tests in `tests/test_timer.py`.
+- [x] **Web API** — FastAPI `GET /api/v1/*` in [`backend/api/`](backend/api/). CLI: `algo-trade-api`. Rule-based ranking until recommender lands. Tests in `tests/test_api.py`.
+- [ ] Recommender agent
 - [ ] **Plot** — static matplotlib + interactive plotly
 - [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, `algo-trade timeline --plot`
 - [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
@@ -377,7 +378,9 @@ Run the tests:
 python -m pytest
 ```
 
-### Web UI (mock mode)
+### Web UI
+
+**Mock mode (default):**
 
 ```bash
 cd frontend
@@ -385,7 +388,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — the app reads static JSON from `backend/mock/v1/` (see [`frontend/README.md`](frontend/README.md)).
+Open http://localhost:5173 — static JSON from `backend/mock/v1/`.
+
+**Live API mode** (requires a populated buffer and `algo-trade-api` on port 8000):
+
+```bash
+# Terminal 1 — from repo root
+algo-trade-api
+
+# Terminal 2
+cd frontend
+VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
+```
+
+See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md).
 
 You will need:
 - A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
@@ -395,7 +411,7 @@ You will need:
 
 ## Project status
 
-Steps 1–5 of the roadmap are implemented: the EDGAR fetcher, Extractor (Agent #1), Buffer store, sector timeline aggregator, and buy/sell timer. The recommender (Agent #2), plot module, and live web API are still ahead.
+Steps 1–5 and the read-only Web API are implemented. The recommender (Agent #2) and plot module are still ahead. Ranking in the API uses rule-based scores until Agent #2 replaces them.
 
 ---
 

@@ -15,19 +15,23 @@ dependencies = [
     "pydantic>=2.0",
     "anthropic>=0.92",
     "pandas>=2.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "httpx>=0.27",
 ]
 
 [project.scripts]
 algo-trade-fetch = "algo_trade.fetcher:_cli"
 algo-trade-extract = "algo_trade.extract_cli:_cli"
+algo-trade-api = "api.main:run"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "backend"]
 
 [tool.setuptools.package-data]
 "algo_trade.buffer" = ["schema.sql"]
