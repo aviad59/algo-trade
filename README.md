@@ -54,6 +54,8 @@ VITE_DATA_SOURCE=api
 
 Then run **both** commands above. Vite proxies `/api/v1` → `http://localhost:8000` (`ALGO_TRADE_API_PORT`).
 
+See [Run the pipeline on live data](#run-the-pipeline-on-live-data) for the full fetch → extract → verify flow.
+
 ---
 
 ## The idea
@@ -404,7 +406,7 @@ Full reference: [`.env.example`](.env.example) and [`backend/README.md`](backend
 | Command | Purpose |
 |---------|---------|
 | `algo-trade-fetch` | Fetch SEC filings to stdout (JSONL) |
-| `algo-trade-extract` | Fetch → extract → upsert into buffer SQLite |
+| `algo-trade-extract` | Fetch → extract → upsert into buffer (progress bar + status on stderr) |
 | `algo-trade-plot` | Render material forecast curve (PNG or HTML) |
 | `algo-trade-api` | Start FastAPI on `ALGO_TRADE_API_HOST`:`ALGO_TRADE_API_PORT` |
 
@@ -427,22 +429,121 @@ python -m pip install -e ".[dev]"
 cp .env.example .env   # set ANTHROPIC_API_KEY, ALGO_TRADE_SEC_IDENTITY, etc.
 ```
 
-### End-to-end workflow
+### Run the pipeline on live data
+
+End-to-end path: **EDGAR fetch → Agent #1 (extract) → SQLite buffer → timer/forecast → API → UI**. Requires network access, an Anthropic API key, and LLM token spend (one 10-Q per ticker can take several minutes).
+
+All commands below are run from the **repository root**.
+
+#### 1. Configure `.env`
+
+Edit repo-root `.env` (copy from [`.env.example`](.env.example)):
 
 ```bash
-# 1. Populate buffer (needs ANTHROPIC_API_KEY in .env)
-algo-trade-extract TSLA --identity "You you@example.com" --form 10-Q --limit 1
+ANTHROPIC_API_KEY=sk-ant-...          # required for extract (and recommender ranking)
+ALGO_TRADE_SEC_IDENTITY=Your Name you@example.com   # SEC User-Agent policy
 
-# 2. Start API (reads buffer + .env)
-algo-trade-api
+# --- for the live UI (step 5) ---
+VITE_API_BASE=/api/v1
+VITE_DATA_SOURCE=api
+# VITE_MOCK_FALLBACK=false            # uncomment to disable silent fallback to demo JSON
 
-# 3. Point UI at live API — in .env set:
-#    VITE_API_BASE=/api/v1
-#    VITE_DATA_SOURCE=api
-cd frontend && npm install && npm run dev
+# --- optional ---
+# ALGO_TRADE_RANKING_MODE=recommender # use Agent #2 for ranking (needs API key)
 ```
 
-Open http://localhost:5173. Vite proxies `/api/v1` → `http://localhost:8000` (port from `ALGO_TRADE_API_PORT`).
+#### 2. Populate the buffer (`algo-trade-extract`)
+
+Fetches the latest SEC filing per ticker and runs the Extractor. Writes to `data/buffer.sqlite` (directory is created automatically).
+
+```bash
+algo-trade-extract TSLA GM FCX -v --form 10-Q --limit 1
+```
+
+A **progress bar** and status lines print to stderr by default (plan, per-ticker fetch, per-filing extract, upsert summary). Use `--no-progress` to hide the bar (text output remains). Add `-v` for detailed log lines.
+
+| Flag | Meaning |
+|------|---------|
+| *(default)* | Progress bar + status lines on stderr |
+| `--no-progress` | Status lines only (no bar) — useful in CI or log files |
+| `-v` | Verbose logs (recommended while testing) |
+| `--form 10-Q` | Filing type (or `10-K` for annual) |
+| `--limit 1` | Most recent N filings per form per ticker |
+| `--identity "..."` | Override `ALGO_TRADE_SEC_IDENTITY` from `.env` |
+
+On success you should see:
+
+```text
+Done. Upserted 3 filing(s), 12 dated effect(s) into data/buffer.sqlite
+```
+
+If `dated effect(s)` is **0**, filings were fetched but the extractor found no mappable material effects — try different tickers, a `10-K`, or `-v` to inspect errors.
+
+**Starter tickers** that often surface lithium/copper language: `TSLA`, `GM`, `FCX`.
+
+#### 3. Verify without the UI
+
+**Buffer row count:**
+
+```bash
+python -c "from algo_trade.buffer import Buffer; from algo_trade.env import env_path; p=env_path('ALGO_TRADE_BUFFER_PATH','data/buffer.sqlite'); b=Buffer(str(p)); print('extractions:', b.count_extractions()); b.close()"
+```
+
+**Timer + plot** (forecast curve from buffer → PNG):
+
+```bash
+algo-trade-plot lithium
+# writes plots/lithium.png  (add --html for interactive plotly output)
+```
+
+List canonical material ids in [`backend/universe/materials.json`](backend/universe/materials.json). If `algo-trade-plot` says the curve is empty, extracted sector names may not match a material in the universe.
+
+#### 4. Start the API
+
+```bash
+algo-trade-api
+```
+
+Smoke-test in a **second terminal**:
+
+```bash
+curl http://localhost:8000/api/v1/meta/health
+curl http://localhost:8000/api/v1/forecast/summary
+curl http://localhost:8000/api/v1/forecast/ranking
+curl http://localhost:8000/api/v1/forecast/materials/lithium
+```
+
+Interactive docs: http://localhost:8000/docs
+
+Check `extractions_count` in the summary response matches your buffer. An empty `top_materials` list means the buffer has no ranked materials yet (add more extractions).
+
+#### 5. Open the UI
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173.
+
+**Confirm you are on live data (not demo JSON):**
+
+- No amber banner saying demo data is being shown
+- Dashboard `extractions_count` matches step 3
+- Material detail pages list tickers you actually extracted
+- Set `VITE_MOCK_FALLBACK=false` in `.env` if you want API errors to surface instead of silently falling back to mock data (restart `npm run dev` after changing `.env`)
+
+#### Troubleshooting
+
+| Symptom | What to check |
+|---------|----------------|
+| Empty dashboard | Buffer empty or effects don't map to universe materials — re-run extract with more tickers |
+| Amber “demo data” banner | API unreachable or errored — read `algo-trade-api` terminal output; confirm step 4 |
+| `500` on `/forecast/*` | Run extract first; restart API after editing `.env` |
+| `--identity is required` | Set `ALGO_TRADE_SEC_IDENTITY` in `.env` or pass `--identity` |
+| Anthropic / extract failures | `ANTHROPIC_API_KEY` set and valid; try `-v` for details |
+| UI still shows mock shapes | `VITE_DATA_SOURCE=api` and `VITE_API_BASE=/api/v1` in repo-root `.env`; restart Vite |
 
 ### Fetch only (no LLM)
 
@@ -500,23 +601,11 @@ npm install
 npm run dev
 ```
 
-**Live API mode** — requires a populated buffer and `algo-trade-api` running. Set in repo-root `.env`:
-
-```
-VITE_API_BASE=/api/v1
-VITE_DATA_SOURCE=api
-ALGO_TRADE_RANKING_MODE=recommender   # optional — use Agent #2 for ranking
-```
-
-Then start both servers (see [End-to-end workflow](#end-to-end-workflow) above).
+**Live API mode** — populate the buffer and run the API first; see [Run the pipeline on live data](#run-the-pipeline-on-live-data).
 
 Frontend tests: `cd frontend && npm test` (Vitest) and `npm run test:e2e` (Playwright).
 
 See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md).
-
-**Prerequisites:**
-- A contact email — `ALGO_TRADE_SEC_IDENTITY` or `--identity` for SEC User-Agent policy
-- `ANTHROPIC_API_KEY` in `.env` — required for extraction and recommender ranking
 
 ---
 

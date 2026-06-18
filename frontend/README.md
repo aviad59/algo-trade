@@ -31,10 +31,13 @@ All frontend and backend settings live in the **repo-root** `.env`. Copy [`.env.
 
 See [backend/README.md](../backend/README.md) for the full variable list.
 
-### Live API dev (two terminals)
+### Live API dev
+
+Full pipeline steps (extract → verify → API → UI) are in the main [README — Run the pipeline on live data](../README.md#run-the-pipeline-on-live-data). Short version:
 
 ```bash
-# Terminal 1 — repo root (reads .env)
+# Terminal 1 — repo root: populate buffer first (see main README)
+algo-trade-extract TSLA GM FCX -v --form 10-Q --limit 1
 algo-trade-api
 
 # Terminal 2 — frontend (Vite loads repo-root .env; proxies /api/v1)
@@ -47,8 +50,6 @@ Set in repo-root `.env`:
 VITE_API_BASE=/api/v1
 VITE_DATA_SOURCE=api
 ```
-
-Populate the buffer first, e.g. `algo-trade-extract TSLA --identity "you@example.com"`.
 
 ## Scripts
 

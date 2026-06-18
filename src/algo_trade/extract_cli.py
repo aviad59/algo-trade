@@ -37,18 +37,101 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from pathlib import Path
+
+from .buffer import Buffer
+from .env import env_int, env_path, env_str, load_env
+from .extract_progress import ExtractProgress
+from .extractor import Extractor
+from .fetcher import Fetcher
+from .llm_config import resolve_model
 
 logger = logging.getLogger(__name__)
 
 
-def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
-    from pathlib import Path
+def _run_extract(
+    *,
+    tickers: list[str],
+    identity: str,
+    db_path: Path,
+    forms: list[str],
+    limit: int,
+    show_progress: bool,
+) -> tuple[int, int]:
+    fetcher = Fetcher(identity=identity)
+    extractor = Extractor()
+    model = resolve_model("extractor")
 
-    from .buffer import Buffer
-    from .env import env_int, env_path, env_str, load_env
-    from .extractor import Extractor
-    from .fetcher import Fetcher
+    n_filings = 0
+    n_effects = 0
 
+    with ExtractProgress(
+        tickers=tickers,
+        forms=forms,
+        limit=limit,
+        db_path=str(db_path),
+        model=model,
+        enabled=show_progress,
+    ) as progress:
+        with Buffer(str(db_path)) as buf:
+            for index, ticker in enumerate(tickers, start=1):
+                progress.start_ticker(ticker, index, len(tickers))
+                try:
+                    filings = list(
+                        fetcher.fetch(ticker=ticker, forms=forms, limit=limit)
+                    )
+                except Exception as exc:
+                    logger.error("fetch failed for %s: %s", ticker, exc)
+                    progress.skip(ticker, phase="fetch", detail=str(exc))
+                    continue
+
+                progress.fetched(ticker, len(filings))
+
+                for fetched in filings:
+                    progress.start_extract(
+                        ticker,
+                        form=fetched.form,
+                        filing_date=fetched.filing_date.isoformat(),
+                        accession=fetched.accession_number,
+                    )
+                    try:
+                        extracted = extractor.extract(fetched)
+                    except Exception as exc:
+                        logger.error(
+                            "extract failed for %s/%s: %s",
+                            ticker,
+                            fetched.accession_number,
+                            exc,
+                        )
+                        progress.skip(
+                            ticker,
+                            phase="extract",
+                            detail=f"{fetched.accession_number}: {exc}",
+                        )
+                        continue
+
+                    buf.upsert(extracted, company_name=fetched.company_name)
+                    n_filings += 1
+                    n_effects += len(extracted.dated_effects)
+                    logger.info(
+                        "upserted %s/%s: %d effects",
+                        ticker,
+                        fetched.accession_number,
+                        len(extracted.dated_effects),
+                    )
+                    progress.upserted(
+                        ticker,
+                        accession=fetched.accession_number,
+                        n_effects=len(extracted.dated_effects),
+                        confidence=extracted.extractor_confidence,
+                    )
+
+        progress.finish(n_filings, n_effects)
+
+    return n_filings, n_effects
+
+
+def _cli(argv: list[str] | None = None) -> int:
     load_env()
 
     default_db = str(env_path("ALGO_TRADE_BUFFER_PATH", "data/buffer.sqlite"))
@@ -100,7 +183,12 @@ def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
         "-v",
         "--verbose",
         action="store_true",
-        help="Show INFO-level log lines.",
+        help="Show INFO-level log lines in addition to progress output.",
+    )
+    p.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable the progress bar (status lines are still printed).",
     )
     args = p.parse_args(argv)
 
@@ -117,48 +205,13 @@ def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
     db_path = Path(args.db)
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fetcher = Fetcher(identity=args.identity)
-    extractor = Extractor()
-
-    n_filings = 0
-    n_effects = 0
-
-    with Buffer(str(db_path)) as buf:
-        for ticker in args.ticker:
-            try:
-                filings = list(
-                    fetcher.fetch(ticker=ticker, forms=args.form, limit=args.limit)
-                )
-            except Exception as exc:
-                logger.error("fetch failed for %s: %s", ticker, exc)
-                continue
-
-            for fetched in filings:
-                try:
-                    extracted = extractor.extract(fetched)
-                except Exception as exc:
-                    logger.error(
-                        "extract failed for %s/%s: %s",
-                        ticker,
-                        fetched.accession_number,
-                        exc,
-                    )
-                    continue
-
-                buf.upsert(extracted, company_name=fetched.company_name)
-                n_filings += 1
-                n_effects += len(extracted.dated_effects)
-                logger.info(
-                    "upserted %s/%s: %d effects",
-                    ticker,
-                    fetched.accession_number,
-                    len(extracted.dated_effects),
-                )
-
-    print(
-        f"Done. Upserted {n_filings} filing(s), {n_effects} dated effect(s) "
-        f"into {db_path}",
-        file=sys.stderr,
+    _run_extract(
+        tickers=args.ticker,
+        identity=args.identity,
+        db_path=db_path,
+        forms=args.form,
+        limit=args.limit,
+        show_progress=not args.no_progress,
     )
     return 0
 
