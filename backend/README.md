@@ -88,6 +88,7 @@ py backend/scripts/validate-mock-contract.py
 | Buffer store | Done | [`src/algo_trade/buffer/store.py`](../src/algo_trade/buffer/store.py) |
 | Timeline + timer | Done | [`src/algo_trade/timeline.py`](../src/algo_trade/timeline.py), [`timer.py`](../src/algo_trade/timer.py) |
 | Recommender (Agent #2) | Done | [`src/algo_trade/recommender.py`](../src/algo_trade/recommender.py) |
+| Plot | Done | [`src/algo_trade/plot.py`](../src/algo_trade/plot.py) |
 
 ## Future
 

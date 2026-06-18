@@ -312,6 +312,19 @@ FastAPI serves `GET /api/v1/*` with the same JSON shapes as [`backend/mock/v1/`]
 
 ---
 
+### Stage 7 — Plot
+
+| | |
+|---|---|
+| **Status** | DONE |
+| **Code** | [`src/algo_trade/plot.py`](../src/algo_trade/plot.py), [`plot_cli.py`](../src/algo_trade/plot_cli.py) |
+| **CLI** | `algo-trade-plot MATERIAL [-o plots/lithium.png]` |
+| **Input** | `material_forecast()` dict (signal curve + BUY/SELL actions) |
+| **Output** | PNG/PDF/SVG via matplotlib; interactive HTML via plotly (`pip install -e ".[plot]"`) |
+| **Tests** | [`tests/unit/test_plot.py`](../tests/unit/test_plot.py) |
+
+---
+
 ## 3. File map
 
 ```
@@ -335,6 +348,8 @@ algo-trade/
 │       ├── timer.py                   # Stage 5 — forward-AUC BUY/SELL
 │       ├── recommender.py             # Stage 6 (Agent #2)
 │       ├── llm_config.py              # resolve_model() for extractor + recommender
+│       ├── plot.py                    # Stage 7 — matplotlib + plotly charts
+│       ├── plot_cli.py                # algo-trade-plot CLI
 ├── backend/
 │   └── api/                           # Web API — FastAPI /api/v1
 │       ├── main.py
