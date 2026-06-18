@@ -39,7 +39,7 @@ The whole thing is a 6-stage pipeline. Stages communicate through pydantic model
             ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐
             │ 4. Timeline      │  │ 6. Recommender   │  │ Web app          │  │ Backtest     │
             │    Aggregator    │  │    (Agent #2)    │  │ (read-only)      │  │ harness      │
-            │    (DONE)        │  │    (PLANNED)     │  │ (PLANNED)        │  │ (PLANNED)    │
+            │    (DONE)        │  │    (PLANNED)     │  │ API DONE       │  │ (PLANNED)    │
             │ → per-sector     │  │ → ranked sectors │  │ → curves + BUY/  │  │ → measure    │
             │   monthly curves │  │   with citations │  │   SELL markers   │  │   prediction │
             └────────┬─────────┘  └──────────────────┘  └──────────────────┘  │   vs sector  │
@@ -277,6 +277,26 @@ actions = detect_actions(enriched_curve, config=TimerConfig(lookahead_months=3))
 
 ---
 
+## Web API (read-only serving layer)
+
+| | |
+|---|---|
+| **Status** | DONE (rule-based ranking; recommender integration later) |
+| **Code** | [`backend/api/`](../backend/api/) |
+| **CLI** | `algo-trade-api` |
+| **Tests** | [`tests/test_api.py`](../tests/test_api.py) |
+
+FastAPI serves `GET /api/v1/*` with the same JSON shapes as [`backend/mock/v1/`](../backend/mock/v1/). The frontend switches via `VITE_DATA_SOURCE=api` and `VITE_API_BASE=/api/v1`.
+
+| Endpoint | Source |
+|----------|--------|
+| `/forecast/materials/{id}` | `material_forecast()` |
+| `/forecast/summary`, `/forecast/ranking` | Rule-based scores from buffer effects (until Agent #2) |
+| `/extractions` | `Buffer.list_extractions()` |
+| `/universe/*` | Static files in `backend/universe/` |
+
+---
+
 ### Stage 6 — Recommender (Agent #2)
 
 | | |
@@ -313,6 +333,11 @@ algo-trade/
 │       ├── timeline.py                # Stage 4 — monthly aggregation
 │       ├── timer.py                   # Stage 5 — forward-AUC BUY/SELL
 │       └── (planned: recommender.py)
+├── backend/
+│   └── api/                           # Web API — FastAPI /api/v1
+│       ├── main.py
+│       ├── routers/
+│       └── services/
 ├── tests/
 │   ├── test_fetcher.py                # fake Filing objects — no network
 │   ├── test_extractor.py              # fake Anthropic client — no API calls

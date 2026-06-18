@@ -22,9 +22,9 @@ from __future__ import annotations
 
 from importlib import resources
 
-from .store import Buffer, SectorEffectRow
+from .store import Buffer, ExtractionRow, SectorEffectRow
 
-__all__ = ["Buffer", "SectorEffectRow", "schema_sql"]
+__all__ = ["Buffer", "ExtractionRow", "SectorEffectRow", "schema_sql"]
 
 
 def schema_sql() -> str:

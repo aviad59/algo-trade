@@ -1,13 +1,14 @@
-# Backend (mock data and contract support)
+# Backend (mock data and API)
 
-This folder supports the **FilingSignal web UI** and the shared JSON contract. It does **not** contain the live Python pipeline — that lives in [`src/algo_trade/`](../src/algo_trade/) (fetcher, extractor, buffer schema).
+This folder supports the **FilingSignal web UI** and the shared JSON contract. The **live Python pipeline** lives in [`src/algo_trade/`](../src/algo_trade/); this folder adds mock snapshots and the read-only HTTP API.
 
 ## Layout
 
 ```
 backend/
+  api/                   # FastAPI serving layer (GET /api/v1/*)
   universe/              # Canonical reference data (manufacturers, materials, instrument map)
-  mock/v1/               # Demo API snapshots — same shapes as the planned /api/v1 contract
+  mock/v1/               # Demo API snapshots — same shapes as /api/v1
   scripts/
     validate-mock-contract.py
 ```
@@ -15,19 +16,35 @@ backend/
 | Path | Purpose |
 |------|---------|
 | [`universe/`](universe/README.md) | Input universe and material vocabulary for agents and validation |
+| [`api/`](api/main.py) | FastAPI app — buffer → forecast JSON contract |
 | [`mock/v1/`](mock/v1/manifest.json) | Static JSON bundle served to the frontend in mock mode |
 | [`scripts/`](scripts/) | CI validation of the mock bundle against [HLD §8](../docs/hld-web-interface.md) |
 
-## Universe data: two locations (intentional)
+## Run the live API
 
-| Location | Role |
-|----------|------|
-| `backend/universe/` | **Source of truth** — full reference files used by the pipeline vocabulary contract and integrity checks |
-| `backend/mock/v1/universe/` | **API snapshot** — subset copied into the mock bundle for the web UI (demo manufacturers, materials, instruments) |
+```bash
+pip install -e ".[dev]"
+algo-trade-api
+```
 
-These are not duplicates to delete blindly: the mock tree must match what [`frontend/`](../frontend/) fetches under `/mock/v1/`. A future exporter will generate `mock/v1/` from pipeline output; until then both are maintained for the offline demo.
+Environment variables:
 
-There is **no** tracked `universe/` at the repo root. If you see one locally, it is a leftover from before the web reorganization — use `backend/universe/` instead.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ALGO_TRADE_BUFFER_PATH` | `data/buffer.sqlite` | SQLite buffer file |
+| `ALGO_TRADE_FORECAST_SINCE` | 12 months ago | Forecast window start |
+| `ALGO_TRADE_FORECAST_UNTIL` | today | Forecast window end / `as_of` |
+| `ALGO_TRADE_UNIVERSE_DIR` | `backend/universe` | Universe JSON directory |
+| `ALGO_TRADE_CORS_ORIGINS` | `http://localhost:5173,...` | CORS allowlist |
+
+Then point the frontend at the API:
+
+```bash
+cd frontend
+VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
+```
+
+Vite proxies `/api/v1` → `http://localhost:8000`.
 
 ## Validate mock bundle
 
@@ -37,19 +54,17 @@ From repo root:
 py backend/scripts/validate-mock-contract.py
 ```
 
-## Python pipeline (lives elsewhere)
+## Python pipeline (lives in `src/algo_trade/`)
 
 | Component | Status | Location |
 |-----------|--------|----------|
 | EDGAR fetcher | Done | [`src/algo_trade/fetcher.py`](../src/algo_trade/fetcher.py) |
 | Extractor (Agent #1) | Done | [`src/algo_trade/extractor.py`](../src/algo_trade/extractor.py) |
-| Buffer schema | Done | [`src/algo_trade/buffer/schema.sql`](../src/algo_trade/buffer/schema.sql) |
-| Buffer store (`upsert`, queries) | Planned | `feature/buffer-store` |
-| Timeline aggregator, buy/sell timer, recommender | Planned | [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) |
+| Buffer store | Done | [`src/algo_trade/buffer/store.py`](../src/algo_trade/buffer/store.py) |
+| Timeline + timer | Done | [`src/algo_trade/timeline.py`](../src/algo_trade/timeline.py), [`timer.py`](../src/algo_trade/timer.py) |
+| Recommender (Agent #2) | Planned | [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) |
 
-## Future (this folder)
+## Future
 
-- HTTP serving layer (`GET /api/v1/*`) exposing pipeline snapshots in the same shapes as `mock/v1/`
-- Optional export script: buffer / forecast output → `mock/v1/` for local UI testing
-
-Until then, the frontend stays in mock mode — see [`frontend/README.md`](../frontend/README.md).
+- Replace rule-based ranking in the API with Agent #2 output
+- Optional export script: buffer / forecast output → `mock/v1/` for offline UI testing

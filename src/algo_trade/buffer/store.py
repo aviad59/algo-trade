@@ -33,13 +33,13 @@ from typing import Optional
 
 from importlib import resources
 
-from ..models import Direction, ExtractedFiling, Magnitude
+from ..models import DatedEffect, Direction, ExtractedFiling, Magnitude
 
 
 def _schema_sql() -> str:
     return resources.files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
-__all__ = ["Buffer", "SectorEffectRow"]
+__all__ = ["Buffer", "ExtractionRow", "SectorEffectRow"]
 
 
 @dataclass(frozen=True)
@@ -69,6 +69,24 @@ class SectorEffectRow:
     extractor_confidence: float
 
 
+@dataclass(frozen=True)
+class ExtractionRow:
+    """One extraction joined with filing metadata and child rows."""
+
+    id: int
+    accession_number: str
+    ticker: str
+    cik: str
+    company_name: Optional[str]
+    filing_type: str
+    filing_date: date
+    extractor_model: str
+    extractor_confidence: float
+    extracted_at: datetime
+    dated_effects: tuple[DatedEffect, ...]
+    flagged_risks: tuple[str, ...]
+
+
 def _row_to_sector_effect(r: sqlite3.Row) -> SectorEffectRow:
     return SectorEffectRow(
         sector=r["sector"],
@@ -86,6 +104,84 @@ def _row_to_sector_effect(r: sqlite3.Row) -> SectorEffectRow:
         company_name=r["company_name"],
         extractor_model=r["extractor_model"],
         extractor_confidence=r["extractor_confidence"],
+    )
+
+
+def _latest_extraction_join(extractor_model: str | None) -> tuple[str, list[str]]:
+    """SQL join fragment + leading bind params for latest-per-accession dedup."""
+    if extractor_model is not None:
+        return (
+            "JOIN extractions x ON x.id = de.extraction_id AND x.extractor_model = ?",
+            [extractor_model],
+        )
+    return (
+        """
+        JOIN extractions x ON x.id = de.extraction_id
+        JOIN (
+            SELECT accession_number, MAX(extracted_at) AS latest_at
+            FROM   extractions
+            GROUP  BY accession_number
+        ) latest ON latest.accession_number = x.accession_number
+                AND latest.latest_at = x.extracted_at
+        """,
+        [],
+    )
+
+
+def _load_extraction_row(con: sqlite3.Connection, extraction_id: int) -> ExtractionRow | None:
+    row = con.execute(
+        """
+        SELECT x.id, x.accession_number, x.extractor_model, x.extractor_confidence,
+               x.extracted_at,
+               f.ticker, f.cik, f.company_name, f.filing_type, f.filing_date
+        FROM   extractions x
+        JOIN   filings f ON f.accession_number = x.accession_number
+        WHERE  x.id = ?
+        """,
+        (extraction_id,),
+    ).fetchone()
+    if row is None:
+        return None
+
+    effects = con.execute(
+        """
+        SELECT sector, direction, magnitude, window_start, window_end,
+               rationale, source_span
+        FROM   dated_effects
+        WHERE  extraction_id = ?
+        ORDER  BY window_start
+        """,
+        (extraction_id,),
+    ).fetchall()
+    risks = con.execute(
+        "SELECT risk FROM flagged_risks WHERE extraction_id = ? ORDER BY id",
+        (extraction_id,),
+    ).fetchall()
+
+    return ExtractionRow(
+        id=int(row["id"]),
+        accession_number=row["accession_number"],
+        ticker=row["ticker"],
+        cik=row["cik"],
+        company_name=row["company_name"],
+        filing_type=row["filing_type"],
+        filing_date=date.fromisoformat(row["filing_date"]),
+        extractor_model=row["extractor_model"],
+        extractor_confidence=float(row["extractor_confidence"]),
+        extracted_at=datetime.fromisoformat(row["extracted_at"]),
+        dated_effects=tuple(
+            DatedEffect(
+                sector=e["sector"],
+                direction=Direction(e["direction"]),
+                magnitude=Magnitude(e["magnitude"]),
+                window_start=date.fromisoformat(e["window_start"]),
+                window_end=date.fromisoformat(e["window_end"]),
+                rationale=e["rationale"],
+                source_span=e["source_span"],
+            )
+            for e in effects
+        ),
+        flagged_risks=tuple(r["risk"] for r in risks),
     )
 
 
@@ -340,7 +436,7 @@ class Buffer:
         params: list[str] = [until.isoformat(), since.isoformat()]
         sector_clause = ""
         if sector is not None:
-            sector_clause = "AND de.sector = ?"
+            sector_clause = "AND LOWER(de.sector) = LOWER(?)"
             params.append(sector)
 
         if extractor_model is not None:
@@ -350,15 +446,8 @@ class Buffer:
             """
             params.insert(0, extractor_model)
         else:
-            extraction_join = """
-                JOIN extractions x ON x.id = de.extraction_id
-                JOIN (
-                    SELECT accession_number, MAX(extracted_at) AS latest_at
-                    FROM   extractions
-                    GROUP  BY accession_number
-                ) latest ON latest.accession_number = x.accession_number
-                        AND latest.latest_at = x.extracted_at
-            """
+            extraction_join, join_params = _latest_extraction_join(None)
+            params = join_params + params
 
         rows = self._con.execute(
             f"""
@@ -426,6 +515,117 @@ class Buffer:
         ).fetchall()
 
         return [dict(r) for r in rows]
+
+    def get_extraction(self, extraction_id: int) -> ExtractionRow | None:
+        """Return one extraction row by SQLite ``extractions.id``."""
+        return _load_extraction_row(self._con, extraction_id)
+
+    def list_extractions(
+        self,
+        *,
+        tickers: list[str] | None = None,
+        sectors: list[str] | None = None,
+        from_date: date | None = None,
+        to_date: date | None = None,
+        limit: int = 50,
+        offset: int = 0,
+        extractor_model: str | None = None,
+    ) -> tuple[list[ExtractionRow], int]:
+        """List extractions with optional filters and pagination.
+
+        When *extractor_model* is ``None``, only the latest extraction per
+        accession is returned (same dedup rule as :meth:`all_effects`).
+        """
+        limit = max(1, min(limit, 200))
+        offset = max(0, offset)
+
+        where: list[str] = []
+        params: list[object] = []
+
+        if extractor_model is not None:
+            where.append("x.extractor_model = ?")
+            params.append(extractor_model)
+
+        if tickers:
+            placeholders = ",".join("?" for _ in tickers)
+            where.append(f"f.ticker IN ({placeholders})")
+            params.extend(tickers)
+
+        if from_date is not None:
+            where.append("f.filing_date >= ?")
+            params.append(from_date.isoformat())
+
+        if to_date is not None:
+            where.append("f.filing_date <= ?")
+            params.append(to_date.isoformat())
+
+        if sectors:
+            sector_clauses = " OR ".join("LOWER(de.sector) = LOWER(?)" for _ in sectors)
+            where.append(
+                f"""
+                x.id IN (
+                    SELECT DISTINCT de.extraction_id
+                    FROM   dated_effects de
+                    WHERE  {sector_clauses}
+                )
+                """
+            )
+            params.extend(sectors)
+
+        if extractor_model is None:
+            where.append(
+                """
+                x.id IN (
+                    SELECT x2.id
+                    FROM   extractions x2
+                    JOIN (
+                        SELECT accession_number, MAX(extracted_at) AS latest_at
+                        FROM   extractions
+                        GROUP  BY accession_number
+                    ) latest ON latest.accession_number = x2.accession_number
+                            AND latest.latest_at = x2.extracted_at
+                )
+                """
+            )
+
+        where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+
+        count_row = self._con.execute(
+            f"""
+            SELECT COUNT(DISTINCT x.id)
+            FROM   extractions x
+            JOIN   filings f ON f.accession_number = x.accession_number
+            {where_sql}
+            """,
+            params,
+        ).fetchone()
+        total = int(count_row[0])
+
+        id_rows = self._con.execute(
+            f"""
+            SELECT DISTINCT x.id
+            FROM   extractions x
+            JOIN   filings f ON f.accession_number = x.accession_number
+            {where_sql}
+            ORDER  BY f.filing_date DESC, x.id DESC
+            LIMIT  ? OFFSET ?
+            """,
+            [*params, limit, offset],
+        ).fetchall()
+
+        rows = [
+            row
+            for extraction_id in (r["id"] for r in id_rows)
+            if (row := _load_extraction_row(self._con, int(extraction_id))) is not None
+        ]
+        return rows, total
+
+    def max_extracted_at(self) -> datetime | None:
+        """Return the most recent ``extracted_at`` timestamp in the buffer."""
+        row = self._con.execute("SELECT MAX(extracted_at) FROM extractions").fetchone()
+        if row is None or row[0] is None:
+            return None
+        return datetime.fromisoformat(row[0])
 
     # ---------------------------------------------------------------------- #
     # Utilities

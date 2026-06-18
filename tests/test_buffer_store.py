@@ -384,3 +384,37 @@ def test_all_effects_extractor_model_override(buf: Buffer) -> None:
     )
     assert len(rows) == 1
     assert rows[0].rationale == "opus"
+
+
+# --------------------------------------------------------------------------- #
+# list_extractions / get_extraction
+# --------------------------------------------------------------------------- #
+
+
+def test_get_extraction_round_trip(buf: Buffer) -> None:
+    eid = buf.upsert(_make_extracted(), company_name="Tesla, Inc.")
+    row = buf.get_extraction(eid)
+    assert row is not None
+    assert row.ticker == "TSLA"
+    assert row.company_name == "Tesla, Inc."
+    assert len(row.dated_effects) == 1
+
+
+def test_list_extractions_filters_ticker(buf: Buffer) -> None:
+    buf.upsert(_make_extracted(accession="ACC-001", ticker="TSLA"))
+    buf.upsert(_make_extracted(accession="ACC-002", ticker="GM"))
+    rows, total = buf.list_extractions(tickers=["TSLA"])
+    assert total == 1
+    assert rows[0].ticker == "TSLA"
+
+
+def test_list_extractions_filters_material(buf: Buffer) -> None:
+    buf.upsert(
+        _make_extracted(
+            accession="ACC-001",
+            effects=[_make_effect("lithium"), _make_effect("copper", window_start="2026-06-01", window_end="2026-06-30")],
+        )
+    )
+    rows, total = buf.list_extractions(sectors=["lithium"])
+    assert total == 1
+    assert any(effect.sector == "lithium" for effect in rows[0].dated_effects)
