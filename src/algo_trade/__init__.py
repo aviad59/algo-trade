@@ -21,6 +21,7 @@ from .buffer import Buffer
 from .timeline import build_all_curves, build_curve
 from .timer import TimerConfig, detect_actions, material_forecast
 from .recommender import Recommender, build_ranking_context
+from .plot import plot_material_forecast
 
 __all__ = [
     "Buffer",
@@ -37,6 +38,7 @@ __all__ = [
     "Fetcher",
     "material_forecast",
     "Magnitude",
+    "plot_material_forecast",
     "RankedMaterials",
     "Recommender",
     "SectorRanking",

@@ -334,7 +334,7 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - **Validation:** `pydantic` for the in-process pipeline contract, SQL CHECK constraints for the on-disk one, Zod on the frontend
 - **Timeline math:** `pandas` for the per-sector monthly bucketing, `numpy` for the forward-AUC sweep
 - **Config:** repo-root `.env` loaded by [`src/algo_trade/env.py`](src/algo_trade/env.py) (`python-dotenv`); shell exports override `.env`
-- **Plotting:** `matplotlib` / `plotly` (planned)
+- **Plotting:** `matplotlib` (PNG/PDF/SVG); `plotly` optional for HTML (`pip install -e ".[plot]"`)
 
 ---
 
@@ -347,8 +347,8 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - [x] **Buy/Sell timer** — forward-AUC algorithm in [`src/algo_trade/timer.py`](src/algo_trade/timer.py). Unit tests in `tests/unit/test_timer.py`.
 - [x] **Web API** — FastAPI `GET /api/v1/*` in [`backend/api/`](backend/api/). Integration tests in `tests/integration/`.
 - [x] **Recommender agent** — Agent #2 in [`src/algo_trade/recommender.py`](src/algo_trade/recommender.py). Unit tests in `tests/unit/test_recommender.py`.
-- [ ] **Plot** — static matplotlib + interactive plotly
-- [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, `algo-trade timeline --plot`
+- [x] **Plot** — `plot_material_forecast()` in [`src/algo_trade/plot.py`](src/algo_trade/plot.py). CLI: `algo-trade-plot`. Unit tests in `tests/unit/test_plot.py`.
+- [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, unified timeline entry
 - [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
 - [ ] Add earnings-call transcripts as a second input source alongside filings
 - [ ] Add a "diff" mode: highlight what changed in a company's plans between two filings
@@ -405,6 +405,7 @@ Full reference: [`.env.example`](.env.example) and [`backend/README.md`](backend
 |---------|---------|
 | `algo-trade-fetch` | Fetch SEC filings to stdout (JSONL) |
 | `algo-trade-extract` | Fetch → extract → upsert into buffer SQLite |
+| `algo-trade-plot` | Render material forecast curve (PNG or HTML) |
 | `algo-trade-api` | Start FastAPI on `ALGO_TRADE_API_HOST`:`ALGO_TRADE_API_PORT` |
 
 Example — populate the buffer from the command line (identity can come from `.env` via `ALGO_TRADE_SEC_IDENTITY`):
@@ -531,10 +532,10 @@ See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend
 | Recommender (Agent #2) | Done | `src/algo_trade/recommender.py` |
 | Web API | Done | `backend/api/` |
 | FilingSignal UI | Done | `frontend/` |
-| Plot module | Planned | — |
+| Plot | Done | `src/algo_trade/plot.py` |
 | Backtest harness | Planned | — |
 
-**109** Python tests (`pytest`). Ranking in the API defaults to rule-based scores; set `ALGO_TRADE_RANKING_MODE=recommender` in `.env` to use Agent #2.
+**142** Python tests (`pytest`). Ranking in the API defaults to rule-based scores; set `ALGO_TRADE_RANKING_MODE=recommender` in `.env` to use Agent #2.
 
 ---
 

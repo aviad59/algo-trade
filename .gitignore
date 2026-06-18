@@ -8,6 +8,7 @@ venv/
 
 # Local data / caches
 data/
+plots/
 cache/
 *.jsonl
 *.sqlite

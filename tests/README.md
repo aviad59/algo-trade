@@ -22,7 +22,7 @@ One package or service at a time. No live Anthropic calls, no SEC network, no fu
 - `test_extractor.py`, `test_recommender.py` — agents with fake Anthropic clients
 - `test_fetcher.py`, `test_timeline.py`, `test_timer.py` — pipeline stages
 - `test_api_config.py`, `test_forecast_service.py` — API settings and ranking service (direct function calls)
-- `test_extract_cli.py` — CLI argument / env wiring
+- `test_plot.py` — matplotlib/plotly chart output
 
 ## Integration tests (`tests/integration/`)
 
