@@ -17,6 +17,7 @@ dependencies = [
     "pandas>=2.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -37,5 +38,9 @@ where = ["src", "backend"]
 "algo_trade.buffer" = ["schema.sql"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/integration"]
 addopts = "-q"
+markers = [
+    "unit: hermetic single-module tests (tests/unit/)",
+    "integration: multi-module API flow tests (tests/integration/)",
+]

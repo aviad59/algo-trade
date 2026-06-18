@@ -281,7 +281,7 @@ actions = detect_actions(enriched_curve, config=TimerConfig(lookahead_months=3))
 
 | | |
 |---|---|
-| **Status** | DONE (rule-based ranking; recommender integration later) |
+| **Status** | DONE (rule-based default; optional Agent #2 via `ALGO_TRADE_RANKING_MODE=recommender`) |
 | **Code** | [`backend/api/`](../backend/api/) |
 | **CLI** | `algo-trade-api` |
 | **Tests** | [`tests/test_api.py`](../tests/test_api.py) |
@@ -291,7 +291,7 @@ FastAPI serves `GET /api/v1/*` with the same JSON shapes as [`backend/mock/v1/`]
 | Endpoint | Source |
 |----------|--------|
 | `/forecast/materials/{id}` | `material_forecast()` |
-| `/forecast/summary`, `/forecast/ranking` | Rule-based scores from buffer effects (until Agent #2) |
+| `/forecast/summary`, `/forecast/ranking` | Rule-based by default; Agent #2 when `ALGO_TRADE_RANKING_MODE=recommender` |
 | `/extractions` | `Buffer.list_extractions()` |
 | `/universe/*` | Static files in `backend/universe/` |
 
@@ -301,11 +301,12 @@ FastAPI serves `GET /api/v1/*` with the same JSON shapes as [`backend/mock/v1/`]
 
 | | |
 |---|---|
-| **Status** | PLANNED |
-| **Planned code** | `src/algo_trade/recommender.py` |
-| **Input** | The buffer (full content, date-bounded slice) |
-| **Output** | Ranked sectors with rationale + supporting ticker citations |
-| **Planned model** | `claude-opus-4-7` (reasoning-heavy, low-volume) |
+| **Status** | DONE |
+| **Code** | [`src/algo_trade/recommender.py`](../src/algo_trade/recommender.py), [`src/algo_trade/llm_config.py`](../src/algo_trade/llm_config.py) |
+| **Input** | Buffer digest (`build_ranking_context`) — structured extractions, not raw filings |
+| **Output** | `RankedMaterials` with `SectorRanking` entries (score, rationale, supporting tickers) |
+| **Model** | Configurable via `resolve_model("recommender")` — env: `ALGO_TRADE_RECOMMENDER_MODEL`, `ALGO_TRADE_LLM_MODEL` |
+| **API** | `ALGO_TRADE_RANKING_MODE=rules` (default, CI-safe) or `recommender` (requires `ANTHROPIC_API_KEY`) |
 
 **Why a second agent at all.** The aggregator answers *when* via math. The recommender answers *which sector and why*, in prose, with citations. The buffer is the shared contract — the recommender reads from it and cannot invent claims that aren't in it. Every claim must cite at least one ticker present in the buffer; this is the rule we'll enforce in the prompt and validate in code.
 
@@ -332,18 +333,17 @@ algo-trade/
 │       │   └── schema.sql             # canonical DDL
 │       ├── timeline.py                # Stage 4 — monthly aggregation
 │       ├── timer.py                   # Stage 5 — forward-AUC BUY/SELL
-│       └── (planned: recommender.py)
+│       ├── recommender.py             # Stage 6 (Agent #2)
+│       ├── llm_config.py              # resolve_model() for extractor + recommender
 ├── backend/
 │   └── api/                           # Web API — FastAPI /api/v1
 │       ├── main.py
 │       ├── routers/
 │       └── services/
 ├── tests/
-│   ├── test_fetcher.py                # fake Filing objects — no network
-│   ├── test_extractor.py              # fake Anthropic client — no API calls
-│   ├── test_buffer_store.py           # Buffer upsert + query
-│   ├── test_timeline.py               # monthly curve aggregation
-│   └── test_timer.py                  # forward-AUC + action detection
+│   ├── README.md                      # unit vs integration layout
+│   ├── unit/                          # hermetic single-module tests
+│   └── integration/                 # buffer + API flow tests
 ├── examples/
 │   ├── fetch_one.py                   # fetch NVDA's latest 10-K
 │   └── extract_one.py                 # fetch + extract end-to-end

@@ -104,3 +104,29 @@ def test_material_forecast_e2e() -> None:
     assert forecast["curve"][0]["month"] == "2026-01"
     assert "forward_AUC" in forecast["curve"][0]
     assert "signal" in forecast["curve"][0]
+
+
+def test_timer_config_from_env(monkeypatch) -> None:
+    monkeypatch.setenv("ALGO_TRADE_TIMER_LOOKAHEAD_MONTHS", "5")
+    monkeypatch.setenv("ALGO_TRADE_TIMER_BUY_THRESHOLD", "0.15")
+    cfg = TimerConfig.from_env()
+    assert cfg.lookahead_months == 5
+    assert cfg.buy_threshold == pytest.approx(0.15)
+
+
+def test_material_forecast_uses_env_timer_config(monkeypatch) -> None:
+    monkeypatch.setenv("ALGO_TRADE_TIMER_LOOKAHEAD_MONTHS", "2")
+    buf = Buffer(":memory:")
+    buf.upsert(_make_extracted(), company_name="Tesla, Inc.")
+    forecast = material_forecast(
+        buf,
+        "lithium",
+        since=date(2026, 1, 1),
+        until=date(2026, 12, 31),
+        as_of=date(2026, 6, 8),
+    )
+    # With window=2, forward_AUC at Jan should sum Feb+Mar signals only
+    jan = forecast["curve"][0]
+    feb = forecast["curve"][1]
+    mar = forecast["curve"][2]
+    assert jan["forward_AUC"] == pytest.approx(feb["signal"] + mar["signal"], rel=1e-3)

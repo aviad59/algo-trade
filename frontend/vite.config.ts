@@ -4,9 +4,10 @@ import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { IncomingMessage } from 'node:http'
-import { defineConfig, type Plugin } from 'vitest/config'
+import { defineConfig, loadEnv, type Plugin } from 'vitest/config'
 
-const mockRoot = path.resolve(__dirname, '../backend/mock/v1')
+const repoRoot = path.resolve(__dirname, '..')
+const mockRoot = path.resolve(repoRoot, 'backend/mock/v1')
 
 function serveMockBundle(
   req: IncomingMessage,
@@ -42,23 +43,29 @@ function mockApiPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [mockApiPlugin(), react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    proxy: {
-      '/api/v1': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, repoRoot, '')
+  const apiPort = env.ALGO_TRADE_API_PORT || '8000'
+
+  return {
+    envDir: repoRoot,
+    plugins: [mockApiPlugin(), react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
       },
     },
-  },
-  test: {
-    environment: 'node',
-    include: ['tests/**/*.test.ts'],
-  },
+    server: {
+      proxy: {
+        '/api/v1': {
+          target: `http://localhost:${apiPort}`,
+          changeOrigin: true,
+        },
+      },
+    },
+    test: {
+      environment: 'node',
+      include: ['tests/**/*.test.ts'],
+    },
+  }
 })

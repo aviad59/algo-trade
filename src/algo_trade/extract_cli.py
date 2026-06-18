@@ -11,7 +11,11 @@ Usage::
 
 Environment variables
 ---------------------
-ANTHROPIC_API_KEY   Required by the Extractor (Agent #1).
+See repo-root ``.env.example``. Key variables:
+
+ANTHROPIC_API_KEY       Required by the Extractor (Agent #1).
+ALGO_TRADE_SEC_IDENTITY Optional default for ``--identity``.
+ALGO_TRADE_BUFFER_PATH  Default for ``--db``.
 
 Examples
 --------
@@ -38,6 +42,20 @@ logger = logging.getLogger(__name__)
 
 
 def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
+    from pathlib import Path
+
+    from .buffer import Buffer
+    from .env import env_int, env_path, env_str, load_env
+    from .extractor import Extractor
+    from .fetcher import Fetcher
+
+    load_env()
+
+    default_db = str(env_path("ALGO_TRADE_BUFFER_PATH", "data/buffer.sqlite"))
+    default_form = env_str("ALGO_TRADE_EXTRACT_FORM", "10-K").split()
+    default_limit = env_int("ALGO_TRADE_EXTRACT_LIMIT", 1)
+    default_identity = env_str("ALGO_TRADE_SEC_IDENTITY", "")
+
     p = argparse.ArgumentParser(
         prog="algo-trade-extract",
         description="Fetch SEC filings, run the extractor, upsert into the buffer.",
@@ -50,32 +68,33 @@ def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
     )
     p.add_argument(
         "--identity",
-        required=True,
+        default=default_identity or None,
         metavar="NAME_AND_EMAIL",
         help=(
             'SEC identity string, e.g. "Jane Doe jane@example.com". '
-            "Required by edgartools (and the SEC User-Agent policy)."
+            "Required by edgartools (and the SEC User-Agent policy). "
+            "Defaults to ALGO_TRADE_SEC_IDENTITY from .env."
         ),
     )
     p.add_argument(
         "--db",
-        default="data/buffer.sqlite",
+        default=default_db,
         metavar="PATH",
-        help="Path to the SQLite buffer file. Default: data/buffer.sqlite",
+        help="Path to the SQLite buffer file. Default: ALGO_TRADE_BUFFER_PATH.",
     )
     p.add_argument(
         "--form",
         nargs="+",
-        default=["10-K"],
+        default=default_form,
         metavar="FORM",
-        help="SEC form types to fetch. Default: 10-K",
+        help="SEC form types to fetch. Default: ALGO_TRADE_EXTRACT_FORM.",
     )
     p.add_argument(
         "--limit",
         type=int,
-        default=1,
+        default=default_limit,
         metavar="N",
-        help="Most recent N filings per form per ticker. Default: 1",
+        help="Most recent N filings per form per ticker. Default: ALGO_TRADE_EXTRACT_LIMIT.",
     )
     p.add_argument(
         "-v",
@@ -85,17 +104,15 @@ def _cli(argv: list[str] | None = None) -> int:  # noqa: C901
     )
     args = p.parse_args(argv)
 
+    if not args.identity:
+        p.error(
+            "--identity is required (or set ALGO_TRADE_SEC_IDENTITY in repo-root .env)"
+        )
+
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
-
-    # Lazy imports so help / --version are fast even without dependencies.
-    from pathlib import Path
-
-    from .buffer import Buffer
-    from .extractor import Extractor
-    from .fetcher import Fetcher
 
     db_path = Path(args.db)
     db_path.parent.mkdir(parents=True, exist_ok=True)

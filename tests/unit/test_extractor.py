@@ -412,3 +412,22 @@ def test_extracted_filing_round_trips_through_json():
     assert restored.ticker == result.ticker
     assert len(restored.dated_effects) == len(result.dated_effects)
     assert restored.dated_effects[0].direction is Direction.increase
+
+
+def test_extractor_reads_model_and_tuning_from_env(monkeypatch):
+    fetched = _fetched_tsla_10q()
+    message = _FakeMessage(text=json.dumps(_valid_llm_payload()))
+    client = _FakeClient(message)
+
+    monkeypatch.setenv("ALGO_TRADE_EXTRACTOR_MODEL", "env-extractor-model")
+    monkeypatch.setenv("ALGO_TRADE_EXTRACTOR_MAX_TOKENS", "12000")
+    monkeypatch.setenv("ALGO_TRADE_EXTRACTOR_EFFORT", "medium")
+
+    extractor = Extractor(client=client)
+    extractor.extract(fetched)
+
+    kwargs = client.messages.last_kwargs
+    assert kwargs is not None
+    assert kwargs["model"] == "env-extractor-model"
+    assert kwargs["max_tokens"] == 12000
+    assert kwargs["output_config"]["effort"] == "medium"

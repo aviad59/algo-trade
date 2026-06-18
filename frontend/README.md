@@ -21,21 +21,30 @@ In development, mock JSON is served from `backend/mock/v1` via a Vite middleware
 
 ## Environment
 
-Copy `.env.example` to `.env`:
+All frontend and backend settings live in the **repo-root** `.env`. Copy [`.env.example`](../.env.example) to `.env` at the repository root (not inside `frontend/`).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `VITE_API_BASE` | `/mock/v1` | JSON base path |
 | `VITE_DATA_SOURCE` | `mock` | `mock` (static JSON) or `api` (FastAPI backend) |
 
+See [backend/README.md](../backend/README.md) for the full variable list.
+
 ### Live API dev (two terminals)
 
 ```bash
-# Terminal 1 — repo root
+# Terminal 1 — repo root (reads .env)
 algo-trade-api
 
-# Terminal 2 — frontend (Vite proxies /api/v1 → localhost:8000)
-VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
+# Terminal 2 — frontend (Vite loads repo-root .env; proxies /api/v1)
+cd frontend && npm run dev
+```
+
+Set in repo-root `.env`:
+
+```
+VITE_API_BASE=/api/v1
+VITE_DATA_SOURCE=api
 ```
 
 Populate the buffer first, e.g. `algo-trade-extract TSLA --identity "you@example.com"`.

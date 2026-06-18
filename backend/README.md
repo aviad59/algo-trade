@@ -27,17 +27,42 @@ pip install -e ".[dev]"
 algo-trade-api
 ```
 
-Environment variables:
+## Configuration
+
+Copy [`.env.example`](../.env.example) to `.env` at the **repository root** and edit values there. All backend, pipeline, and frontend (`VITE_*`) settings live in that one file.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | *(empty)* | Required for Extractor / Recommender |
 | `ALGO_TRADE_BUFFER_PATH` | `data/buffer.sqlite` | SQLite buffer file |
 | `ALGO_TRADE_FORECAST_SINCE` | 12 months ago | Forecast window start |
 | `ALGO_TRADE_FORECAST_UNTIL` | today | Forecast window end / `as_of` |
 | `ALGO_TRADE_UNIVERSE_DIR` | `backend/universe` | Universe JSON directory |
 | `ALGO_TRADE_CORS_ORIGINS` | `http://localhost:5173,...` | CORS allowlist |
+| `ALGO_TRADE_RANKING_MODE` | `rules` | `rules` (CI-safe) or `recommender` |
+| `ALGO_TRADE_API_HOST` | `0.0.0.0` | API bind host |
+| `ALGO_TRADE_API_PORT` | `8000` | API port (Vite proxy uses this too) |
+| `ALGO_TRADE_RECOMMENDER_MODEL` | *(via `resolve_model`)* | Override recommender model id |
+| `ALGO_TRADE_EXTRACTOR_MODEL` | *(via `resolve_model`)* | Override extractor model id |
+| `ALGO_TRADE_LLM_MODEL` | *(via `resolve_model`)* | Shared fallback for both agents |
+| `ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL` | `claude-opus-4-7` | Extractor fallback model |
+| `ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL` | `claude-opus-4-7` | Recommender fallback model |
+| `ALGO_TRADE_EXTRACTOR_MAX_TOKENS` | `16000` | Extractor output ceiling |
+| `ALGO_TRADE_EXTRACTOR_EFFORT` | `high` | Extractor effort level |
+| `ALGO_TRADE_RECOMMENDER_MAX_TOKENS` | `8000` | Recommender output ceiling |
+| `ALGO_TRADE_RECOMMENDER_EFFORT` | `high` | Recommender effort level |
+| `ALGO_TRADE_RECOMMENDER_MAX_EXTRACTIONS` | `100` | Max extractions in ranking digest |
+| `ALGO_TRADE_TIMER_LOOKAHEAD_MONTHS` | `3` | Forward-AUC window |
+| `ALGO_TRADE_TIMER_BUY_THRESHOLD` | `0.0` | BUY signal threshold |
+| `ALGO_TRADE_SEC_IDENTITY` | *(empty)* | Default SEC identity for `algo-trade-extract` |
+| `ALGO_TRADE_EXTRACT_FORM` | `10-K` | Default form for `algo-trade-extract` |
+| `ALGO_TRADE_EXTRACT_LIMIT` | `1` | Default filing limit for `algo-trade-extract` |
+| `VITE_API_BASE` | `/mock/v1` | Frontend JSON base path |
+| `VITE_DATA_SOURCE` | `mock` | `mock` or `api` |
 
-Then point the frontend at the API:
+Shell exports override `.env` (useful in CI).
+
+## Run the live API
 
 ```bash
 cd frontend
@@ -62,9 +87,8 @@ py backend/scripts/validate-mock-contract.py
 | Extractor (Agent #1) | Done | [`src/algo_trade/extractor.py`](../src/algo_trade/extractor.py) |
 | Buffer store | Done | [`src/algo_trade/buffer/store.py`](../src/algo_trade/buffer/store.py) |
 | Timeline + timer | Done | [`src/algo_trade/timeline.py`](../src/algo_trade/timeline.py), [`timer.py`](../src/algo_trade/timer.py) |
-| Recommender (Agent #2) | Planned | [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) |
+| Recommender (Agent #2) | Done | [`src/algo_trade/recommender.py`](../src/algo_trade/recommender.py) |
 
 ## Future
 
-- Replace rule-based ranking in the API with Agent #2 output
 - Optional export script: buffer / forecast output → `mock/v1/` for offline UI testing

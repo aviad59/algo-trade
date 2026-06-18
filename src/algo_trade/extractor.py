@@ -56,7 +56,9 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_MODEL = "claude-opus-4-7"
+from .llm_config import DEFAULT_EXTRACTOR_MODEL, resolve_model
+
+DEFAULT_MODEL = DEFAULT_EXTRACTOR_MODEL
 
 
 # --------------------------------------------------------------------------- #
@@ -196,11 +198,11 @@ class Extractor:
     def __init__(
         self,
         *,
-        model: str = DEFAULT_MODEL,
+        model: str | None = None,
         api_key: Optional[str] = None,
         client: Optional[anthropic.Anthropic] = None,
-        max_tokens: int = 16000,
-        effort: str = "high",
+        max_tokens: int | None = None,
+        effort: str | None = None,
     ) -> None:
         """
         Args:
@@ -218,9 +220,17 @@ class Extractor:
                 want lower latency on a clearly-cheaper filing set.
         """
         self._client = client or anthropic.Anthropic(api_key=api_key)
-        self._model = model
-        self._max_tokens = max_tokens
-        self._effort = effort
+        self._model = resolve_model("extractor", override=model)
+        from .env import env_int, env_str
+
+        self._max_tokens = (
+            max_tokens
+            if max_tokens is not None
+            else env_int("ALGO_TRADE_EXTRACTOR_MAX_TOKENS", 16000)
+        )
+        self._effort = (
+            effort if effort is not None else env_str("ALGO_TRADE_EXTRACTOR_EFFORT", "high")
+        )
 
     def extract(self, fetched: FetchedFiling) -> ExtractedFiling:
         """Run Agent #1 on a single fetched filing."""

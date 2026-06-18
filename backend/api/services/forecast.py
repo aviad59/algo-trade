@@ -1,14 +1,20 @@
-"""Forecast API builders (rule-based ranking until recommender exists)."""
+"""Forecast API builders — rule-based ranking with optional Agent #2."""
 
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime, timezone
 
 from algo_trade.buffer import Buffer
+from algo_trade.env import env_str
+from algo_trade.models import RankedMaterials
 from algo_trade.timer import material_forecast
 
+from ..deps import get_settings
 from ..normalize import material_sector_aliases, normalize_material_id
 from .universe import materials
+
+logger = logging.getLogger(__name__)
 
 
 def _material_catalog(universe_dir) -> dict[str, dict]:
@@ -71,7 +77,9 @@ def _rank_material(
     }
 
 
-def build_ranking(buf: Buffer, since: date, until: date, as_of: date, universe_dir) -> dict:
+def _build_rule_based_ranking(
+    buf: Buffer, since: date, until: date, as_of: date, universe_dir
+) -> dict:
     material_ids = _distinct_materials_in_buffer(buf, since, until, universe_dir)
     ranked = [
         _rank_material(buf, material_id, since, until, universe_dir)
@@ -85,6 +93,50 @@ def build_ranking(buf: Buffer, since: date, until: date, as_of: date, universe_d
         "as_of": as_of.isoformat(),
         "ranked_materials": ranked,
     }
+
+
+def _ranked_materials_to_api(ranked: RankedMaterials) -> dict:
+    return {
+        "contract_version": "1.0",
+        "as_of": ranked.as_of.isoformat(),
+        "ranked_materials": [
+            {
+                "material_id": item.material_id,
+                "name": item.name,
+                "score": round(item.score, 2),
+                "rationale": item.rationale,
+                "supporting_tickers": item.supporting_tickers,
+                "dissenting_evidence": item.dissenting_evidence,
+            }
+            for item in ranked.ranked_materials
+        ],
+    }
+
+
+def _anthropic_api_key_present() -> bool:
+    return bool(env_str("ANTHROPIC_API_KEY", ""))
+
+
+def build_ranking(buf: Buffer, since: date, until: date, as_of: date, universe_dir) -> dict:
+    settings = get_settings()
+    if settings.ranking_mode == "recommender" and _anthropic_api_key_present():
+        try:
+            from algo_trade.recommender import Recommender
+
+            recommender = Recommender(model=settings.recommender_model)
+            ranked = recommender.rank(
+                buf,
+                since,
+                until,
+                as_of=as_of,
+                universe_dir=universe_dir,
+            )
+            if ranked.ranked_materials:
+                return _ranked_materials_to_api(ranked)
+        except Exception:
+            logger.warning("recommender ranking failed; falling back to rules", exc_info=True)
+
+    return _build_rule_based_ranking(buf, since, until, as_of, universe_dir)
 
 
 def build_summary(buf: Buffer, since: date, until: date, as_of: date, universe_dir) -> dict:

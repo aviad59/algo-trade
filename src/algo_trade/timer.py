@@ -39,6 +39,15 @@ class TimerConfig:
     lookahead_months: int = 3
     buy_threshold: float = 0.0
 
+    @classmethod
+    def from_env(cls) -> "TimerConfig":
+        from .env import env_float, env_int
+
+        return cls(
+            lookahead_months=env_int("ALGO_TRADE_TIMER_LOOKAHEAD_MONTHS", 3),
+            buy_threshold=env_float("ALGO_TRADE_TIMER_BUY_THRESHOLD", 0.0),
+        )
+
 
 def forward_auc(signals: pd.Series, *, window: int = 3) -> pd.Series:
     """Forward-looking area under the curve.
@@ -60,7 +69,7 @@ def enrich_curve(
     config: TimerConfig | None = None,
 ) -> pd.DataFrame:
     """Add a ``forward_auc`` column to a :func:`~algo_trade.timeline.build_curve` result."""
-    cfg = config or TimerConfig()
+    cfg = config or TimerConfig.from_env()
     enriched = curve.copy()
     enriched["forward_auc"] = forward_auc(
         enriched["signal"], window=cfg.lookahead_months
@@ -79,7 +88,7 @@ def detect_actions(
     if strat is not TimerStrategy.forward_auc:
         raise NotImplementedError(f"strategy {strat.value!r} is not implemented yet")
 
-    cfg = config or TimerConfig()
+    cfg = config or TimerConfig.from_env()
     if "forward_auc" not in curve.columns:
         curve = enrich_curve(curve, config=cfg)
 
@@ -145,7 +154,7 @@ def material_forecast(
     extractor_model: str | None = None,
 ) -> dict:
     """Build a mock-contract-shaped material forecast dict from the buffer."""
-    cfg = config or TimerConfig()
+    cfg = config or TimerConfig.from_env()
     curve = build_curve(
         buf, sector, since, until, extractor_model=extractor_model
     )

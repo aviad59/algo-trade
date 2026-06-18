@@ -152,3 +152,30 @@ class CurvePoint(BaseModel):
     month: str
     signal: float
     forward_auc: float
+
+
+# --------------------------------------------------------------------------- #
+# Recommender output -- ranked materials Agent #2 emits from the buffer.
+# --------------------------------------------------------------------------- #
+
+
+class SectorRanking(BaseModel):
+    """One ranked material in Agent #2's output."""
+
+    material_id: str
+    name: str
+    score: float = Field(ge=0.0, le=1.0)
+    rationale: str
+    supporting_tickers: list[str]
+    dissenting_evidence: list[str] = Field(default_factory=list)
+
+
+class RankedMaterials(BaseModel):
+    """Agent #2's structured ranking over a date-bounded buffer slice."""
+
+    as_of: date
+    ranked_materials: list[SectorRanking]
+    recommender_model: str
+    recommended_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )

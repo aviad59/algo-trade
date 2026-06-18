@@ -10,6 +10,8 @@ from .models import (
     ExtractedFiling,
     FetchedFiling,
     Magnitude,
+    RankedMaterials,
+    SectorRanking,
     TimerAction,
     TimerSignal,
 )
@@ -18,11 +20,13 @@ from .extractor import Extractor
 from .buffer import Buffer
 from .timeline import build_all_curves, build_curve
 from .timer import TimerConfig, detect_actions, material_forecast
+from .recommender import Recommender, build_ranking_context
 
 __all__ = [
     "Buffer",
     "build_all_curves",
     "build_curve",
+    "build_ranking_context",
     "CurvePoint",
     "DatedEffect",
     "detect_actions",
@@ -33,6 +37,9 @@ __all__ = [
     "Fetcher",
     "material_forecast",
     "Magnitude",
+    "RankedMaterials",
+    "Recommender",
+    "SectorRanking",
     "TimerAction",
     "TimerConfig",
     "TimerSignal",

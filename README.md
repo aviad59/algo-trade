@@ -10,10 +10,11 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 | Path | Role |
 |------|------|
-| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline package** — EDGAR fetcher, extractor (Agent #1), buffer store (SQLite). Install via `pip install -e ".[dev]"`. |
-| [`tests/`](tests/) | Python tests for the pipeline (`pytest`) |
-| [`backend/`](backend/README.md) | **Mock / contract support** — [`universe/`](backend/universe/README.md) reference JSON, [`mock/v1/`](backend/mock/v1/manifest.json) demo API snapshots, validation scripts. Not the live pipeline code. |
-| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down. Runs on mock JSON until a live API exists. |
+| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline** — fetcher, extractor (Agent #1), buffer, timeline, timer, recommender (Agent #2). Install via `pip install -e ".[dev]"`. |
+| [`tests/`](tests/README.md) | Python tests — [`unit/`](tests/unit/) and [`integration/`](tests/integration/) |
+| [`backend/`](backend/README.md) | **Web serving layer** — FastAPI (`GET /api/v1/*`), [`universe/`](backend/universe/README.md) reference JSON, [`mock/v1/`](backend/mock/v1/manifest.json) demo snapshots |
+| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down. Mock or live API via `.env`. |
+| [`.env.example`](.env.example) | **Configuration template** — copy to `.env` at repo root (API, pipeline, frontend) |
 | [`docs/`](docs/ARCHITECTURE.md) | Technical docs — see links below |
 | [`examples/`](examples/) | Small pipeline usage examples |
 
@@ -26,7 +27,7 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 | [implementation-plan-web.md](docs/implementation-plan-web.md) | Web delivery phases and checklist |
 | [playwright-mcp.md](docs/playwright-mcp.md) | E2E tests and optional Cursor browser MCP |
 
-The **live Python pipeline** lives under `src/algo_trade/`. The **web app** reads static mock files from `backend/mock/v1/` in development (`VITE_DATA_SOURCE=mock`). Connecting the UI to pipeline output is future work (`feature/buffer-store` and beyond).
+The **live Python pipeline** lives under `src/algo_trade/`. The **web app** reads either static mock JSON (`VITE_DATA_SOURCE=mock`) or the FastAPI backend (`VITE_DATA_SOURCE=api`) — both controlled from the repo-root [`.env`](.env.example).
 
 ---
 
@@ -184,24 +185,28 @@ Why SQLite:
 
 ### 4. Agent #2 — Sector Recommender
 
-Reads the entire buffer (or a date-bounded slice) and produces a ranked list of sectors with rationale. Output is also structured:
+Implemented in [`src/algo_trade/recommender.py`](src/algo_trade/recommender.py). Reads a **compact digest** of buffer extractions (not raw filings) and produces a ranked list of materials with rationale. Model selection is centralized in [`src/algo_trade/llm_config.py`](src/algo_trade/llm_config.py) (`resolve_model` — configurable via `.env`, not hardcoded).
 
 ```json
 {
   "as_of": "2026-06-08",
-  "ranked_sectors": [
+  "ranked_materials": [
     {
-      "sector": "Power generation / grid",
+      "material_id": "lithium",
+      "name": "Lithium",
       "score": 0.87,
-      "rationale": "12 of 47 companies in the buffer flag electricity supply as a binding constraint on planned capex.",
-      "supporting_tickers": ["NVDA", "MSFT", "GOOGL", "..."],
-      "dissenting_evidence": ["Two utilities flag demand uncertainty"]
+      "rationale": "TSLA and GM both flag large lithium increases in Q2–Q3.",
+      "supporting_tickers": ["TSLA", "GM"],
+      "dissenting_evidence": []
     }
-  ]
+  ],
+  "recommender_model": "claude-opus-4-7"
 }
 ```
 
-Every claim the recommender makes must cite tickers from the buffer. If it can't cite, it can't claim.
+Every claim the recommender makes must cite tickers from the buffer. Post-validation drops unknown `material_id` values and tickers not present in the digest.
+
+In the Web API, ranking is **rule-based by default** (`ALGO_TRADE_RANKING_MODE=rules`, CI-safe). Set `ALGO_TRADE_RANKING_MODE=recommender` and provide `ANTHROPIC_API_KEY` to use Agent #2; the API falls back to rules on failure.
 
 ### 5. Sector Timeline Aggregator
 
@@ -293,16 +298,18 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 
 ---
 
-## Tech stack (intended)
+## Tech stack
 
 - **Language:** Python 3.11+
-- **LLM client:** `anthropic` SDK (Claude Sonnet 4.6 for extraction, Claude Opus 4.7 for the recommender — extraction is volume-heavy and cheaper-model-friendly, recommendation is reasoning-heavy)
+- **LLM client:** `anthropic` SDK — models configurable via `.env` (`ALGO_TRADE_EXTRACTOR_MODEL`, `ALGO_TRADE_RECOMMENDER_MODEL`, or shared `ALGO_TRADE_LLM_MODEL`; defaults in [`llm_config.py`](src/algo_trade/llm_config.py))
 - **EDGAR client:** [`edgartools`](https://github.com/dgunning/edgartools) — handles fetching, section extraction, rate limits, caching
+- **Web API:** FastAPI + uvicorn (`algo-trade-api`)
+- **Frontend:** React + TypeScript + Vite (FilingSignal)
 - **Storage:** SQLite as the canonical buffer (one file, ACID, indexed); DuckDB attached for analytical reads when needed. Schema in [`src/algo_trade/buffer/schema.sql`](src/algo_trade/buffer/schema.sql).
-- **Validation:** `pydantic` for the in-process pipeline contract, SQL CHECK constraints for the on-disk one
+- **Validation:** `pydantic` for the in-process pipeline contract, SQL CHECK constraints for the on-disk one, Zod on the frontend
 - **Timeline math:** `pandas` for the per-sector monthly bucketing, `numpy` for the forward-AUC sweep
-- **Plotting:** `matplotlib` for static plots, `plotly` for the interactive version
-- **Orchestration:** plain Python to start; consider a job queue once the universe of tickers grows
+- **Config:** repo-root `.env` loaded by [`src/algo_trade/env.py`](src/algo_trade/env.py) (`python-dotenv`); shell exports override `.env`
+- **Plotting:** `matplotlib` / `plotly` (planned)
 
 ---
 
@@ -311,15 +318,76 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - [x] EDGAR fetcher wrapper around `edgartools` — pulls 10-K / 10-Q with typed MD&A + Risk Factors, falls back to full text on 8-K and on parse failure. CLI: `algo-trade-fetch`.
 - [x] Extractor agent — Claude Opus 4.7 by default, adaptive thinking, `output_config.format` JSON schema enforcement, prompt-cached system prompt, streaming. Drops effects without a `source_span` or with inverted date windows. Handles `refusal` / `max_tokens` / `model_context_window_exceeded` stop reasons.
 - [x] Buffer -- SQLite schema + `Buffer` Python class (`upsert`, `effects_for_sector`, `filings_citing`). CLI: `algo-trade-extract`. 23 hermetic tests. See [`src/algo_trade/buffer/`](src/algo_trade/buffer/).
-- [x] **Sector timeline aggregator** — monthly bucketing via [`src/algo_trade/timeline.py`](src/algo_trade/timeline.py) (`build_curve`, `build_all_curves`). Hermetic tests in `tests/test_timeline.py`.
-- [x] **Buy/Sell timer** — forward-AUC algorithm in [`src/algo_trade/timer.py`](src/algo_trade/timer.py) (`detect_actions`, `material_forecast`). Alternative strategies stubbed. Tests in `tests/test_timer.py`.
-- [x] **Web API** — FastAPI `GET /api/v1/*` in [`backend/api/`](backend/api/). CLI: `algo-trade-api`. Rule-based ranking until recommender lands. Tests in `tests/test_api.py`.
-- [ ] Recommender agent
+- [x] **Sector timeline aggregator** — monthly bucketing via [`src/algo_trade/timeline.py`](src/algo_trade/timeline.py). Unit tests in `tests/unit/test_timeline.py`.
+- [x] **Buy/Sell timer** — forward-AUC algorithm in [`src/algo_trade/timer.py`](src/algo_trade/timer.py). Unit tests in `tests/unit/test_timer.py`.
+- [x] **Web API** — FastAPI `GET /api/v1/*` in [`backend/api/`](backend/api/). Integration tests in `tests/integration/`.
+- [x] **Recommender agent** — Agent #2 in [`src/algo_trade/recommender.py`](src/algo_trade/recommender.py). Unit tests in `tests/unit/test_recommender.py`.
 - [ ] **Plot** — static matplotlib + interactive plotly
 - [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, `algo-trade timeline --plot`
 - [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
 - [ ] Add earnings-call transcripts as a second input source alongside filings
 - [ ] Add a "diff" mode: highlight what changed in a company's plans between two filings
+
+---
+
+## Configuration
+
+All settings live in a single **repo-root** `.env` file. Copy the template and edit:
+
+```bash
+cp .env.example .env
+```
+
+Loaded by [`src/algo_trade/env.py`](src/algo_trade/env.py) for the Python pipeline and API; Vite reads the same file for `VITE_*` vars (`envDir` points at repo root). **Shell exports override `.env`** (useful in CI).
+
+| Variable | Default | What it controls |
+|----------|---------|------------------|
+| `ANTHROPIC_API_KEY` | *(empty)* | Extractor and Recommender (required for LLM calls) |
+| `ALGO_TRADE_LLM_MODEL` | *(empty)* | Shared model override for both agents |
+| `ALGO_TRADE_EXTRACTOR_MODEL` | *(empty)* | Extractor model (overrides default) |
+| `ALGO_TRADE_RECOMMENDER_MODEL` | *(empty)* | Recommender model (overrides default) |
+| `ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL` | `claude-opus-4-7` | Extractor fallback when no override set |
+| `ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL` | `claude-opus-4-7` | Recommender fallback when no override set |
+| `ALGO_TRADE_EXTRACTOR_MAX_TOKENS` | `16000` | Extractor output token ceiling |
+| `ALGO_TRADE_EXTRACTOR_EFFORT` | `high` | Extractor `output_config.effort` |
+| `ALGO_TRADE_RECOMMENDER_MAX_TOKENS` | `8000` | Recommender output token ceiling |
+| `ALGO_TRADE_RECOMMENDER_EFFORT` | `high` | Recommender `output_config.effort` |
+| `ALGO_TRADE_RECOMMENDER_MAX_EXTRACTIONS` | `100` | Max extractions in ranking digest |
+| `ALGO_TRADE_BUFFER_PATH` | `data/buffer.sqlite` | SQLite buffer file (relative → repo root) |
+| `ALGO_TRADE_UNIVERSE_DIR` | `backend/universe` | Materials / manufacturers vocabulary |
+| `ALGO_TRADE_FORECAST_SINCE` | 12 months ago | API forecast window start (ISO date) |
+| `ALGO_TRADE_FORECAST_UNTIL` | today | API forecast window end / `as_of` |
+| `ALGO_TRADE_RANKING_MODE` | `rules` | `rules` (deterministic) or `recommender` (Agent #2) |
+| `ALGO_TRADE_API_HOST` | `0.0.0.0` | `algo-trade-api` bind host |
+| `ALGO_TRADE_API_PORT` | `8000` | API port (Vite proxy uses this) |
+| `ALGO_TRADE_CORS_ORIGINS` | `http://localhost:5173,...` | CORS allowlist for the API |
+| `ALGO_TRADE_TIMER_LOOKAHEAD_MONTHS` | `3` | Forward-AUC look-ahead window |
+| `ALGO_TRADE_TIMER_BUY_THRESHOLD` | `0.0` | BUY signal threshold |
+| `ALGO_TRADE_SEC_IDENTITY` | *(empty)* | Default SEC identity for `algo-trade-extract` |
+| `ALGO_TRADE_EXTRACT_FORM` | `10-K` | Default form type for `algo-trade-extract` |
+| `ALGO_TRADE_EXTRACT_LIMIT` | `1` | Default filings-per-form for `algo-trade-extract` |
+| `VITE_API_BASE` | `/mock/v1` | Frontend data path (`/api/v1` for live API) |
+| `VITE_DATA_SOURCE` | `mock` | `mock` (static JSON) or `api` (FastAPI) |
+
+Full reference: [`.env.example`](.env.example) and [`backend/README.md`](backend/README.md).
+
+---
+
+## CLI commands
+
+| Command | Purpose |
+|---------|---------|
+| `algo-trade-fetch` | Fetch SEC filings to stdout (JSONL) |
+| `algo-trade-extract` | Fetch → extract → upsert into buffer SQLite |
+| `algo-trade-api` | Start FastAPI on `ALGO_TRADE_API_HOST`:`ALGO_TRADE_API_PORT` |
+
+Example — populate the buffer from the command line (identity can come from `.env` via `ALGO_TRADE_SEC_IDENTITY`):
+
+```bash
+algo-trade-extract TSLA GM \
+    --identity "Your Name you@example.com" \
+    --form 10-Q --limit 1
+```
 
 ---
 
@@ -329,9 +397,27 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 git clone https://github.com/aviad59/algo-trade.git
 cd algo-trade
 python -m pip install -e ".[dev]"
+cp .env.example .env   # set ANTHROPIC_API_KEY, ALGO_TRADE_SEC_IDENTITY, etc.
 ```
 
-Fetch NVIDIA's latest 10-K (MD&A + Risk Factors) into stdout as JSONL:
+### End-to-end workflow
+
+```bash
+# 1. Populate buffer (needs ANTHROPIC_API_KEY in .env)
+algo-trade-extract TSLA --identity "You you@example.com" --form 10-Q --limit 1
+
+# 2. Start API (reads buffer + .env)
+algo-trade-api
+
+# 3. Point UI at live API — in .env set:
+#    VITE_API_BASE=/api/v1
+#    VITE_DATA_SOURCE=api
+cd frontend && npm install && npm run dev
+```
+
+Open http://localhost:5173. Vite proxies `/api/v1` → `http://localhost:8000` (port from `ALGO_TRADE_API_PORT`).
+
+### Fetch only (no LLM)
 
 ```bash
 algo-trade-fetch \
@@ -353,16 +439,13 @@ for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
     print(" risk_factors chars:", len(f.section("risk_factors") or ""))
 ```
 
-Fetch + run Agent #1 (the Extractor) on the result:
+Fetch + run Agent #1 (the Extractor) on the result (`ANTHROPIC_API_KEY` from `.env`):
 
 ```python
-import os
 from algo_trade import Extractor, Fetcher
 
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-...")
-
 fetcher = Fetcher(identity="Your Name you@example.com")
-extractor = Extractor()  # defaults to claude-opus-4-7
+extractor = Extractor()  # model from .env / llm_config
 
 for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
     extracted = extractor.extract(f)
@@ -375,12 +458,14 @@ for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
 Run the tests:
 
 ```bash
-python -m pytest
+python -m pytest              # all tests
+python -m pytest tests/unit   # unit only
+python -m pytest tests/integration  # integration only
 ```
 
 ### Web UI
 
-**Mock mode (default):**
+**Mock mode (default)** — no buffer or API required; uses static JSON from `backend/mock/v1/`:
 
 ```bash
 cd frontend
@@ -388,30 +473,42 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — static JSON from `backend/mock/v1/`.
+**Live API mode** — requires a populated buffer and `algo-trade-api` running. Set in repo-root `.env`:
 
-**Live API mode** (requires a populated buffer and `algo-trade-api` on port 8000):
-
-```bash
-# Terminal 1 — from repo root
-algo-trade-api
-
-# Terminal 2
-cd frontend
-VITE_API_BASE=/api/v1 VITE_DATA_SOURCE=api npm run dev
 ```
+VITE_API_BASE=/api/v1
+VITE_DATA_SOURCE=api
+ALGO_TRADE_RANKING_MODE=recommender   # optional — use Agent #2 for ranking
+```
+
+Then start both servers (see [End-to-end workflow](#end-to-end-workflow) above).
+
+Frontend tests: `cd frontend && npm test` (Vitest) and `npm run test:e2e` (Playwright).
 
 See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md).
 
-You will need:
-- A contact email — used by `edgartools` via `set_identity("you@example.com")` to satisfy SEC's User-Agent requirement
-- An Anthropic API key (`ANTHROPIC_API_KEY`) — required for the Extractor
+**Prerequisites:**
+- A contact email — `ALGO_TRADE_SEC_IDENTITY` or `--identity` for SEC User-Agent policy
+- `ANTHROPIC_API_KEY` in `.env` — required for extraction and recommender ranking
 
 ---
 
 ## Project status
 
-Steps 1–5 and the read-only Web API are implemented. The recommender (Agent #2) and plot module are still ahead. Ranking in the API uses rule-based scores until Agent #2 replaces them.
+| Stage | Status | Location |
+|-------|--------|----------|
+| EDGAR fetcher | Done | `src/algo_trade/fetcher.py` |
+| Extractor (Agent #1) | Done | `src/algo_trade/extractor.py` |
+| Buffer store | Done | `src/algo_trade/buffer/` |
+| Timeline aggregator | Done | `src/algo_trade/timeline.py` |
+| Buy/Sell timer | Done | `src/algo_trade/timer.py` |
+| Recommender (Agent #2) | Done | `src/algo_trade/recommender.py` |
+| Web API | Done | `backend/api/` |
+| FilingSignal UI | Done | `frontend/` |
+| Plot module | Planned | — |
+| Backtest harness | Planned | — |
+
+**109** Python tests (`pytest`). Ranking in the API defaults to rule-based scores; set `ALGO_TRADE_RANKING_MODE=recommender` in `.env` to use Agent #2.
 
 ---
 
