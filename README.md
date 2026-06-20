@@ -350,10 +350,11 @@ Matplotlib (or Plotly for an interactive version). One line per sector, x-axis =
 - [x] **Web API** — FastAPI `GET /api/v1/*` in [`backend/api/`](backend/api/). Integration tests in `tests/integration/`.
 - [x] **Recommender agent** — Agent #2 in [`src/algo_trade/recommender.py`](src/algo_trade/recommender.py). Unit tests in `tests/unit/test_recommender.py`.
 - [x] **Plot** — `plot_material_forecast()` in [`src/algo_trade/plot.py`](src/algo_trade/plot.py). CLI: `algo-trade-plot`. Unit tests in `tests/unit/test_plot.py`.
-- [ ] CLI: `algo-trade extract --tickers nvda,msft,...`, `algo-trade recommend`, unified timeline entry
-- [ ] Backtest harness: replay the recommender's output **and** the buy/sell timer's calls against subsequent sector ETF returns to see if it's actually any good
-- [ ] Add earnings-call transcripts as a second input source alongside filings
-- [ ] Add a "diff" mode: highlight what changed in a company's plans between two filings
+- [x] **Backtest harness** — Replays the buy/sell timer over historical buffer data and price series. Caller supplies prices (no market-data vendor lock-in). [`src/algo_trade/backtest.py`](src/algo_trade/backtest.py); 19 hermetic tests in `tests/unit/test_backtest.py`. **Empirical validation is what tells you whether the narrated signal beats hold — until you run a real backtest with real prices, treat every recommendation as a hypothesis.**
+- [ ] Price-data integration (Yahoo Finance / AlphaVantage / CSV loader) — small adapter that feeds the backtest harness real ETF prices.
+- [ ] Unified CLI entry: `algo-trade recommend`, `algo-trade backtest --prices prices.csv`.
+- [ ] Earnings-call transcripts as a second input source alongside filings.
+- [ ] "Diff" mode: highlight what changed in a company's plans between two filings.
 
 ---
 
@@ -622,9 +623,10 @@ See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend
 | Web API | Done | `backend/api/` |
 | FilingSignal UI | Done | `frontend/` |
 | Plot | Done | `src/algo_trade/plot.py` |
-| Backtest harness | Planned | — |
+| Backtest harness | Done | `src/algo_trade/backtest.py` |
+| Price-data integration | Planned | — (caller-supplied today) |
 
-**142** Python tests (`pytest`). Ranking in the API defaults to rule-based scores; set `ALGO_TRADE_RANKING_MODE=recommender` in `.env` to use Agent #2.
+**193** Python tests, 2 skipped (`pytest`). Ranking in the API defaults to rule-based scores; set `ALGO_TRADE_RANKING_MODE=recommender` in `.env` to use Agent #2.
 
 ---
 

@@ -325,6 +325,32 @@ FastAPI serves `GET /api/v1/*` with the same JSON shapes as [`backend/mock/v1/`]
 
 ---
 
+### Stage 8 — Backtest harness
+
+| | |
+|---|---|
+| **Status** | DONE |
+| **Code** | [`src/algo_trade/backtest.py`](../src/algo_trade/backtest.py) |
+| **Input** | Populated `Buffer` + a `Mapping[ticker, PriceSeries]` of historical closes |
+| **Output** | `BacktestSummary` of per-sector `BacktestResult`s (trades, total return, benchmark return, alpha, win rate) |
+| **Tests** | [`tests/unit/test_backtest.py`](../tests/unit/test_backtest.py) — 19 hermetic tests with synthetic price series and seeded buffers |
+
+This is what closes the loop the project's premise rests on: *does the narrated signal actually predict sector returns?* The harness takes the buy/sell timer's actions and walks them through a price series, simulating long-only round trips with a single share per BUY/SELL pair. Output: total strategy return, buy-and-hold benchmark return over the same window, the resulting alpha, and a per-trade win rate.
+
+**Deliberate non-feature.** The harness does NOT fetch prices itself. There is no Yahoo Finance / AlphaVantage / Bloomberg adapter committed -- caller supplies a `Mapping[ticker, PriceSeries]` where `PriceSeries` is a thin wrapper around a date-indexed `pd.Series` of closes. The reasons:
+
+- Tests stay hermetic (no network).
+- The project doesn't have a strong preference for a market-data vendor; locking in one would push that decision on every user.
+- The right adapter is a 30-line module; the user can write it for whatever source they already pay for (or pull from a CSV).
+
+**Benchmark semantics.** Buy-and-hold from the first BUY's entry date through `window_end`. If the strategy SELLs early and the market then drops, alpha > 0. If the strategy SELLs into a continuing rally, alpha < 0. The benchmark span deliberately extends past the strategy's last SELL so the comparison is honest about opportunity cost.
+
+**Open positions at window end.** A BUY without a matching SELL gets paper-valued at `window_end`. The trade is included in `BacktestResult.trades` with `open_at_end=True` so callers can distinguish it from realised round trips when reporting.
+
+**Sector-to-instrument mapping.** Defaults to the first ETF in `backend/universe/material-to-index.json` for the sector. `instrument_overrides={"lithium": "LIT"}` overrides per call.
+
+---
+
 ## 3. File map
 
 ```
@@ -350,6 +376,7 @@ algo-trade/
 │       ├── llm_config.py              # resolve_model() for extractor + recommender
 │       ├── plot.py                    # Stage 7 — matplotlib + plotly charts
 │       ├── plot_cli.py                # algo-trade-plot CLI
+│       ├── backtest.py                # Stage 8 — backtest harness
 ├── backend/
 │   └── api/                           # Web API — FastAPI /api/v1
 │       ├── main.py
@@ -465,22 +492,25 @@ Discussed in detail in §"Stage 3". Short version:
 - Verification: read `ExtractedFiling.cache_read_input_tokens` after the first filing in a batch; it should be >0 on the second filing.
 
 ### A narrative-derived signal is not the same as a price signal
-This is the most important caveat in the whole project. Companies say what they *plan* to do; markets price what they *think* will happen; the actual outcome is a third thing. The README and this doc both highlight that the backtest harness (Stage 6+) is non-negotiable — until we measure whether the recommender's calls outperform sector ETFs, nothing here is actionable. Build the harness *before* you ship a UI that suggests trades.
+This is the most important caveat in the whole project. Companies say what they *plan* to do; markets price what they *think* will happen; the actual outcome is a third thing. **The backtest harness (Stage 8) is what tells you whether the narrated signal beats hold.** It now exists and is tested. Until you actually run it against real prices over a real historical window, every score/curve in the UI is a hypothesis — the harness machinery doesn't validate anything on its own; you have to feed it data and read the result. See §6 "Open work" for the remaining glue (price-data adapter, CLI, the first real run).
 
 ---
 
 ## 6. Open work
 
-In priority order:
+Stages 1-8 are done. What remains is operational glue, not core pipeline code. In priority order:
 
-1. **Buffer Python API** — `Buffer` class that upserts `ExtractedFiling`, exposes `curve()`, `top_sectors()`, `filings_citing()`. See Stage 3 sketch.
-2. **CLI extension** — `algo-trade-extract` that pipes `algo-trade-fetch` JSONL into the buffer through the Extractor. Mirrors `algo-trade-fetch`.
-3. **Timeline aggregator** — Stage 4. Pandas/DuckDB on top of the buffer.
-4. **Buy/Sell timer** — Stage 5. Pure NumPy on the aggregator's output.
-5. **Plot** — matplotlib + plotly. One-shot static and interactive views.
-6. **Recommender** — Stage 6 (Agent #2). Same Claude defaults as the extractor.
-7. **Backtest harness** — measure recommender + timer calls against subsequent sector ETF returns. Required before treating any of this as actionable.
-8. **Web app** — read-only Flask/FastAPI dashboard over the buffer. Schema is already shaped for it.
+1. **Price-data integration.** The backtest harness takes `Mapping[ticker, PriceSeries]` from the caller and runs hermetic on whatever you give it. Today there is no bundled adapter for Yahoo Finance, AlphaVantage, Bloomberg, or a CSV loader. A user wanting a real backtest must write that 30-line adapter themselves. The right move is to ship one or two reference loaders (CSV + `yfinance`) under a `[backtest]` extra so `pip install -e ".[backtest]"` gives a runnable example. **This is the last thing standing between the project and a real empirical answer to "does the signal work?"**
+
+2. **Backtest CLI.** `algo-trade-backtest --since 2023-01-01 --until 2025-12-31 --prices prices.csv` that wraps `backtest_buffer()` and prints a per-sector table.
+
+3. **Real historical data run.** Once #1 + #2 land, populate the buffer with a year of filings, pull matching ETF prices, and produce the first honest answer. **Until this happens, every score/curve in the UI is a hypothesis.**
+
+4. **Earnings-call transcripts** as a second input source alongside filings.
+
+5. **Diff mode** in the extractor — highlight what changed in a company's stated plans between two consecutive filings.
+
+6. **Postgres migration** — only if/when there's a real multi-user deployment. Not before. See Stage 3.
 
 Each item gets its own commit; each gets its own ARCHITECTURE.md update. Don't accumulate undocumented stages.
 

@@ -42,7 +42,7 @@ def test_extract_progress_prints_plan_and_finish() -> None:
     assert "Plan: 2 ticker(s)" in output
     assert "Buffer: data/buffer.sqlite" in output
     assert "Extractor model: claude-opus-4-7" in output
-    assert "TSLA — fetching SEC filings" in output
+    assert "TSLA - fetching SEC filings" in output
     assert "running extractor" in output
     assert "ok TSLA/ACC-001: 3 dated effect(s)" in output
     assert "Done. Upserted 1 filing(s), 3 dated effect(s)" in output
