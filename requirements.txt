@@ -1,0 +1,14 @@
+# Vercel reads this to install Python deps for the backend function.
+# Keep in sync with pyproject.toml `dependencies` but pin to known-good
+# minor versions so Vercel cold-start builds are reproducible.
+#
+# Note: we intentionally do NOT depend on uvicorn here -- Vercel's
+# Python runtime calls the ASGI `app` directly (see api/index.py).
+
+anthropic>=0.92,<1.0
+edgartools>=5.0
+fastapi>=0.110,<1.0
+pandas>=2.0,<3.0
+pydantic>=2.0,<3.0
+python-dotenv>=1.0
+tqdm>=4.66
