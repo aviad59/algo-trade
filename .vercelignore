@@ -1,0 +1,29 @@
+# What Vercel does NOT ship into the backend function bundle.
+# Root Directory has to be the repo root so api/index.py can reach
+# src/algo_trade -- everything else is dead weight at runtime.
+
+# Frontend source -- it's deployed as a separate Vercel project.
+frontend/
+
+# Tests and examples never run in production.
+tests/
+examples/
+
+# Editable docs / planning material.
+docs/
+README.md
+
+# Local data + caches (also gitignored, but belt-and-braces).
+data/
+cache/
+*.sqlite
+*.duckdb
+
+# Build artifacts.
+build/
+dist/
+*.egg-info/
+
+# Mock bundle is for the frontend's static demo mode; the live backend
+# reads from the buffer + backend/universe/ instead.
+backend/mock/
