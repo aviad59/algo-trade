@@ -16,11 +16,16 @@ from .env import env_str
 
 AgentName = Literal["extractor", "recommender"]
 
+# Default to Sonnet 4.6 for both agents: ~40% cheaper than Opus 4.7 on
+# both input and output tokens, still strong on structured reasoning and
+# instruction following. Override via ALGO_TRADE_*_MODEL env vars (see
+# resolve_model below) to switch to Opus 4.7 for harder reasoning or
+# Haiku 4.5 for cost-only backfills.
 DEFAULT_EXTRACTOR_MODEL = env_str(
-    "ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL", "claude-opus-4-7"
+    "ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL", "claude-sonnet-4-6"
 )
 DEFAULT_RECOMMENDER_MODEL = env_str(
-    "ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL", "claude-opus-4-7"
+    "ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL", "claude-sonnet-4-6"
 )
 
 _AGENT_DEFAULTS: dict[AgentName, str] = {

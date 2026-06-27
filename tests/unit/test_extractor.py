@@ -199,8 +199,12 @@ def test_extract_passes_correct_args_to_client():
     kwargs = client.messages.last_kwargs
     assert kwargs is not None
 
-    # Default model is Opus 4.7 per the API skill's mandatory default.
-    assert kwargs["model"] == "claude-opus-4-7"
+    # Default model = whatever llm_config currently resolves to. The test
+    # is verifying the wiring (resolved default -> kwargs["model"]), not
+    # the specific model id -- which is a project-policy decision that
+    # changes over time (Opus 4.7 -> Sonnet 4.6, etc).
+    from algo_trade.llm_config import resolve_model
+    assert kwargs["model"] == resolve_model("extractor")
 
     # Adaptive thinking + effort=high for intelligence-sensitive work.
     assert kwargs["thinking"] == {"type": "adaptive"}
