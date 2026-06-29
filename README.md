@@ -6,15 +6,42 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 
 ---
 
+## Quickstart — run the whole thing locally
+
+```bash
+git clone https://github.com/aviad59/algo-trade.git
+cd algo-trade
+python dev.py
+```
+
+That's it. The first run takes ~1 minute (it does `pip install -e ".[dev]"` and `npm install` once), then opens <http://localhost:5173> in your browser.
+
+**Requirements:** Python 3.11+ and Node 20+. Nothing else.
+
+**No Anthropic API key?** Still works — the backend boots in read-only mode and the frontend falls back to bundled mock data, so you see a working dashboard immediately. Add `ANTHROPIC_API_KEY=sk-ant-...` to `.env` later (a template `.env` is created on first run) to enable live extraction.
+
+### Variations
+
+```bash
+python dev.py --backend-only    # just the API on :8000 (for curl / Postman)
+python dev.py --frontend-only   # just the UI on :5173 (mock data only)
+python dev.py --no-open         # full stack, don't auto-open the browser
+```
+
+Press **Ctrl-C** in the terminal to stop both processes cleanly.
+
+---
+
 ## Repository layout
 
 | Path | Role |
 |------|------|
-| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline** — fetcher, extractor (Agent #1), buffer, timeline, timer, recommender (Agent #2). Install via `pip install -e ".[dev]"`. |
+| [`dev.py`](dev.py) | One-command local dev launcher (backend + frontend + browser) |
+| [`src/algo_trade/`](src/algo_trade/) | **Python pipeline** — fetcher, extractor (Agent #1), buffer, timeline, timer, recommender (Agent #2) |
 | [`tests/`](tests/README.md) | Python tests — [`unit/`](tests/unit/) and [`integration/`](tests/integration/) |
 | [`backend/`](backend/README.md) | **Web serving layer** — FastAPI (`GET /api/v1/*`), [`universe/`](backend/universe/README.md) reference JSON, [`mock/v1/`](backend/mock/v1/manifest.json) demo snapshots |
-| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) — forecast dashboard, Explorer, audit drill-down. Mock or live API via `.env`. |
-| [`.env.example`](.env.example) | **Configuration template** — copy to `.env` at repo root (API, pipeline, frontend) |
+| [`frontend/`](frontend/README.md) | **FilingSignal** web UI (React) |
+| [`.env.example`](.env.example) | Configuration template — copied to `.env` on first `python dev.py` |
 | [`docs/`](docs/ARCHITECTURE.md) | Technical docs — see links below |
 | [`examples/`](examples/) | Small pipeline usage examples |
 
@@ -26,8 +53,6 @@ An agentic pipeline that reads U.S. SEC EDGAR filings, extracts each company's f
 | [hld-web-interface.md](docs/hld-web-interface.md) | Web UI boundaries and JSON API contract (v1) |
 | [implementation-plan-web.md](docs/implementation-plan-web.md) | Web delivery phases and checklist |
 | [playwright-mcp.md](docs/playwright-mcp.md) | E2E tests and optional Cursor browser MCP |
-
-The **live Python pipeline** lives under `src/algo_trade/`. The **web app** reads either static mock JSON (`VITE_DATA_SOURCE=mock`) or the FastAPI backend (`VITE_DATA_SOURCE=api`) — both controlled from the repo-root [`.env`](.env.example).
 
 ### Run the servers
 
@@ -374,8 +399,8 @@ Loaded by [`src/algo_trade/env.py`](src/algo_trade/env.py) for the Python pipeli
 | `ALGO_TRADE_LLM_MODEL` | *(empty)* | Shared model override for both agents |
 | `ALGO_TRADE_EXTRACTOR_MODEL` | *(empty)* | Extractor model (overrides default) |
 | `ALGO_TRADE_RECOMMENDER_MODEL` | *(empty)* | Recommender model (overrides default) |
-| `ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL` | `claude-opus-4-7` | Extractor fallback when no override set |
-| `ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL` | `claude-opus-4-7` | Recommender fallback when no override set |
+| `ALGO_TRADE_DEFAULT_EXTRACTOR_MODEL` | `claude-haiku-4-5` | Extractor fallback when no override set |
+| `ALGO_TRADE_DEFAULT_RECOMMENDER_MODEL` | `claude-haiku-4-5` | Recommender fallback when no override set |
 | `ALGO_TRADE_EXTRACTOR_MAX_TOKENS` | `16000` | Extractor output token ceiling |
 | `ALGO_TRADE_EXTRACTOR_EFFORT` | `high` | Extractor `output_config.effort` |
 | `ALGO_TRADE_RECOMMENDER_MAX_TOKENS` | `8000` | Recommender output token ceiling |
@@ -421,192 +446,62 @@ algo-trade-extract TSLA GM \
 
 ---
 
-## Setup
+## Beyond the quickstart
+
+`python dev.py` is enough for the basic dashboard with demo data. The rest of this section is for when you want **real** SEC filings driving the UI, want to run the pieces individually, or are contributing code.
+
+### Populate the buffer with real filings
+
+`dev.py` boots the stack but does not run any extractions on its own. To see real data in the dashboard:
+
+1. Put your Anthropic key and an SEC contact in `.env` (the file `dev.py` created on first run):
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-...
+   ALGO_TRADE_SEC_IDENTITY=Your Name you@example.com
+   ```
+2. With the dev stack already running, open a **second terminal**:
+   ```bash
+   algo-trade-extract TSLA GM FCX --form 10-Q --limit 1 -v
+   ```
+   This fetches the latest 10-Q for each ticker, runs Agent #1, and writes to `data/buffer.sqlite`. Refresh the browser tab — the dashboard now reflects what those filings said.
+
+**Starter tickers** that surface clear material signals: `TSLA`, `GM`, `FCX` (lithium / copper).
+
+If the output reports `0 dated effect(s)`, filings were fetched but no claims mapped onto canonical materials. Try different tickers, a `10-K`, or add `-v` for detailed logs. The canonical material vocabulary lives in [`backend/universe/materials.json`](backend/universe/materials.json).
+
+### Run a single piece directly
+
+| Command | What it does |
+|---|---|
+| `algo-trade-fetch --ticker NVDA --form 10-K --limit 1 --identity "Name email"` | Fetch from EDGAR, dump filing JSON, no LLM |
+| `algo-trade-extract TSLA -v` | Fetch + extract + upsert to buffer (needs `ANTHROPIC_API_KEY`) |
+| `algo-trade-plot lithium` | Render a sector forecast PNG from the buffer |
+| `algo-trade-api` | Run the FastAPI backend alone on :8000 |
+| `python -m pytest` | Run the Python test suite (~193 hermetic tests, no network) |
+
+Python API examples live in [`examples/`](examples/).
+
+### Troubleshooting
+
+| Symptom | Check |
+|---------|-------|
+| Empty dashboard, demo banner visible | Buffer is empty — run `algo-trade-extract` for some tickers |
+| `npm install` fails | Node version — needs 20+ |
+| Backend won't start, `ModuleNotFoundError` | `pip install -e ".[dev]"` from repo root, or just re-run `python dev.py` |
+| `500` on `/forecast/*` | Buffer empty, or restart the API after editing `.env` |
+| `--identity is required` | Set `ALGO_TRADE_SEC_IDENTITY` in `.env` |
+| Extract returns 0 effects | Filings fetched OK but no material match — try a different form / ticker; check `backend/universe/materials.json` |
+| `dev.py` does not fully die on Ctrl-C | Hit it twice — the second Ctrl-C escalates to force-kill |
+
+### Tests
 
 ```bash
-git clone https://github.com/aviad59/algo-trade.git
-cd algo-trade
-python -m pip install -e ".[dev]"
-cp .env.example .env   # set ANTHROPIC_API_KEY, ALGO_TRADE_SEC_IDENTITY, etc.
+python -m pytest                       # all (~193 passing)
+python -m pytest tests/unit            # fast, hermetic
+python -m pytest tests/integration     # API + buffer flow
 ```
 
-### Run the pipeline on live data
-
-End-to-end path: **EDGAR fetch → Agent #1 (extract) → SQLite buffer → timer/forecast → API → UI**. Requires network access, an Anthropic API key, and LLM token spend (one 10-Q per ticker can take several minutes).
-
-All commands below are run from the **repository root**.
-
-#### 1. Configure `.env`
-
-Edit repo-root `.env` (copy from [`.env.example`](.env.example)):
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...          # required for extract (and recommender ranking)
-ALGO_TRADE_SEC_IDENTITY=Your Name you@example.com   # SEC User-Agent policy
-
-# --- for the live UI (step 5) ---
-VITE_API_BASE=/api/v1
-VITE_DATA_SOURCE=api
-# VITE_MOCK_FALLBACK=false            # uncomment to disable silent fallback to demo JSON
-
-# --- optional ---
-# ALGO_TRADE_RANKING_MODE=recommender # use Agent #2 for ranking (needs API key)
-```
-
-#### 2. Populate the buffer (`algo-trade-extract`)
-
-Fetches the latest SEC filing per ticker and runs the Extractor. Writes to `data/buffer.sqlite` (directory is created automatically).
-
-```bash
-algo-trade-extract TSLA GM FCX -v --form 10-Q --limit 1
-```
-
-A **progress bar** and status lines print to stderr by default (plan, per-ticker fetch, per-filing extract, upsert summary). Use `--no-progress` to hide the bar (text output remains). Add `-v` for detailed log lines.
-
-| Flag | Meaning |
-|------|---------|
-| *(default)* | Progress bar + status lines on stderr |
-| `--no-progress` | Status lines only (no bar) — useful in CI or log files |
-| `-v` | Verbose logs (recommended while testing) |
-| `--form 10-Q` | Filing type (or `10-K` for annual) |
-| `--limit 1` | Most recent N filings per form per ticker |
-| `--identity "..."` | Override `ALGO_TRADE_SEC_IDENTITY` from `.env` |
-
-On success you should see:
-
-```text
-Done. Upserted 3 filing(s), 12 dated effect(s) into data/buffer.sqlite
-```
-
-If `dated effect(s)` is **0**, filings were fetched but the extractor found no mappable material effects — try different tickers, a `10-K`, or `-v` to inspect errors.
-
-**Starter tickers** that often surface lithium/copper language: `TSLA`, `GM`, `FCX`.
-
-#### 3. Verify without the UI
-
-**Buffer row count:**
-
-```bash
-python -c "from algo_trade.buffer import Buffer; from algo_trade.env import env_path; p=env_path('ALGO_TRADE_BUFFER_PATH','data/buffer.sqlite'); b=Buffer(str(p)); print('extractions:', b.count_extractions()); b.close()"
-```
-
-**Timer + plot** (forecast curve from buffer → PNG):
-
-```bash
-algo-trade-plot lithium
-# writes plots/lithium.png  (add --html for interactive plotly output)
-```
-
-List canonical material ids in [`backend/universe/materials.json`](backend/universe/materials.json). If `algo-trade-plot` says the curve is empty, extracted sector names may not match a material in the universe.
-
-#### 4. Start the API
-
-```bash
-algo-trade-api
-```
-
-Smoke-test in a **second terminal**:
-
-```bash
-curl http://localhost:8000/api/v1/meta/health
-curl http://localhost:8000/api/v1/forecast/summary
-curl http://localhost:8000/api/v1/forecast/ranking
-curl http://localhost:8000/api/v1/forecast/materials/lithium
-```
-
-Interactive docs: http://localhost:8000/docs
-
-Check `extractions_count` in the summary response matches your buffer. An empty `top_materials` list means the buffer has no ranked materials yet (add more extractions).
-
-#### 5. Open the UI
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:5173.
-
-**Confirm you are on live data (not demo JSON):**
-
-- No amber banner saying demo data is being shown
-- Dashboard `extractions_count` matches step 3
-- Material detail pages list tickers you actually extracted
-- Set `VITE_MOCK_FALLBACK=false` in `.env` if you want API errors to surface instead of silently falling back to mock data (restart `npm run dev` after changing `.env`)
-
-#### Troubleshooting
-
-| Symptom | What to check |
-|---------|----------------|
-| Empty dashboard | Buffer empty or effects don't map to universe materials — re-run extract with more tickers |
-| Amber “demo data” banner | API unreachable or errored — read `algo-trade-api` terminal output; confirm step 4 |
-| `500` on `/forecast/*` | Run extract first; restart API after editing `.env` |
-| `--identity is required` | Set `ALGO_TRADE_SEC_IDENTITY` in `.env` or pass `--identity` |
-| Anthropic / extract failures | `ANTHROPIC_API_KEY` set and valid; try `-v` for details |
-| UI still shows mock shapes | `VITE_DATA_SOURCE=api` and `VITE_API_BASE=/api/v1` in repo-root `.env`; restart Vite |
-
-### Fetch only (no LLM)
-
-```bash
-algo-trade-fetch \
-    --identity "Your Name you@example.com" \
-    --ticker NVDA \
-    --form 10-K \
-    --limit 1
-```
-
-Or, from Python:
-
-```python
-from algo_trade import Fetcher
-
-fetcher = Fetcher(identity="Your Name you@example.com")
-for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
-    print(f.ticker, f.form, f.filing_date, f.accession_number)
-    print(" mda chars:", len(f.section("mda") or ""))
-    print(" risk_factors chars:", len(f.section("risk_factors") or ""))
-```
-
-Fetch + run Agent #1 (the Extractor) on the result (`ANTHROPIC_API_KEY` from `.env`):
-
-```python
-from algo_trade import Extractor, Fetcher
-
-fetcher = Fetcher(identity="Your Name you@example.com")
-extractor = Extractor()  # model from .env / llm_config
-
-for f in fetcher.fetch(ticker="NVDA", forms=["10-K"], limit=1):
-    extracted = extractor.extract(f)
-    print(f"confidence: {extracted.extractor_confidence:.2f}")
-    for e in extracted.dated_effects:
-        print(f"  {e.sector:<28} {e.direction.value:<9} {e.magnitude.value:<9} "
-              f"{e.window_start} -> {e.window_end}  @ {e.source_span}")
-```
-
-Run the tests:
-
-```bash
-python -m pytest              # all tests
-python -m pytest tests/unit   # unit only
-python -m pytest tests/integration  # integration only
-```
-
-### Web UI
-
-**Mock mode (default)** — no buffer or API required; uses static JSON from `backend/mock/v1/`:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-**Live API mode** — populate the buffer and run the API first; see [Run the pipeline on live data](#run-the-pipeline-on-live-data).
-
-Frontend tests: `cd frontend && npm test` (Vitest) and `npm run test:e2e` (Playwright).
-
-See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md).
+Frontend tests: `cd frontend && npm test` (Vitest) and `npm run test:e2e` (Playwright). See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md).
 
 ---
 
