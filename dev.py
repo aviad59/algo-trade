@@ -129,6 +129,16 @@ def _stream(proc: subprocess.Popen, prefix: str) -> None:
 
 
 def _spawn(cmd: list[str], cwd: Path, prefix: str) -> subprocess.Popen:
+    # On Windows, `shell=True` runs the command through cmd.exe. That means
+    # our `proc` handle is cmd.exe; the real child (python.exe / node.exe)
+    # is a grandchild. `proc.terminate()` only kills the cmd wrapper -- the
+    # grandchild survives and holds SQLite / port locks open. Fix:
+    #   1. CREATE_NEW_PROCESS_GROUP so the grandchild lands in its own group.
+    #   2. On shutdown, use `taskkill /F /T /PID <cmd-pid>` to nuke the tree.
+    creationflags = 0
+    if IS_WIN:
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+
     proc = subprocess.Popen(
         cmd,
         cwd=str(cwd),
@@ -137,18 +147,30 @@ def _spawn(cmd: list[str], cwd: Path, prefix: str) -> subprocess.Popen:
         text=True,
         bufsize=1,
         shell=IS_WIN,   # npm.cmd / python.exe resolution on Windows
+        creationflags=creationflags,
     )
     threading.Thread(target=_stream, args=(proc, prefix), daemon=True).start()
     return proc
 
 
 def _terminate_tree(proc: subprocess.Popen) -> None:
-    """Cross-platform best-effort terminate -> kill."""
+    """Cross-platform best-effort terminate -> kill.
+
+    On Windows we cannot rely on `proc.terminate()` because the immediate
+    child is cmd.exe. We `taskkill /F /T` the whole process tree so any
+    python.exe or node.exe grandchildren die too. Without this, a crashed
+    dev.py leaves the API alive holding data/buffer.sqlite locked and the
+    next start fails with `sqlite3.OperationalError: database is locked`.
+    """
     if proc.poll() is not None:
         return
     try:
         if IS_WIN:
-            proc.terminate()
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                capture_output=True,
+                check=False,
+            )
         else:
             proc.send_signal(signal.SIGTERM)
     except Exception:
@@ -253,10 +275,14 @@ def main() -> None:
             time.sleep(0.1)
         for name, proc in processes:
             if proc.poll() is None:
-                try:
-                    proc.kill()
-                except Exception:
-                    pass
+                # Same tree-kill path as _terminate_tree; proc.kill() alone
+                # is not enough on Windows because it only kills cmd.exe.
+                _terminate_tree(proc)
+                if proc.poll() is None:
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
                 print(f"[dev.py] force-killed {name}", file=sys.stderr)
 
 
