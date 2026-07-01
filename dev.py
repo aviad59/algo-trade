@@ -12,7 +12,7 @@ What this script does, in order:
      in `frontend/` once.
   5. Creates a repo-root `.env` from `.env.example` on first run, so the
      backend's `load_env()` and Vite's `envDir: '..'` both find one.
-  6. Starts the FastAPI backend (`python -m backend.api`) on :8000.
+  6. Starts the FastAPI backend (`python -m api.main`) on :8000.
   7. Starts the Vite dev server in `frontend/` on :5173.
   8. Opens http://localhost:5173 in your default browser.
   9. Streams both processes' output to this terminal, prefixed with
@@ -192,8 +192,11 @@ def main() -> None:
     processes: list[tuple[str, subprocess.Popen]] = []
 
     if not args.frontend_only:
+        # `pyproject.toml` has `packages.find where = ["src", "backend"]`, so
+        # the FastAPI app is importable as `api.main`, not `backend.api`.
+        # `api/main.py` has `if __name__ == "__main__": run()` at the bottom.
         api = _spawn(
-            [sys.executable, "-m", "backend.api"],
+            [sys.executable, "-m", "api.main"],
             cwd=REPO,
             prefix="[api]",
         )
