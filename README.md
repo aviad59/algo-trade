@@ -452,22 +452,71 @@ algo-trade-extract TSLA GM \
 
 ### Populate the buffer with real filings
 
-`dev.py` boots the stack but does not run any extractions on its own. To see real data in the dashboard:
+`dev.py` boots the stack, but the buffer starts empty. On a fresh install the Forecast tab shows **"Pipeline not run"** and the Explorer shows **"0 extractions matched"** — that's the correct empty state, not a bug. It means the frontend is talking to your live backend, and the backend is honestly reporting that it has no data yet.
+
+To fill the buffer with real filings:
 
 1. Put your Anthropic key and an SEC contact in `.env` (the file `dev.py` created on first run):
    ```bash
    ANTHROPIC_API_KEY=sk-ant-...
    ALGO_TRADE_SEC_IDENTITY=Your Name you@example.com
    ```
-2. With the dev stack already running, open a **second terminal**:
+   Missing `ANTHROPIC_API_KEY` → extractor errors clearly. Missing `ALGO_TRADE_SEC_IDENTITY` → EDGAR fetches fail (SEC's fair-access policy requires a contact in the User-Agent).
+
+2. With the dev stack already running, open a **second terminal** at the repo root and run:
    ```bash
    algo-trade-extract TSLA GM FCX --form 10-Q --limit 1 -v
    ```
-   This fetches the latest 10-Q for each ticker, runs Agent #1, and writes to `data/buffer.sqlite`. Refresh the browser tab — the dashboard now reflects what those filings said.
 
-**Starter tickers** that surface clear material signals: `TSLA`, `GM`, `FCX` (lithium / copper).
+**What that command does, step by step:**
 
-If the output reports `0 dated effect(s)`, filings were fetched but no claims mapped onto canonical materials. Try different tickers, a `10-K`, or add `-v` for detailed logs. The canonical material vocabulary lives in [`backend/universe/materials.json`](backend/universe/materials.json).
+- Fetches the most recent 10-Q for each ticker from EDGAR.
+- Runs Agent #1 (the Extractor) on each filing's MD&A + Risk Factors.
+- Writes the resulting `dated_effects` into `data/buffer.sqlite`.
+
+**What to expect while it runs:**
+
+- **~1–3 minutes per filing** — the LLM has to read the whole MD&A and Risk Factors and emit structured JSON.
+- **A few cents in Anthropic tokens per filing** on the default Haiku 4.5 model; more on Sonnet 4.6 or Opus 4.7 if you overrode the default.
+- With `-v`, per-filing progress lines print to stderr so you can see it work.
+
+**What success looks like** — the last line of output should be something like:
+
+```text
+Done. Upserted 3 filing(s), 12 dated effect(s) into data/buffer.sqlite
+```
+
+**After the command finishes**, in the browser (no restart needed):
+
+- **Explorer** — enter `TSLA` in the ticker box, click *Show results* → you should see extractions from that filing with sectors, direction, magnitude, time windows, and a citation to the filing text.
+- **Forecast** — refresh the tab → per-material signal curves and BUY/SELL markers appear for `lithium` and `copper` (the sectors those three tickers talk about).
+
+### Picking tickers that actually surface signals
+
+Not every filing mentions materials the pipeline recognises. **AAPL, MSFT, GOOGL** rarely produce dated effects — their filings talk about services and platforms, not commodities. **Consumer staples, media, financials** are similarly quiet.
+
+Tickers whose filings routinely surface material signals:
+
+| Sector | Tickers | Usually mentions |
+|---|---|---|
+| Autos / EV | `TSLA`, `GM`, `F` | lithium, copper, aluminum |
+| Miners | `FCX`, `RIO`, `BHP`, `ALB`, `LAC`, `SQM` | copper, iron ore, lithium, cobalt |
+| Steel | `NUE`, `STLD` | iron ore, manganese, coal |
+| Energy | `XOM`, `CVX`, `OXY` | natural gas, oil, LNG |
+| Semiconductors | `NVDA`, `AMD`, `INTC` | silicon, hyperscale cloud demand |
+
+The canonical material vocabulary (what the extractor is looking to match against) is in [`backend/universe/materials.json`](backend/universe/materials.json).
+
+### If you see `0 dated effect(s)`
+
+The filings were fetched and read successfully, but nothing mapped to a canonical material. Try:
+
+- **More tickers**: widen the batch so you increase the chance of catching a filing that mentions a tracked material.
+  ```bash
+  algo-trade-extract TSLA GM F FCX RIO ALB LAC NVDA --form 10-Q --limit 2 -v
+  ```
+- **Annual reports** (`--form 10-K`) — usually denser than quarterlies.
+- **Read the verbose log** — with `-v` you can see the raw filing text going to the LLM and its response. If Claude is emitting effects but they don't survive validation (bad date order, empty source span, etc.), the log tells you exactly why.
 
 ### Run a single piece directly
 
