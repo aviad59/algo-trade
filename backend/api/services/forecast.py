@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import secrets as _secrets
+import threading
 from datetime import date, datetime, timezone
 
 from algo_trade.buffer import Buffer
@@ -117,9 +120,76 @@ def _anthropic_api_key_present() -> bool:
     return bool(env_str("ANTHROPIC_API_KEY", ""))
 
 
-def build_ranking(buf: Buffer, since: date, until: date, as_of: date, universe_dir) -> dict:
-    settings = get_settings()
-    if settings.ranking_mode == "recommender" and _anthropic_api_key_present():
+# The ranking is deterministic until the buffer changes: since/until/as_of come
+# from settings and the ranking reads only extractions. In recommender mode a
+# fresh compute is a live Agent #2 call (~30s and real tokens per request), so
+# results are cached keyed on the buffer's version — (max_extracted_at,
+# count_extractions) changes exactly when new extractions land, which is the
+# only event that can change the ranking. A recommender failure caches its
+# rules fallback under the same key (no retry storm; recovery comes with the
+# next pipeline run or an API restart).
+_ranking_cache: dict[tuple, dict] = {}
+_ranking_lock = threading.Lock()
+
+
+def demo_token_matches(candidate: str | None) -> bool:
+    """True when the request carries the configured demo token.
+
+    Constant-time compare; an unset token means nobody is authorized, and a
+    wrong token silently gets the public view (nothing to probe against).
+    """
+    expected = get_settings().demo_token
+    if not expected or not candidate:
+        return False
+    return _secrets.compare_digest(candidate, expected)
+
+
+def _buffer_version(buf: Buffer) -> tuple:
+    return (buf.path, buf.max_extracted_at(), buf.count_extractions())
+
+
+def _load_ranking_snapshot(settings, buf: Buffer) -> dict | None:
+    """Pre-generated Agent #2 ranking, served with zero runtime LLM spend.
+
+    Only honored when it was generated from the exact buffer being served —
+    a stale snapshot (different extraction count/timestamp) is ignored rather
+    than silently presenting outdated rationale.
+    """
+    path = settings.ranking_snapshot
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, OSError, json.JSONDecodeError):
+        return None
+    version = payload.get("buffer_version")
+    max_at = buf.max_extracted_at()
+    current = {
+        "max_extracted_at": max_at.isoformat() if max_at else None,
+        "count_extractions": buf.count_extractions(),
+    }
+    if version != current:
+        logger.warning(
+            "ranking snapshot at %s is stale (snapshot %s != buffer %s); ignoring",
+            path, version, current,
+        )
+        return None
+    ranking = payload.get("ranking")
+    if not isinstance(ranking, dict) or not ranking.get("ranked_materials"):
+        return None
+    return ranking
+
+
+def _compute_ranking(
+    buf: Buffer,
+    since: date,
+    until: date,
+    as_of: date,
+    universe_dir,
+    settings,
+    *,
+    live: bool,
+) -> dict:
+    use_recommender = live or settings.ranking_mode == "recommender"
+    if use_recommender and _anthropic_api_key_present():
         try:
             from algo_trade.recommender import Recommender
 
@@ -139,8 +209,51 @@ def build_ranking(buf: Buffer, since: date, until: date, as_of: date, universe_d
     return _build_rule_based_ranking(buf, since, until, as_of, universe_dir)
 
 
-def build_summary(buf: Buffer, since: date, until: date, as_of: date, universe_dir) -> dict:
-    ranking = build_ranking(buf, since, until, as_of, universe_dir)
+def build_ranking(
+    buf: Buffer,
+    since: date,
+    until: date,
+    as_of: date,
+    universe_dir,
+    *,
+    live: bool = False,
+) -> dict:
+    """Ranking for the window; `live=True` (demo-token holders) forces a real
+    Agent #2 call instead of the snapshot/rules public view."""
+    settings = get_settings()
+    version = _buffer_version(buf)
+    key = (version, since, until, as_of, settings.ranking_mode, live)
+    # The lock also serializes concurrent first requests, so a cold dashboard
+    # load triggers one Agent #2 call, not one per open tab.
+    with _ranking_lock:
+        cached = _ranking_cache.get(key)
+        if cached is not None:
+            return cached
+        result = None
+        if not live:
+            result = _load_ranking_snapshot(settings, buf)
+        if result is None:
+            result = _compute_ranking(
+                buf, since, until, as_of, universe_dir, settings, live=live
+            )
+        # evict entries for older buffer versions; keep sibling variants
+        # (public vs live) of the current one
+        for stale in [k for k in _ranking_cache if k[0] != version]:
+            del _ranking_cache[stale]
+        _ranking_cache[key] = result
+        return result
+
+
+def build_summary(
+    buf: Buffer,
+    since: date,
+    until: date,
+    as_of: date,
+    universe_dir,
+    *,
+    live: bool = False,
+) -> dict:
+    ranking = build_ranking(buf, since, until, as_of, universe_dir, live=live)
     top: list[dict] = []
     for rank, item in enumerate(ranking["ranked_materials"][:10], start=1):
         forecast = material_forecast(

@@ -26,6 +26,9 @@ dependencies = [
 plot = [
     "plotly>=5.0",
 ]
+backtest = [
+    "yfinance>=0.2",
+]
 dev = [
     "pytest>=8.0",
     "httpx>=0.27",
@@ -36,6 +39,7 @@ dev = [
 algo-trade-fetch = "algo_trade.fetcher:_cli"
 algo-trade-extract = "algo_trade.extract_cli:_cli"
 algo-trade-plot = "algo_trade.plot_cli:_cli"
+algo-trade-backtest = "algo_trade.backtest_cli:_cli"
 algo-trade-api = "api.main:run"
 
 [tool.setuptools.packages.find]

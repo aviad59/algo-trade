@@ -39,6 +39,19 @@ _AGENT_ENV: dict[AgentName, str] = {
 }
 
 
+# Adaptive thinking and output_config effort exist on Claude 4.6+ models
+# only; older tiers — including the default claude-haiku-4-5 — reject them
+# with a 400 (`adaptive thinking is not supported on this model`). Written
+# as a block-list of known-old generations so unknown/future model ids get
+# the modern request shape by default.
+_PRE_ADAPTIVE_MARKERS = ("claude-3", "-3-", "-4-0", "-4-1", "-4-5")
+
+
+def supports_adaptive_thinking(model: str) -> bool:
+    """True when *model* accepts ``thinking={"type": "adaptive"}`` + effort."""
+    return not any(marker in model for marker in _PRE_ADAPTIVE_MARKERS)
+
+
 def resolve_model(agent: AgentName, *, override: str | None = None) -> str:
     """Return the model id to use for *agent*."""
     if override:

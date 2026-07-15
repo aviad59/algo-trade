@@ -19,7 +19,7 @@ import anthropic
 from pydantic import BaseModel, Field, ValidationError
 
 from .buffer import Buffer
-from .llm_config import resolve_model
+from .llm_config import resolve_model, supports_adaptive_thinking
 from .models import RankedMaterials, SectorRanking
 
 logger = logging.getLogger(__name__)
@@ -238,17 +238,24 @@ class Recommender:
         user_prompt = json.dumps(context, indent=2)
         warnings: list[str] = []
 
+        # Adaptive thinking and effort control exist on Claude 4.6+ models
+        # only; older tiers (e.g. claude-haiku-4-5) reject them with a 400.
+        # Structured output (output_config.format) works on both.
+        output_config: dict = {
+            "format": {
+                "type": "json_schema",
+                "schema": RANKING_JSON_SCHEMA,
+            },
+        }
+        request_extras: dict = {}
+        if supports_adaptive_thinking(self._model):
+            request_extras["thinking"] = {"type": "adaptive"}
+            output_config["effort"] = self._effort
+
         with self._client.messages.stream(
             model=self._model,
             max_tokens=self._max_tokens,
-            thinking={"type": "adaptive"},
-            output_config={
-                "effort": self._effort,
-                "format": {
-                    "type": "json_schema",
-                    "schema": RANKING_JSON_SCHEMA,
-                },
-            },
+            output_config=output_config,
             system=[
                 {
                     "type": "text",
@@ -257,6 +264,7 @@ class Recommender:
                 }
             ],
             messages=[{"role": "user", "content": user_prompt}],
+            **request_extras,
         ) as stream:
             final = stream.get_final_message()
 

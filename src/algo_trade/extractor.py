@@ -56,7 +56,7 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
-from .llm_config import DEFAULT_EXTRACTOR_MODEL, resolve_model
+from .llm_config import DEFAULT_EXTRACTOR_MODEL, resolve_model, supports_adaptive_thinking
 
 DEFAULT_MODEL = DEFAULT_EXTRACTOR_MODEL
 
@@ -119,6 +119,56 @@ RULES (these are not optional):
 You are reading this filing carefully and conservatively. False negatives
 are strictly better than false positives -- downstream code aggregates
 many filings, so a missing signal averages out; an invented signal does not.
+"""
+
+
+def _load_material_vocabulary() -> list[str]:
+    """Load canonical material names (with aliases) from the universe dir.
+
+    Returns display lines like ``Lithium (also: lithium carbonate, spodumene)``.
+    Missing or malformed materials.json degrades to an empty vocabulary --
+    the extractor then behaves exactly as before (free-form sectors).
+    """
+    from .env import env_path
+
+    path = env_path("ALGO_TRADE_UNIVERSE_DIR", "backend/universe") / "materials.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        lines = []
+        for material in data["materials"]:
+            aliases = ", ".join(material.get("aliases", []))
+            lines.append(
+                f"{material['name']} (also: {aliases})" if aliases else material["name"]
+            )
+        return lines
+    except (OSError, KeyError, ValueError):
+        logger.warning("materials.json not usable at %s; extractor runs without vocabulary", path)
+        return []
+
+
+def _build_system_prompt(vocabulary: list[str]) -> str:
+    """Append the canonical material vocabulary to the base system prompt.
+
+    The vocabulary is static per process, so the combined prompt stays a
+    stable prefix and prompt caching across a batch keeps working.
+    """
+    if not vocabulary:
+        return SYSTEM_PROMPT
+    material_list = "\n".join(f"  - {line}" for line in vocabulary)
+    return SYSTEM_PROMPT + f"""
+CANONICAL MATERIALS (the downstream aggregator tracks exactly these):
+
+{material_list}
+
+8. When an effect concerns one of the canonical materials above -- including
+   any form, grade, or alias of it -- set `sector` to EXACTLY the canonical
+   name. Examples: a battery-grade lithium carbonate ramp -> "Lithium";
+   expanding copper mining or smelting -> "Copper"; buying wafers or GPUs
+   -> "Semiconductors". Do NOT append qualifiers like "mining", "(battery
+   grade)", or "manufacturing" to a canonical name.
+
+9. Only when NO canonical material applies, use a concise free-form sector
+   label as described above.
 """
 
 
@@ -203,6 +253,7 @@ class Extractor:
         client: Optional[anthropic.Anthropic] = None,
         max_tokens: int | None = None,
         effort: str | None = None,
+        vocabulary: list[str] | None = None,
     ) -> None:
         """
         Args:
@@ -218,6 +269,10 @@ class Extractor:
             effort: Output_config effort level. Default "high" for
                 intelligence-sensitive work; drop to "medium" if you
                 want lower latency on a clearly-cheaper filing set.
+            vocabulary: Canonical material names injected into the system
+                prompt so emitted `sector` values match the universe
+                vocabulary (enables timeline curves). Defaults to loading
+                ALGO_TRADE_UNIVERSE_DIR/materials.json; pass [] to disable.
         """
         self._client = client or anthropic.Anthropic(api_key=api_key)
         self._model = resolve_model("extractor", override=model)
@@ -231,30 +286,40 @@ class Extractor:
         self._effort = (
             effort if effort is not None else env_str("ALGO_TRADE_EXTRACTOR_EFFORT", "high")
         )
+        self._system_prompt = _build_system_prompt(
+            vocabulary if vocabulary is not None else _load_material_vocabulary()
+        )
 
     def extract(self, fetched: FetchedFiling) -> ExtractedFiling:
         """Run Agent #1 on a single fetched filing."""
         user_prompt = _build_user_prompt(fetched)
 
+        # Adaptive thinking + effort are Claude 4.6+ features; older tiers
+        # (incl. the default claude-haiku-4-5) reject them with a 400.
+        output_config: dict = {
+            "format": {
+                "type": "json_schema",
+                "schema": EXTRACTION_JSON_SCHEMA,
+            },
+        }
+        request_extras: dict = {}
+        if supports_adaptive_thinking(self._model):
+            request_extras["thinking"] = {"type": "adaptive"}
+            output_config["effort"] = self._effort
+
         with self._client.messages.stream(
             model=self._model,
             max_tokens=self._max_tokens,
-            thinking={"type": "adaptive"},
-            output_config={
-                "effort": self._effort,
-                "format": {
-                    "type": "json_schema",
-                    "schema": EXTRACTION_JSON_SCHEMA,
-                },
-            },
+            output_config=output_config,
             system=[
                 {
                     "type": "text",
-                    "text": SYSTEM_PROMPT,
+                    "text": self._system_prompt,
                     "cache_control": {"type": "ephemeral"},
                 }
             ],
             messages=[{"role": "user", "content": user_prompt}],
+            **request_extras,
         ) as stream:
             final = stream.get_final_message()
 

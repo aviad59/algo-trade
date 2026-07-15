@@ -1,5 +1,6 @@
-import { Compass, Info, LayoutDashboard } from 'lucide-react'
+import { Compass, FlaskConical, Info, LayoutDashboard } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { DEMO_TOKEN } from '@/api/config'
 import { APP_NAME } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +14,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: '/', label: 'Forecast', icon: LayoutDashboard, end: true },
   { to: '/explorer', label: 'Explorer', icon: Compass },
+  { to: '/backtest', label: 'Backtest', icon: FlaskConical },
   { to: '/about', label: 'About', icon: Info },
 ]
 
@@ -45,8 +47,14 @@ export function SideNav() {
         ))}
       </nav>
 
-      <div className="mt-auto hidden px-5 pb-6 text-xs text-muted-foreground md:block">
-        Narrative signals from SEC filings
+      <div className="mt-auto hidden px-5 pb-6 md:block">
+        {DEMO_TOKEN ? (
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
+            <span className="size-1.5 rounded-full bg-emerald-400" />
+            Live AI mode
+          </div>
+        ) : null}
+        <div className="text-xs text-muted-foreground">Narrative signals from SEC filings</div>
       </div>
     </aside>
   )

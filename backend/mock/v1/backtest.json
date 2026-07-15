@@ -1,0 +1,96 @@
+{
+  "contract_version": "1.0",
+  "available": true,
+  "mode": "walk-forward",
+  "since": "2025-06-01",
+  "until": "2026-06-08",
+  "reason": null,
+  "overall": {
+    "win_rate": 0.6667,
+    "return_pct": 0.081,
+    "benchmark_pct": 0.224,
+    "alpha_pct": -0.143,
+    "exposure_pct": 0.31,
+    "trades_closed": 3,
+    "winners": 2,
+    "open_positions": 1
+  },
+  "results": [
+    {
+      "sector": "Lithium",
+      "instrument": "LIT",
+      "trades_closed": 1,
+      "win_rate": 1.0,
+      "return_pct": 0.124,
+      "benchmark_pct": 0.201,
+      "alpha_pct": -0.077,
+      "exposure_pct": 0.34,
+      "open_position": null,
+      "trades": [
+        {
+          "entry_date": "2025-08-01",
+          "entry_price": 41.2,
+          "exit_date": "2025-12-01",
+          "exit_price": 46.31,
+          "return_pct": 0.124,
+          "open_at_end": false
+        }
+      ]
+    },
+    {
+      "sector": "Copper",
+      "instrument": "COPX",
+      "trades_closed": 1,
+      "win_rate": 1.0,
+      "return_pct": 0.158,
+      "benchmark_pct": 0.312,
+      "alpha_pct": -0.154,
+      "exposure_pct": 0.25,
+      "open_position": {
+        "entry_date": "2026-03-02",
+        "entry_price": 44.1,
+        "current_price": 48.9,
+        "return_pct": 0.109
+      },
+      "trades": [
+        {
+          "entry_date": "2025-09-02",
+          "entry_price": 38.5,
+          "exit_date": "2025-12-01",
+          "exit_price": 44.58,
+          "return_pct": 0.158,
+          "open_at_end": false
+        },
+        {
+          "entry_date": "2026-03-02",
+          "entry_price": 44.1,
+          "exit_date": "2026-06-08",
+          "exit_price": 48.9,
+          "return_pct": 0.109,
+          "open_at_end": true
+        }
+      ]
+    },
+    {
+      "sector": "Electricity / Grid Power",
+      "instrument": "XLU",
+      "trades_closed": 1,
+      "win_rate": 0.0,
+      "return_pct": -0.038,
+      "benchmark_pct": 0.159,
+      "alpha_pct": -0.197,
+      "exposure_pct": 0.33,
+      "open_position": null,
+      "trades": [
+        {
+          "entry_date": "2025-10-01",
+          "entry_price": 82.4,
+          "exit_date": "2026-02-02",
+          "exit_price": 79.27,
+          "return_pct": -0.038,
+          "open_at_end": false
+        }
+      ]
+    }
+  ]
+}

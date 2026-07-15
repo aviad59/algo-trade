@@ -1,14 +1,17 @@
 import { z } from 'zod'
 import {
+  backtestSchema,
   extractionListSchema,
   extractionSchema,
+  extractJobStatusSchema,
+  extractStartResponseSchema,
   forecastRankingSchema,
   forecastSummarySchema,
   healthSchema,
   instrumentsSchema,
   materialForecastSchema,
 } from '../types/contract'
-import { getJson, getMockJson, ApiError } from './client'
+import { getJson, getMockJson, postJson, ApiError } from './client'
 import { DATA_SOURCE, MOCK_FALLBACK } from './config'
 import { markMockFallbackUsed, type MockFallbackReason } from './fallback'
 import { filterExtractions, type ExtractionFilters } from './mockFilter'
@@ -83,6 +86,19 @@ export async function fetchForecastRanking() {
 
 export async function fetchMaterialForecast(materialId: string) {
   return getResource(`/forecast/materials/${materialId}.json`, materialForecastSchema)
+}
+
+export async function fetchBacktest() {
+  return getResource('/backtest.json', backtestSchema)
+}
+
+/** Demo-token holders only: pull a ticker's latest filings through Agent #1. */
+export async function startLiveExtraction(ticker: string) {
+  return postJson('/extract', { ticker, limit: 1 }, extractStartResponseSchema)
+}
+
+export async function fetchLiveExtractionStatus() {
+  return getJson('/extract/status', extractJobStatusSchema)
 }
 
 export async function fetchInstruments(materialId: string) {

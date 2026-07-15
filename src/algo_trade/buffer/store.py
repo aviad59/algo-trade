@@ -217,7 +217,12 @@ class Buffer:
         self._path = str(path)
         if self._path != ":memory:":
             Path(self._path).parent.mkdir(parents=True, exist_ok=True)
-        self._con = sqlite3.connect(self._path)
+        # check_same_thread=False: FastAPI runs sync dependencies and sync
+        # endpoints in different threadpool threads, so the connection created
+        # in get_buffer() is used from another thread within the same request.
+        # Each request still gets its own Buffer, so there is no concurrent
+        # cross-thread use of a single connection.
+        self._con = sqlite3.connect(self._path, check_same_thread=False)
         self._con.row_factory = sqlite3.Row
         self._con.execute("PRAGMA foreign_keys = ON")
         self._con.execute("PRAGMA journal_mode = WAL")
@@ -632,6 +637,11 @@ class Buffer:
     # ---------------------------------------------------------------------- #
     # Utilities
     # ---------------------------------------------------------------------- #
+
+    @property
+    def path(self) -> str:
+        """Database path this buffer was opened with (``":memory:"`` if in-memory)."""
+        return self._path
 
     def count_extractions(self) -> int:
         """Return the total number of extraction rows in the buffer.

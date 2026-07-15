@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { DateRangePicker } from '@/components/explorer/DateRangePicker'
 import { ExplorerResultsTabs } from '@/components/explorer/ExplorerResultsTabs'
+import { LiveExtractPanel } from '@/components/explorer/LiveExtractPanel'
 import { MaterialFilter } from '@/components/explorer/MaterialFilter'
 import { ShowResultsButton } from '@/components/explorer/ShowResultsButton'
 import { TickerMultiSelect } from '@/components/explorer/TickerMultiSelect'
@@ -74,6 +75,8 @@ export function ExplorerPage() {
           Query filing extractions by ticker, date range, and optional material filter.
         </p>
       </header>
+
+      <LiveExtractPanel />
 
       <Card>
         <CardHeader>

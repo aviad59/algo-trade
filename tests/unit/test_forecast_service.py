@@ -50,9 +50,13 @@ def ranked_buffer(tmp_path) -> Buffer:
 
 @pytest.fixture(autouse=True)
 def _clear_settings_cache() -> None:
+    from api.services import forecast
+
     get_settings.cache_clear()
+    forecast._ranking_cache.clear()
     yield
     get_settings.cache_clear()
+    forecast._ranking_cache.clear()
 
 
 def test_build_ranking_rules_mode_by_default(ranked_buffer, monkeypatch) -> None:
@@ -149,6 +153,211 @@ def test_build_ranking_recommender_failure_falls_back_to_rules(
     )
     assert "companies cite" in result["ranked_materials"][0]["rationale"]
     ranked_buffer.close()
+
+
+def test_build_ranking_recommender_result_is_cached(ranked_buffer, monkeypatch) -> None:
+    from algo_trade.recommender import Recommender
+
+    monkeypatch.setenv("ALGO_TRADE_RANKING_MODE", "recommender")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    get_settings.cache_clear()
+
+    calls = {"n": 0}
+
+    def fake_rank(self, buf, since, until, *, as_of=None, universe_dir=None, max_extractions=100):
+        calls["n"] += 1
+        return RankedMaterials(
+            as_of=as_of or until,
+            ranked_materials=[
+                SectorRanking(
+                    material_id="lithium",
+                    name="Lithium",
+                    score=0.99,
+                    rationale=f"Agent ranking #{calls['n']}.",
+                    supporting_tickers=["TSLA"],
+                )
+            ],
+            recommender_model="unit-test-model",
+        )
+
+    monkeypatch.setattr(Recommender, "rank", fake_rank)
+
+    args = (date(2026, 1, 1), date(2026, 12, 31), date(2026, 12, 31), universe_dir())
+    first = build_ranking(ranked_buffer, *args)
+    second = build_ranking(ranked_buffer, *args)
+
+    assert calls["n"] == 1, "unchanged buffer must not trigger a second Agent #2 call"
+    assert second == first
+    ranked_buffer.close()
+
+
+def test_build_ranking_cache_invalidates_when_buffer_changes(
+    ranked_buffer, monkeypatch
+) -> None:
+    from algo_trade.recommender import Recommender
+
+    monkeypatch.setenv("ALGO_TRADE_RANKING_MODE", "recommender")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    get_settings.cache_clear()
+
+    calls = {"n": 0}
+
+    def fake_rank(self, buf, since, until, *, as_of=None, universe_dir=None, max_extractions=100):
+        calls["n"] += 1
+        return RankedMaterials(
+            as_of=as_of or until,
+            ranked_materials=[
+                SectorRanking(
+                    material_id="lithium",
+                    name="Lithium",
+                    score=0.99,
+                    rationale=f"Agent ranking #{calls['n']}.",
+                    supporting_tickers=["TSLA"],
+                )
+            ],
+            recommender_model="unit-test-model",
+        )
+
+    monkeypatch.setattr(Recommender, "rank", fake_rank)
+
+    args = (date(2026, 1, 1), date(2026, 12, 31), date(2026, 12, 31), universe_dir())
+    build_ranking(ranked_buffer, *args)
+    ranked_buffer.upsert(_extracted("ACC-F", "F"), company_name="Ford")
+    refreshed = build_ranking(ranked_buffer, *args)
+
+    assert calls["n"] == 2, "new extraction must invalidate the cached ranking"
+    assert refreshed["ranked_materials"][0]["rationale"] == "Agent ranking #2."
+    ranked_buffer.close()
+
+
+def _snapshot_payload(buf: Buffer, rationale: str = "Frozen Agent ranking.") -> dict:
+    return {
+        "generated_at": "2026-07-15T00:00:00+00:00",
+        "recommender_model": "snapshot-model",
+        "buffer_version": {
+            "max_extracted_at": buf.max_extracted_at().isoformat(),
+            "count_extractions": buf.count_extractions(),
+        },
+        "ranking": {
+            "contract_version": "1.0",
+            "as_of": "2026-12-31",
+            "ranked_materials": [
+                {
+                    "material_id": "lithium",
+                    "name": "Lithium",
+                    "score": 0.9,
+                    "rationale": rationale,
+                    "supporting_tickers": ["TSLA"],
+                    "dissenting_evidence": [],
+                }
+            ],
+        },
+    }
+
+
+def test_build_ranking_serves_matching_snapshot_without_llm(
+    ranked_buffer, monkeypatch, tmp_path
+) -> None:
+    import json
+
+    from algo_trade.recommender import Recommender
+
+    snapshot = tmp_path / "snap.json"
+    snapshot.write_text(json.dumps(_snapshot_payload(ranked_buffer)), encoding="utf-8")
+    monkeypatch.setenv("ALGO_TRADE_RANKING_SNAPSHOT", str(snapshot))
+    monkeypatch.setenv("ALGO_TRADE_RANKING_MODE", "recommender")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    get_settings.cache_clear()
+
+    def boom(self, *args, **kwargs):
+        raise AssertionError("snapshot present: no LLM call should happen")
+
+    monkeypatch.setattr(Recommender, "rank", boom)
+
+    result = build_ranking(
+        ranked_buffer, date(2026, 1, 1), date(2026, 12, 31), date(2026, 12, 31),
+        universe_dir(),
+    )
+    assert result["ranked_materials"][0]["rationale"] == "Frozen Agent ranking."
+    ranked_buffer.close()
+
+
+def test_build_ranking_ignores_stale_snapshot(ranked_buffer, monkeypatch, tmp_path) -> None:
+    import json
+
+    snapshot = tmp_path / "snap.json"
+    payload = _snapshot_payload(ranked_buffer)
+    payload["buffer_version"]["count_extractions"] = 999  # stale
+    snapshot.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setenv("ALGO_TRADE_RANKING_SNAPSHOT", str(snapshot))
+    monkeypatch.delenv("ALGO_TRADE_RANKING_MODE", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    get_settings.cache_clear()
+
+    result = build_ranking(
+        ranked_buffer, date(2026, 1, 1), date(2026, 12, 31), date(2026, 12, 31),
+        universe_dir(),
+    )
+    # falls back to rules, not the frozen rationale
+    assert "companies cite" in result["ranked_materials"][0]["rationale"]
+    ranked_buffer.close()
+
+
+def test_live_flag_bypasses_snapshot_and_calls_agent(
+    ranked_buffer, monkeypatch, tmp_path
+) -> None:
+    import json
+
+    from algo_trade.recommender import Recommender
+
+    snapshot = tmp_path / "snap.json"
+    snapshot.write_text(json.dumps(_snapshot_payload(ranked_buffer)), encoding="utf-8")
+    monkeypatch.setenv("ALGO_TRADE_RANKING_SNAPSHOT", str(snapshot))
+    monkeypatch.delenv("ALGO_TRADE_RANKING_MODE", raising=False)  # public default: rules
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    get_settings.cache_clear()
+
+    def fake_rank(self, buf, since, until, *, as_of=None, universe_dir=None, max_extractions=100):
+        return RankedMaterials(
+            as_of=as_of or until,
+            ranked_materials=[
+                SectorRanking(
+                    material_id="lithium",
+                    name="Lithium",
+                    score=0.99,
+                    rationale="Live Agent ranking.",
+                    supporting_tickers=["TSLA"],
+                )
+            ],
+            recommender_model="unit-test-model",
+        )
+
+    monkeypatch.setattr(Recommender, "rank", fake_rank)
+
+    args = (date(2026, 1, 1), date(2026, 12, 31), date(2026, 12, 31), universe_dir())
+    public = build_ranking(ranked_buffer, *args)
+    live = build_ranking(ranked_buffer, *args, live=True)
+    public_again = build_ranking(ranked_buffer, *args)
+
+    assert public["ranked_materials"][0]["rationale"] == "Frozen Agent ranking."
+    assert live["ranked_materials"][0]["rationale"] == "Live Agent ranking."
+    # live and public variants must not evict each other
+    assert public_again["ranked_materials"][0]["rationale"] == "Frozen Agent ranking."
+    ranked_buffer.close()
+
+
+def test_demo_token_matches(monkeypatch) -> None:
+    from api.services.forecast import demo_token_matches
+
+    monkeypatch.setenv("ALGO_TRADE_DEMO_TOKEN", "s3cret")
+    get_settings.cache_clear()
+    assert demo_token_matches("s3cret") is True
+    assert demo_token_matches("wrong") is False
+    assert demo_token_matches(None) is False
+
+    monkeypatch.delenv("ALGO_TRADE_DEMO_TOKEN", raising=False)
+    get_settings.cache_clear()
+    assert demo_token_matches("s3cret") is False, "unset token authorizes nobody"
 
 
 def test_build_ranking_recommender_empty_result_falls_back_to_rules(

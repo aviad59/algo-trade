@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { AboutPage } from './routes/AboutPage'
+import { BacktestPage } from './routes/BacktestPage'
 import { CompanyPage } from './routes/CompanyPage'
 import { DashboardPage } from './routes/DashboardPage'
 import { ExplorerPage } from './routes/ExplorerPage'
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="companies/:ticker" element={<CompanyPage />} />
           <Route path="filings/:extractionId" element={<FilingPage />} />
           <Route path="explorer" element={<ExplorerPage />} />
+          <Route path="backtest" element={<BacktestPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
