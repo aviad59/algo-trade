@@ -1,0 +1,22 @@
+# Keep the image build context small and secret-free.
+.env
+.env.*
+!.env.example
+.git
+.github
+.vscode
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+frontend/node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report
+tests
+docs
+data/*.jsonl
+data/exports
+*.png
+*.mp4
+*.webm
