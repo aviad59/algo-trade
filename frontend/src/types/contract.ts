@@ -108,6 +108,78 @@ export const instrumentsSchema = z.object({
   buckets: instrumentBucketsSchema,
 })
 
+export const backtestTradeSchema = z.object({
+  entry_date: isoDateSchema,
+  entry_price: z.number(),
+  exit_date: isoDateSchema,
+  exit_price: z.number(),
+  return_pct: z.number(),
+  open_at_end: z.boolean(),
+})
+
+export const backtestOpenPositionSchema = z.object({
+  entry_date: isoDateSchema,
+  entry_price: z.number(),
+  current_price: z.number(),
+  return_pct: z.number(),
+})
+
+export const backtestResultSchema = z.object({
+  sector: z.string(),
+  instrument: z.string(),
+  trades_closed: z.number().int().nonnegative(),
+  win_rate: z.number(),
+  return_pct: z.number(),
+  benchmark_pct: z.number(),
+  alpha_pct: z.number(),
+  exposure_pct: z.number(),
+  open_position: backtestOpenPositionSchema.nullable(),
+  trades: z.array(backtestTradeSchema),
+})
+
+export const backtestOverallSchema = z.object({
+  win_rate: z.number(),
+  return_pct: z.number(),
+  benchmark_pct: z.number(),
+  alpha_pct: z.number(),
+  exposure_pct: z.number(),
+  trades_closed: z.number().int().nonnegative(),
+  winners: z.number().int().nonnegative(),
+  open_positions: z.number().int().nonnegative(),
+})
+
+export const backtestSchema = z.object({
+  contract_version: z.literal('1.0'),
+  available: z.boolean(),
+  mode: z.string(),
+  since: isoDateSchema,
+  until: isoDateSchema,
+  reason: z.string().nullable(),
+  overall: backtestOverallSchema.nullable(),
+  results: z.array(backtestResultSchema),
+})
+
+export const extractJobStatusSchema = z.object({
+  contract_version: z.literal('1.0'),
+  state: z.enum(['idle', 'running', 'done', 'error']),
+  ticker: z.string().nullable(),
+  forms: z.array(z.string()),
+  started_at: z.string().nullable(),
+  finished_at: z.string().nullable(),
+  filings_done: z.number().int().nonnegative(),
+  effects_found: z.number().int().nonnegative(),
+  events: z.array(z.string()),
+  error: z.string().nullable(),
+  budget_used: z.number().int().nonnegative(),
+  budget_cap: z.number().int().nonnegative(),
+})
+
+export const extractStartResponseSchema = z.object({
+  contract_version: z.literal('1.0'),
+  status: z.literal('started'),
+  message: z.string(),
+})
+
 export const healthSchema = z.object({
   contract_version: z.literal('1.0'),
   status: z.string(),
@@ -127,3 +199,7 @@ export type ForecastRanking = z.infer<typeof forecastRankingSchema>
 export type MaterialForecast = z.infer<typeof materialForecastSchema>
 export type Instruments = z.infer<typeof instrumentsSchema>
 export type Health = z.infer<typeof healthSchema>
+export type BacktestTrade = z.infer<typeof backtestTradeSchema>
+export type BacktestResult = z.infer<typeof backtestResultSchema>
+export type Backtest = z.infer<typeof backtestSchema>
+export type ExtractJobStatus = z.infer<typeof extractJobStatusSchema>

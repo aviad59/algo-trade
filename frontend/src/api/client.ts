@@ -1,5 +1,5 @@
 import type { ZodType } from 'zod'
-import { API_BASE, DATA_SOURCE, MOCK_BASE, MOCK_FALLBACK } from './config'
+import { API_BASE, DATA_SOURCE, DEMO_TOKEN, MOCK_BASE, MOCK_FALLBACK } from './config'
 import { markMockFallbackUsed, type MockFallbackReason } from './fallback'
 
 export class ApiError extends Error {
@@ -76,7 +76,10 @@ async function fetchAndParse<T>(base: string, path: string, schema: ZodType<T>):
   const url = `${base}${path}`
   let response: Response
   try {
-    response = await fetch(url)
+    response = await fetch(
+      url,
+      DEMO_TOKEN && base === API_BASE ? { headers: { 'X-Demo-Token': DEMO_TOKEN } } : undefined,
+    )
   } catch {
     throw new ApiError(
       'Could not reach the API server. Make sure algo-trade-api is running.',
@@ -97,6 +100,34 @@ async function fetchAndParse<T>(base: string, path: string, schema: ZodType<T>):
 /** Fetch from the static mock bundle (`/mock/v1`). */
 export async function getMockJson<T>(path: string, schema: ZodType<T>): Promise<T> {
   return fetchAndParse(MOCK_BASE, path, schema)
+}
+
+/** POST JSON to the live API (no mock fallback — mutations are api-mode only). */
+export async function postJson<T>(path: string, body: unknown, schema: ZodType<T>): Promise<T> {
+  const url = `${API_BASE}${path}`
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(DEMO_TOKEN ? { 'X-Demo-Token': DEMO_TOKEN } : {}),
+      },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw new ApiError(
+      'Could not reach the API server. Make sure algo-trade-api is running.',
+      0,
+      path,
+    )
+  }
+  if (!response.ok) {
+    const { message, code } = await parseErrorBody(response)
+    throw new ApiError(message, response.status, path, code)
+  }
+  const data: unknown = await response.json()
+  return schema.parse(data)
 }
 
 /**
