@@ -113,15 +113,46 @@ def _dense_curve(
             {"month": month_index, "sector": sector, "signal": 0.0}
         )
 
-    sector_df = aggregated[aggregated["sector"] == sector].copy()
+    # Case-insensitive to mirror Buffer.all_effects's LOWER(de.sector) filter —
+    # buffer rows may carry e.g. "Aluminum" while callers pass the canonical
+    # lowercase material id. Group by month in case several case variants of
+    # the same sector coexist in the buffer.
+    sector_df = aggregated[
+        aggregated["sector"].str.lower() == sector.lower()
+    ].copy()
     reindexed = (
-        sector_df.set_index("month")["signal"]
+        sector_df.groupby("month")["signal"]
+        .sum()
         .reindex(month_index, fill_value=0.0)
         .reset_index()
         .rename(columns={"index": "month"})
     )
     reindexed["sector"] = sector
     return reindexed[["month", "sector", "signal"]]
+
+
+def curve_from_effects(
+    effects: list[SectorEffectRow],
+    sector: str,
+    since: date,
+    until: date,
+) -> pd.DataFrame:
+    """Build a dense monthly signal curve for one sector from effect rows.
+
+    Same output shape as :func:`build_curve`, but takes the effects
+    directly instead of querying the buffer — callers that need to filter
+    effects themselves (e.g. the point-in-time backtest, which admits only
+    filings published before each decision date) use this entry point.
+    """
+    contributions = _contributions_dataframe(effects)
+    if contributions.empty:
+        return _dense_curve(contributions, sector, since, until)
+
+    aggregated = (
+        contributions.groupby(["sector", "month"], as_index=False)["signal"]
+        .sum()
+    )
+    return _dense_curve(aggregated, sector, since, until)
 
 
 def build_curve(
@@ -141,15 +172,7 @@ def build_curve(
     effects = buf.all_effects(
         since, until, sector=sector, extractor_model=extractor_model
     )
-    contributions = _contributions_dataframe(effects)
-    if contributions.empty:
-        return _dense_curve(contributions, sector, since, until)
-
-    aggregated = (
-        contributions.groupby(["sector", "month"], as_index=False)["signal"]
-        .sum()
-    )
-    return _dense_curve(aggregated, sector, since, until)
+    return curve_from_effects(effects, sector, since, until)
 
 
 def build_all_curves(
