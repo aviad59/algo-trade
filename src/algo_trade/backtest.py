@@ -57,8 +57,8 @@ import pandas as pd
 
 from .buffer import Buffer
 from .models import TimerAction, TimerSignal
-from .timer import TimerConfig, detect_actions
-from .timeline import build_curve
+from .timer import TimerConfig, detect_actions, enrich_curve
+from .timeline import build_curve, curve_from_effects, months_in_window
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +180,11 @@ class PriceSeries:
 
     def __len__(self) -> int:
         return len(self._series)
+
+    @property
+    def series(self) -> pd.Series:
+        """The normalized (datetime-indexed, sorted) close series."""
+        return self._series
 
     def first_date(self) -> date:
         return self._series.index[0].date()
@@ -347,6 +352,84 @@ def backtest_actions(
 
 
 # --------------------------------------------------------------------------- #
+# Point-in-time (walk-forward) actions
+# --------------------------------------------------------------------------- #
+
+
+def _add_months(d: date, n: int) -> date:
+    """First day of the month ``n`` months after ``d``'s month."""
+    month = d.month - 1 + n
+    return date(d.year + month // 12, month % 12 + 1, 1)
+
+
+def walkforward_actions(
+    buf: Buffer,
+    sector: str,
+    *,
+    since: date,
+    until: date,
+    config: Optional[TimerConfig] = None,
+    extractor_model: Optional[str] = None,
+) -> list[TimerSignal]:
+    """Timer actions with no look-ahead: the decision at month ``t`` uses
+    only filings published on or before ``t``.
+
+    Why this exists: dated effects routinely have windows that start
+    *before* their filing date ("we ramped spending this year", filed in
+    April, window January-December). Running the timer over the full
+    buffer therefore back-dates knowledge -- a BUY in October can be
+    driven by a filing published the following April, which no real
+    trader could have acted on.
+
+    The walk-forward replays history honestly. For each decision month
+    ``t`` in ``[since, until]``:
+
+      1. Admit only effects whose ``filing_date <= t`` (t is the first of
+         the month -- the same date the timer's action would carry).
+      2. Build the curve and ``forward_AUC(t)`` from that snapshot alone.
+         Stated windows extending beyond ``t`` are fine -- that's narrated
+         future demand *known* at ``t``.
+      3. Record ``(signal(t), forward_AUC(t))`` as the realized row for ``t``.
+
+    The timer's state machine then runs over the realized rows. It only
+    ever compares a month against earlier months, so the resulting
+    action dates are tradeable in real time.
+    """
+    cfg = config or TimerConfig.from_env()
+    months = months_in_window(since, until)
+    if not months:
+        return []
+
+    # Fetch wide: stated windows past `until` still feed forward_AUC near
+    # the tail of the decision range.
+    horizon = _add_months(until, cfg.lookahead_months)
+    effects = buf.all_effects(
+        since, horizon, sector=sector, extractor_model=extractor_model
+    )
+    if not effects:
+        return []
+
+    realized: list[dict] = []
+    for t in months:
+        known = [e for e in effects if e.filing_date <= t]
+        snapshot = curve_from_effects(
+            known, sector, since, _add_months(t, cfg.lookahead_months)
+        )
+        enriched = enrich_curve(snapshot, config=cfg)
+        row = enriched.loc[enriched["month"] == pd.Timestamp(t)]
+        realized.append(
+            {
+                "month": pd.Timestamp(t),
+                "sector": sector,
+                "signal": float(row["signal"].iloc[0]) if len(row) else 0.0,
+                "forward_auc": float(row["forward_auc"].iloc[0]) if len(row) else 0.0,
+            }
+        )
+
+    return detect_actions(pd.DataFrame(realized), config=cfg)
+
+
+# --------------------------------------------------------------------------- #
 # Buffer-wide backtest
 # --------------------------------------------------------------------------- #
 
@@ -362,6 +445,7 @@ def backtest_buffer(
     extractor_model: Optional[str] = None,
     instrument_overrides: Optional[Mapping[str, str]] = None,
     universe_dir: Optional[Path] = None,
+    walkforward: bool = False,
 ) -> BacktestSummary:
     """Run the timer over every sector with effects in ``[since, until]``
     and backtest each against the supplied price series.
@@ -380,6 +464,12 @@ def backtest_buffer(
             default ETF lookup (e.g. {"lithium": "LIT"}).
         universe_dir: Path to ``backend/universe/`` for the default
             instrument lookup. Tests pass a temp dir.
+        walkforward: When True, use :func:`walkforward_actions` so the
+            decision at month t only sees filings published on or before
+            t. When False (legacy), the timer sees the whole buffer at
+            once — effects whose windows predate their filing date leak
+            future knowledge into past decisions. Prefer True for any
+            result you intend to quote.
     """
     overrides = {k.lower(): v for k, v in (instrument_overrides or {}).items()}
 
@@ -408,10 +498,22 @@ def backtest_buffer(
             )
             continue
 
-        curve = build_curve(buf, sector, since, until, extractor_model=extractor_model)
-        if curve.empty:
-            continue
-        actions = detect_actions(curve, config=timer_config)
+        if walkforward:
+            actions = walkforward_actions(
+                buf,
+                sector,
+                since=since,
+                until=until,
+                config=timer_config,
+                extractor_model=extractor_model,
+            )
+        else:
+            curve = build_curve(
+                buf, sector, since, until, extractor_model=extractor_model
+            )
+            if curve.empty:
+                continue
+            actions = detect_actions(curve, config=timer_config)
         if not actions:
             continue
 
