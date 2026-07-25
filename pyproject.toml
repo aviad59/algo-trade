@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "filingsignal"
+version = "0.1.0"
+description = "Materials sector-rotation signal from SEC filings — provider-agnostic LLM extraction, point-in-time scoring, honest backtest."
+readme = "ARCHITECTURE.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Ron Kadosh" }]
+dependencies = [
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "edgartools>=4.0",
+    "anthropic>=0.69",
+    "openai>=1.50",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+]
+
+[project.optional-dependencies]
+backtest = ["yfinance>=0.2"]
+report = ["quantstats>=0.0.62"]
+dev = ["pytest>=8.0", "httpx>=0.27", "yfinance>=0.2"]
+
+[project.scripts]
+filingsignal = "filingsignal.cli:main"
+filingsignal-api = "filingsignal.api.main:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"filingsignal.buffer" = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

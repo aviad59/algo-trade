@@ -1,0 +1,73 @@
+import { useEffect } from "react";
+import type { DatedEffect, Filing } from "../data/types";
+import { StatusBadge } from "./ui";
+
+function effectTag(e: DatedEffect) {
+  // At the miner-ETF target both perspectives share sign: increase = bullish.
+  if (e.direction === "increase") return <span className="ev-tag bull">bullish · {e.perspective}</span>;
+  return <span className="ev-tag bear">bearish · {e.perspective}</span>;
+}
+
+export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="overlay" onClick={onClose} />
+      <aside className="drawer" role="dialog" aria-label={`Filing detail: ${filing.company}`}>
+        <button className="drawer-close" onClick={onClose} aria-label="Close">✕</button>
+        <div className="eyebrow">Filing detail</div>
+        <h3>{filing.company} <span className="tk" style={{ color: "var(--accent-ink)" }}>{filing.ticker}</span></h3>
+
+        <div className="kv">
+          <span className="k">Form</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.form}</span>
+          <span className="k">Filed</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.filingDate}</span>
+          <span className="k">Materials</span><span>{filing.materials.join(", ")}</span>
+          <span className="k">Perspective</span><span style={{ textTransform: "capitalize" }}>{filing.perspective}</span>
+          <span className="k">Status</span><span><StatusBadge status={filing.status} /></span>
+          <span className="k">Confidence</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.confidence === null ? "—" : filing.confidence.toFixed(2)}</span>
+        </div>
+
+        <hr className="rule" />
+        <p className="card-title">Summary</p>
+        <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 4 }}>{filing.summary}</p>
+
+        <hr className="rule" />
+        <p className="card-title">Extracted dated effects</p>
+        {filing.effects.length === 0 ? (
+          <p className="footnote" style={{ marginTop: 8 }}>No bounded, dated material effect was extracted from this filing.</p>
+        ) : (
+          <div style={{ marginTop: 6 }}>
+            {filing.effects.map((e, i) => (
+              <div className="effect-row" key={i}>
+                <span className="effect-q">
+                  {e.window}
+                  <span className="effect-meta">{e.magnitude} · {e.direction}</span>
+                </span>
+                <span>
+                  {e.text}
+                  <div className="ev-quote" style={{ margin: "6px 0 0" }}>{e.quote}</div>
+                </span>
+                {effectTag(e)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {filing.warnings.length > 0 && (
+          <>
+            <hr className="rule" />
+            <p className="card-title">Extraction notes</p>
+            <ul className="tight">
+              {filing.warnings.map((w, i) => <li key={i}>⚠ {w}</li>)}
+            </ul>
+          </>
+        )}
+      </aside>
+    </>
+  );
+}

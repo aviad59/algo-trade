@@ -1,0 +1,32 @@
+# Full stack in one service: FastAPI serves the SPA + /api/v1 on :8000.
+#
+#   docker compose up --build        # then open http://localhost:8000
+#
+# The host ./data is mounted read-only over /app/data, so the container serves
+# YOUR real buffer + prices (the image's baked mock is only a fallback for a
+# fresh clone with no ./data). Remove the volume below to serve the baked mock.
+#
+# To enable live extraction, put ANTHROPIC_API_KEY / MOONSHOT_API_KEY and
+# FILINGSIGNAL_SEC_IDENTITY in .env (picked up via env_file below).
+services:
+  app:
+    build: .
+    image: filingsignal:latest
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # container paths override anything from .env
+      FILINGSIGNAL_BUFFER_PATH: /app/data/buffer.sqlite
+      FILINGSIGNAL_PRICES_DIR: /app/data/prices
+      FILINGSIGNAL_UNIVERSE_DIR: /app/universe
+      FILINGSIGNAL_FRONTEND_DIST: /app/frontend/dist
+      FILINGSIGNAL_API_HOST: 0.0.0.0
+      FILINGSIGNAL_API_PORT: "8000"
+    volumes:
+      # serve the REAL host data (comment out to use the image's baked mock).
+      # read-write: SQLite needs it (WAL + schema-ensure on open), and it lets
+      # POST /extract persist new extractions back to the host buffer.
+      - ./data:/app/data
+    restart: unless-stopped

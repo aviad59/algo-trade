@@ -1,0 +1,107 @@
+# ============================================================
+# FilingSignal universe — FROZEN config.
+# The material -> miner-equity ETF map, the companies whose filings feed the
+# signal (with tier + per-material perspective), the backtest benchmarks, and
+# the filing filters. Agent #2 never edits this; it is the reproducibility
+# contract for scoring and performance attribution. See ARCHITECTURE.md §3.
+# ============================================================
+version: 1
+
+# ---- Materials and their frozen miner-equity ETF ----
+# producer_only=true where demand is macro (not narrated in filings) — the
+# perspective tag surfaces this asymmetry (e.g. gold).
+materials:
+  - id: copper
+    name: Copper
+    etf: COPX
+    aliases: [copper, cu]
+    producer_only: false
+  - id: gold
+    name: Gold
+    etf: GDX
+    aliases: [gold, au, bullion]
+    producer_only: true
+  - id: uranium
+    name: Uranium
+    etf: URNM
+    aliases: [uranium, u3o8, yellowcake]
+    producer_only: false
+  - id: steel
+    name: Steel
+    etf: SLX
+    aliases: [steel, iron ore, iron-ore, hrc]
+    producer_only: false
+  - id: silver
+    name: Silver
+    etf: SIL
+    aliases: [silver, ag]
+    producer_only: false
+  - id: rare-earths
+    name: Rare Earths
+    etf: REMX
+    aliases: [rare earths, rare earth, ree, neodymium, magnet, magnets]
+    producer_only: false
+
+# ---- Companies whose filings feed the signal ----
+# tier: us     -> files 10-K / 10-Q / 8-K
+#       foreign -> SEC-registered foreign issuer, files 40-F/20-F + 6-K
+# materials: { material_id: perspective }  (producer = supply, consumer = demand)
+companies:
+  # --- Copper ---
+  FCX:  { name: Freeport-McMoRan,      tier: us,      materials: { copper: producer, gold: producer } }
+  SCCO: { name: Southern Copper,       tier: us,      materials: { copper: producer, silver: producer } }
+  TECK: { name: Teck Resources,        tier: foreign, materials: { copper: producer, steel: producer } }
+  HBM:  { name: Hudbay Minerals,       tier: foreign, materials: { copper: producer } }
+  RIO:  { name: Rio Tinto,             tier: foreign, materials: { copper: producer, steel: producer } }
+  # --- Gold (producer-only material) ---
+  NEM:  { name: Newmont,               tier: us,      materials: { gold: producer } }
+  GOLD: { name: Barrick Mining,        tier: us,      materials: { gold: producer, copper: producer } }
+  AEM:  { name: Agnico Eagle Mines,    tier: foreign, materials: { gold: producer } }
+  KGC:  { name: Kinross Gold,          tier: foreign, materials: { gold: producer } }
+  # --- Uranium ---
+  UEC:  { name: Uranium Energy,        tier: us,      materials: { uranium: producer } }
+  LEU:  { name: Centrus Energy,        tier: us,      materials: { uranium: producer } }
+  UUUU: { name: Energy Fuels,          tier: us,      materials: { uranium: producer, rare-earths: producer } }
+  CCJ:  { name: Cameco Corp,           tier: foreign, materials: { uranium: producer } }
+  NXE:  { name: NexGen Energy,         tier: foreign, materials: { uranium: producer } }
+  # --- Steel ---
+  NUE:  { name: Nucor Corp,            tier: us,      materials: { steel: producer } }
+  STLD: { name: Steel Dynamics,        tier: us,      materials: { steel: producer } }
+  CLF:  { name: Cleveland-Cliffs,      tier: us,      materials: { steel: producer } }
+  # --- Silver ---
+  CDE:  { name: Coeur Mining,          tier: us,      materials: { silver: producer, gold: producer } }
+  HL:   { name: Hecla Mining,          tier: us,      materials: { silver: producer } }
+  WPM:  { name: Wheaton Precious,      tier: foreign, materials: { silver: producer, gold: producer } }
+  PAAS: { name: Pan American Silver,   tier: foreign, materials: { silver: producer } }
+  # --- Rare earths ---
+  MP:   { name: MP Materials,          tier: us,      materials: { rare-earths: producer } }
+  USAR: { name: USA Rare Earth,        tier: us,      materials: { rare-earths: producer } }
+  # --- Consumers (demand side) ---
+  ETN:  { name: Eaton Corp,            tier: us,      materials: { copper: consumer } }
+  EMR:  { name: Emerson Electric,      tier: us,      materials: { copper: consumer } }
+  TSLA: { name: Tesla,                 tier: us,      materials: { copper: consumer } }
+  F:    { name: Ford Motor,            tier: us,      materials: { steel: consumer } }
+  GM:   { name: General Motors,        tier: us,      materials: { steel: consumer } }
+  CAT:  { name: Caterpillar,           tier: us,      materials: { steel: consumer } }
+  DE:   { name: Deere & Co,            tier: us,      materials: { steel: consumer } }
+  LMT:  { name: Lockheed Martin,       tier: us,      materials: { rare-earths: consumer } }
+  BA:   { name: Boeing,                tier: us,      materials: { rare-earths: consumer } }
+  NOC:  { name: Northrop Grumman,      tier: us,      materials: { rare-earths: consumer } }
+
+# ---- Backtest benchmarks ----
+benchmarks:
+  market: SPY
+  equal_weight: [COPX, GDX, URNM, SLX, SIL, REMX]
+
+# ---- Filing filters (pre-LLM, cheap) ----
+filters:
+  forms:
+    us: ["10-K", "10-Q", "8-K"]
+    foreign: ["40-F", "20-F", "6-K"]
+  # 8-K / 6-K items: keep less-priced-in events (agreements/projects) + earnings
+  # for coverage; drop routine governance/administrative items.
+  event_items_keep: ["1.01", "2.06", "7.01", "8.01", "2.02"]
+  event_items_drop: ["5.02", "5.07", "5.03", "3.01", "3.03", "1.02"]
+  # a filing whose targeted section contains no material keyword is skipped
+  # before any LLM call (keyword_gate uses each material's name + aliases).
+  keyword_gate: true
