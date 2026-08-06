@@ -1,6 +1,40 @@
 import type { ReactNode } from "react";
 import type { ExtractionStatus, Perspective } from "../data/types";
 
+/* ---- AI mark: a four-point spark. Marks anything a model produced,
+        so model output is always visually distinct from computed math. ---- */
+export function AiMark({ size = 13, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg
+      className={`ai-mark ${className}`} width={size} height={size} viewBox="0 0 16 16"
+      fill="currentColor" aria-hidden="true" focusable="false"
+    >
+      <path d="M8 0.6 9.5 5.4 14.3 6.9 9.5 8.4 8 13.2 6.5 8.4 1.7 6.9 6.5 5.4z" />
+      <path d="M13 10.4 13.7 12.5 15.8 13.2 13.7 13.9 13 16 12.3 13.9 10.2 13.2 12.3 12.5z" opacity={0.65} />
+    </svg>
+  );
+}
+
+/* ---- "AI" tag: the spark plus a label, for section headers ---- */
+export function AiTag({ children = "AI" }: { children?: ReactNode }) {
+  return (
+    <span className="ai-tag">
+      <AiMark size={11} />
+      {children}
+    </span>
+  );
+}
+
+/* ---- Live badge: pulsing dot for data that is still moving ---- */
+export function LiveBadge({ label = "Live" }: { label?: string }) {
+  return (
+    <span className="live-badge">
+      <span className="live-dot" aria-hidden="true" />
+      {label}
+    </span>
+  );
+}
+
 /* ---- KPI tile ---- */
 export function Kpi({ label, value, unit, note, noteUp }: {
   label: string; value: ReactNode; unit?: string; note?: ReactNode; noteUp?: boolean;

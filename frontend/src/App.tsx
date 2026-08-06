@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Footer } from "./components/Footer";
 import { Rail } from "./components/Rail";
 import { TopBar } from "./components/TopBar";
 import { FORECAST_QUARTER } from "./data/fixtures";
@@ -8,8 +9,11 @@ import { Backtest } from "./pages/Backtest";
 import { Filings } from "./pages/Filings";
 import { Forecast } from "./pages/Forecast";
 import { Home } from "./pages/Home";
+import { Statistics } from "./pages/Statistics";
 
-const KEY_TO_PAGE: Record<string, Page> = { "1": "home", "2": "forecast", "3": "filings", "4": "backtest" };
+const KEY_TO_PAGE: Record<string, Page> = {
+  "1": "home", "2": "forecast", "3": "filings", "4": "backtest", "5": "statistics",
+};
 
 export default function App() {
   const [page, navigate] = useHashRoute();
@@ -20,6 +24,7 @@ export default function App() {
     forecast: `Forecast · ${FORECAST_QUARTER}`,
     filings: "Filings",
     backtest: "Backtest",
+    statistics: "Statistics",
   };
 
   useEffect(() => {
@@ -43,6 +48,8 @@ export default function App() {
           {page === "forecast" && <Forecast />}
           {page === "filings" && <Filings />}
           {page === "backtest" && <Backtest />}
+          {page === "statistics" && <Statistics />}
+          <Footer />
         </div>
       </div>
     </TooltipProvider>

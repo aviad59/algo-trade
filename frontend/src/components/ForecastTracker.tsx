@@ -1,5 +1,6 @@
 import { FORECAST_QUARTER, TRACKER } from "../data/fixtures";
 import { pct, signed } from "../lib/format";
+import { LiveBadge } from "./ui";
 
 function fmtAsOf(s?: string): string {
   if (!s) return "";
@@ -18,8 +19,8 @@ export function ForecastTracker() {
   if (!t?.available || !t.pick) {
     return (
       <div className="card section-gap">
-        <p className="card-title">How this forecast is doing so far</p>
-        <p className="card-sub">Tracking begins once the quarter is underway and prices are in.</p>
+        <p className="card-title">How the pick is doing</p>
+        <p className="card-sub">Tracking starts once the quarter is underway.</p>
       </div>
     );
   }
@@ -31,40 +32,29 @@ export function ForecastTracker() {
 
   return (
     <div className="card section-gap" style={{ borderLeft: `3px solid var(${beatEq ? "--good" : "--bad"})` }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <p className="card-title" style={{ margin: 0 }}>How this forecast is doing so far</p>
-        <span className="pill" style={{ borderColor: "var(--warn)", color: "var(--warn)" }}>Provisional · in progress</span>
+      <div className="tracker-head">
+        <p className="card-title" style={{ margin: 0 }}>How the pick is doing</p>
+        <LiveBadge label="Live" />
+        <span className="tracker-asof mono">{fmtAsOf(t.asOf)}</span>
       </div>
-      <p className="card-sub">
-        {t.pctElapsed}% through {FORECAST_QUARTER} · quarter-to-date through {fmtAsOf(t.asOf)}. The ranking was fixed at
-        the quarter's open; these are the ETFs' real moves since.
-      </p>
 
-      <div className="qtd-progress"><div className="qtd-progress-fill" style={{ width: `${t.pctElapsed ?? 0}%` }} /></div>
+      <div className="tracker-line">
+        <span className="tracker-num mono" style={{ color: (t.pick.qtd ?? 0) >= 0 ? "var(--good-text)" : "var(--bad-text)" }}>
+          {t.pick.qtd == null ? "—" : pct(t.pick.qtd)}
+        </span>
+        <span className="tracker-sub">
+          {t.pick.material} <span className="tk">{t.pick.etf}</span> · #{t.pick.actualRank ?? "—"} of {n} so far ·{" "}
+          <span className={beatEq ? "pos" : "neg"}>{beatEq ? "ahead of" : "behind"}</span> all six
+        </span>
+      </div>
 
-      <div className="grid g4 section-gap" style={{ marginTop: 16 }}>
-        <div className="card kpi">
-          <div className="kpi-label">Pick QTD return</div>
-          <div className="kpi-value mono" style={{ fontSize: 21, color: (t.pick.qtd ?? 0) >= 0 ? "var(--good-text)" : "var(--bad-text)" }}>
-            {t.pick.qtd == null ? "—" : pct(t.pick.qtd)}
-          </div>
-          <div className="kpi-note">{t.pick.material} · {t.pick.etf}</div>
-        </div>
-        <div className="card kpi">
-          <div className="kpi-label">Standing so far</div>
-          <div className="kpi-value" style={{ fontSize: 21 }}>#{t.pick.actualRank ?? "—"} <span style={{ fontSize: 13, color: "var(--ink-3)" }}>of {n}</span></div>
-          <div className="kpi-note">predicted #{t.pick.predictedRank}</div>
-        </div>
-        <div className="card kpi">
-          <div className="kpi-label">Rank-IC (QTD)</div>
-          <div className="kpi-value mono" style={{ fontSize: 21 }}>{t.rankIC == null ? "—" : signed(t.rankIC, 2)}</div>
-          <div className="kpi-note">pred rank vs QTD rank</div>
-        </div>
-        <div className="card kpi">
-          <div className="kpi-label">On track?</div>
-          <div className="kpi-value" style={{ fontSize: 21 }}><span className={beatEq ? "pos" : "neg"}>{beatEq ? "On track" : "Behind"}</span></div>
-          <div className="kpi-note">vs equal-weight basket</div>
-        </div>
+      <div className="qtd-progress live">
+        <div className="qtd-progress-fill" style={{ width: `${t.pctElapsed ?? 0}%` }} />
+      </div>
+      <div className="qtd-scale">
+        <span>quarter started</span>
+        <span className="mono">{t.pctElapsed}% done</span>
+        <span>quarter ends</span>
       </div>
 
       <div className="table-wrap section-gap">
@@ -97,8 +87,7 @@ export function ForecastTracker() {
         </table>
       </div>
       <p className="footnote" style={{ marginTop: 10 }}>
-        Provisional — only {t.pctElapsed}% of the quarter has elapsed, so ranks can still change. The final,
-        full-quarter verdict lands in the Backtest once {FORECAST_QUARTER} closes.
+        Not final — the order can still change. When {FORECAST_QUARTER} closes it moves to the Backtest page.
       </p>
     </div>
   );

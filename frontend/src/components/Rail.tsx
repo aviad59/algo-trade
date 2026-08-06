@@ -12,6 +12,7 @@ const NAV: NavDef[] = [
   { id: "forecast", label: "Forecast", key: "2", icon: <><path d="M2 12.5 6 7l3 3 4-6" /><path d="M2 2v11h11" opacity={0.55} /></> },
   { id: "filings", label: "Filings", key: "3", icon: <><path d="M3.5 1.5h5.5L12 4.5v9H3.5z" /><path d="M5.5 6.5h4M5.5 9h4" opacity={0.7} /></> },
   { id: "backtest", label: "Backtest", key: "4", icon: <><path d="M2.5 2v11h10" /><path d="M4.5 10.5v-3M7.5 10.5v-6M10.5 10.5v-4.5" strokeLinecap="square" /></> },
+  { id: "statistics", label: "Statistics", key: "5", icon: <><circle cx="7.5" cy="7.5" r="5.5" /><path d="M7.5 2v5.5l3.9 3.9" /></> },
 ];
 
 export function Rail({ page, navigate }: { page: Page; navigate: (p: Page) => void }) {

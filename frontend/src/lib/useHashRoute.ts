@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-export type Page = "home" | "forecast" | "filings" | "backtest";
-const PAGES: Page[] = ["home", "forecast", "filings", "backtest"];
+export type Page = "home" | "forecast" | "filings" | "backtest" | "statistics";
+const PAGES: Page[] = ["home", "forecast", "filings", "backtest", "statistics"];
 
 function readHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "") as Page;

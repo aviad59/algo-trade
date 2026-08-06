@@ -4,12 +4,10 @@ export function Home() {
   return (
     <div className="page">
       <div className="page-head">
-        <div className="eyebrow">LLM research pipeline · materials sector rotation</div>
-        <h1>Turn SEC filings into an auditable, point-in-time materials forecast.</h1>
+        <div className="eyebrow">How it works</div>
+        <h1>We read what mining companies tell the SEC — then guess which metal does best next.</h1>
         <p className="page-desc">
-          FilingSignal is an investment-research platform. It reads SEC filings, scores six industrial materials
-          each quarter, and answers one question: <em>if you buy exactly one material's miner ETF, which one?</em>{" "}
-          Then it honestly checks whether that pick actually worked.
+          Every quarter we pick one metal out of six, then check whether we were right.
         </p>
       </div>
 

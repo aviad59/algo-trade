@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { DatedEffect, Filing } from "../data/types";
-import { StatusBadge } from "./ui";
+import { AiMark, StatusBadge } from "./ui";
 
 function effectTag(e: DatedEffect) {
   // At the miner-ETF target both perspectives share sign: increase = bullish.
@@ -33,13 +33,13 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
         </div>
 
         <hr className="rule" />
-        <p className="card-title">Summary</p>
+        <p className="card-title"><AiMark size={13} /> What our AI made of it</p>
         <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 4 }}>{filing.summary}</p>
 
         <hr className="rule" />
-        <p className="card-title">Extracted dated effects</p>
+        <p className="card-title"><AiMark size={13} /> The clues it found</p>
         {filing.effects.length === 0 ? (
-          <p className="footnote" style={{ marginTop: 8 }}>No bounded, dated material effect was extracted from this filing.</p>
+          <p className="footnote" style={{ marginTop: 8 }}>Nothing in this filing was specific enough about a date to count as a clue.</p>
         ) : (
           <div style={{ marginTop: 6 }}>
             {filing.effects.map((e, i) => (
@@ -61,7 +61,7 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
         {filing.warnings.length > 0 && (
           <>
             <hr className="rule" />
-            <p className="card-title">Extraction notes</p>
+            <p className="card-title">Notes from reading it</p>
             <ul className="tight">
               {filing.warnings.map((w, i) => <li key={i}>⚠ {w}</li>)}
             </ul>

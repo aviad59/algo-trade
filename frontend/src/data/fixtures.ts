@@ -80,11 +80,10 @@ export let RETURNS: Record<string, number[]> = {
 };
 
 export let EQUITY_SERIES: EquitySeries[] = [
-  { key: "strategy",  label: "FilingSignal (top-1)",   colorVar: "--s1", emphasis: true, directLabel: "FilingSignal" },
-  { key: "spy",       label: "SPY",                    colorVar: "--s2", directLabel: "SPY" },
-  { key: "eqweight",  label: "Equal-weight materials", colorVar: "--s3" },
-  { key: "random",    label: "Random pick (MC median)", colorVar: "--s4" },
-  { key: "hindsight", label: "Hindsight-best pick",    colorVar: "--s5", dashed: true, directLabel: "Hindsight" },
+  { key: "strategy",  label: "Our picks",           colorVar: "--s1", emphasis: true, directLabel: "Our picks" },
+  { key: "spy",       label: "The market (SPY)",    colorVar: "--s2", directLabel: "Market" },
+  { key: "eqweight",  label: "All six metals",      colorVar: "--s3" },
+  { key: "random",    label: "Random guessing",     colorVar: "--s4" },
 ];
 
 /* Per-quarter rank information coefficient (Spearman). */

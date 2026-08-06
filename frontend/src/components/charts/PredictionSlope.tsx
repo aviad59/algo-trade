@@ -9,10 +9,9 @@ function fmtDate(iso: string): string {
 
 /** Optional %-return baselines, drawn on the same left axis as the pick's move. */
 const BASELINES: { key: keyof QuarterReport["baselines"]; label: string; color: string; dash: boolean }[] = [
-  { key: "spy", label: "SPY", color: "--s2", dash: false },
-  { key: "eqweight", label: "Equal-weight", color: "--s3", dash: false },
-  { key: "random", label: "Random (median)", color: "--s4", dash: false },
-  { key: "hindsight", label: "Hindsight-best", color: "--s5", dash: true },
+  { key: "spy", label: "The market", color: "--s2", dash: false },
+  { key: "eqweight", label: "All six metals", color: "--s3", dash: false },
+  { key: "random", label: "Random guess", color: "--s4", dash: false },
 ];
 
 /**
@@ -119,7 +118,7 @@ export function PredictionSlope({ report }: { report: QuarterReport }) {
       <div className="slope-toggles">
         <button className={`slope-toggle ${predOn ? "active" : ""}`} onClick={() => toggle("prediction")} aria-pressed={predOn}>
           <span className="st-sw" style={{ background: cPred, borderStyle: "dashed" }} />
-          Our prediction <span className="mono">{signed(z, 2)}σ</span>
+          How confident we were <span className="mono">{signed(z, 2)}</span>
         </button>
         {BASELINES.map((b) => {
           const active = on.has(b.key);
@@ -135,7 +134,7 @@ export function PredictionSlope({ report }: { report: QuarterReport }) {
 
       <div className="legend" style={{ justifyContent: "space-between" }}>
         <span className="li">
-          <span className="swatch" style={{ background: cReal }} /> {report.pick.etf} actual move
+          <span className="swatch" style={{ background: cReal }} /> {report.pick.etf} — what it really did
           <strong className={realized >= 0 ? "pos" : "neg"} style={{ marginLeft: 4 }}>{pct(realized)}</strong>
         </span>
         {agree != null && predOn && (
