@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react";
-import { AccessKeyModal } from "../components/AccessKeyModal";
+import { DigestDemo } from "../components/DigestDemo";
 import { FilingDrawer } from "../components/FilingDrawer";
-import { ThinkingBar } from "../components/ThinkingBar";
-import { AiMark, Kpi, PerspectivePill, StatusBadge } from "../components/ui";
-import { digestFiling } from "../data/api";
-import { FILINGS, META } from "../data/fixtures";
+import { Kpi, PerspectivePill, StatusBadge } from "../components/ui";
+import { DATA_STATUS, FILINGS, META } from "../data/fixtures";
 import type { Filing } from "../data/types";
 
 const FORMS = ["10-K", "10-Q", "8-K", "20-F", "40-F", "6-K"];
@@ -27,15 +25,6 @@ export function Filings() {
   const [status, setStatus] = useState("");
   const [selected, setSelected] = useState<Filing | null>(null);
 
-  // live one-filing digest (reviewer demo)
-  const [dTicker, setDTicker] = useState("");
-  const [dForm, setDForm] = useState("8-K");
-  const [dBefore, setDBefore] = useState("");
-  const [dKey, setDKey] = useState(() => (typeof localStorage !== "undefined" ? localStorage.getItem("fs_api_key") ?? "" : ""));
-  const [dBusy, setDBusy] = useState(false);
-  const [dMsg, setDMsg] = useState<{ kind: "info" | "ok" | "warn" | "err"; text: string } | null>(null);
-  const [keyModal, setKeyModal] = useState(false);
-
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return FILINGS.filter(
@@ -57,105 +46,28 @@ export function Filings() {
   const avgConf = withConf ? confVals.reduce((a, b) => a + b, 0) / withConf : null;
   const shownNote = `in ${FILINGS.length.toLocaleString()} shown`;
 
-  /** Step 1: validate what we can locally, then always confirm the key. */
-  function requestDigest() {
-    if (!dTicker.trim()) { setDMsg({ kind: "err", text: "Enter a company symbol first — try FCX." }); return; }
-    setDMsg(null);
-    setKeyModal(true);
-  }
-
-  /** Step 2: key confirmed in the modal — actually spend the model. */
-  async function digest(apiKey: string) {
-    const t = dTicker.trim().toUpperCase();
-    setKeyModal(false);
-    setDKey(apiKey);
-    try { localStorage.setItem("fs_api_key", apiKey); } catch { /* ignore */ }
-    setDBusy(true);
-    setDMsg(null);
-    try {
-      const res = await digestFiling({ ticker: t, form: dForm, before: dBefore, apiKey });
-      if (res.status === "extracted" || res.status === "cached") {
-        setSelected(res.filing);
-        const n = res.filing.effects.length;
-        setDMsg({ kind: "ok", text: `${res.status === "cached" ? "Already read this one" : "Done"} — ${res.filing.ticker} ${res.filing.form} (${res.filing.filingDate}), ${n} clue${n === 1 ? "" : "s"} found. Opened below.` });
-      } else if (res.status === "filtered") {
-        setDMsg({ kind: "warn", text: `Skipped before the AI ran, so nothing was spent: ${res.reason}` });
-      } else if (res.status === "not_found") {
-        setDMsg({ kind: "warn", text: res.reason });
-      } else {
-        setDMsg({ kind: "err", text: res.reason || "unknown error" });
-      }
-    } catch (e) {
-      const m = e instanceof Error ? e.message : String(e);
-      setDMsg({ kind: "err", text: /401|invalid|key/i.test(m) ? "Invalid or missing access key." : m });
-    } finally {
-      setDBusy(false);
-    }
-  }
-
   return (
     <div className="page">
-      <div className="page-head">
-        <div className="eyebrow">Step 1 &amp; 2 — the reading</div>
+      <div className="page-head rise">
+        <div className="eyebrow">The evidence</div>
         <h1>Every report we've read</h1>
         <p className="page-desc">Click any row to see what our AI found inside.</p>
       </div>
 
-      <div className="grid g4">
-        <Kpi label="Reports read" value={<span className="mono">{META.filings.toLocaleString()}</span>} note={`${companies} companies · ${materials} metals`} />
-        <Kpi label="Clues found" value={<span className="mono">{totalEffects.toLocaleString()}</span>} note={shownNote} />
-        <Kpi label="Companies" value={<span className="mono">{companies}</span>} note="miners and buyers" />
-        <Kpi label="Avg confidence" value={<span className="mono">{avgConf === null ? "—" : avgConf.toFixed(2)}</span>} note="how sure our AI was" />
-      </div>
-
-      <div className="card section-gap" style={{ borderLeft: "3px solid var(--accent)" }}>
-        <p className="card-title"><AiMark size={13} /> Try it yourself — watch our AI read a filing</p>
-        <p className="card-sub">We fetch it from the SEC and read it live.</p>
-
-        <div className="digest-form">
-          <div className="df-field">
-            <label className="f-label" htmlFor="d-ticker">1 · Company</label>
-            <input id="d-ticker" type="text" placeholder="FCX" value={dTicker} onChange={(e) => setDTicker(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !dBusy) requestDigest(); }} />
-            <span className="df-hint">Try FCX, TECK or ETN</span>
-          </div>
-          <div className="df-field">
-            <label className="f-label" htmlFor="d-form">2 · Report type</label>
-            <select id="d-form" value={dForm} onChange={(e) => setDForm(e.target.value)}>
-              {FORMS.map((f) => <option key={f} value={f}>{f} — {FORM_NAMES[f]}</option>)}
-            </select>
-            <span className="df-hint">8-K is the quickest</span>
-          </div>
-          <div className="df-field">
-            <label className="f-label" htmlFor="d-before">3 · Filed before <span className="df-opt">optional</span></label>
-            <input id="d-before" type="date" value={dBefore} onChange={(e) => setDBefore(e.target.value)} />
-            <span className="df-hint">Empty = most recent</span>
-          </div>
-          <div className="df-field df-go">
-            <button className="btn primary" onClick={requestDigest} disabled={dBusy}>
-              {dBusy ? "Reading…" : "Read this filing"}
-            </button>
-            <span className="df-hint">Needs an access key</span>
-          </div>
+      {FILINGS.length > 0 && (
+        <div className="grid g4 rise d1">
+          <Kpi label="Reports read" value={<span className="mono">{META.filings.toLocaleString()}</span>} note={`${companies} companies · ${materials} metals`} />
+          <Kpi label="Clues found" value={<span className="mono">{totalEffects.toLocaleString()}</span>} note={shownNote} />
+          <Kpi label="Companies" value={<span className="mono">{companies}</span>} note="miners and buyers" />
+          <Kpi label="Avg confidence" value={<span className="mono">{avgConf === null ? "—" : avgConf.toFixed(2)}</span>} note="how sure our AI was" />
         </div>
+      )}
 
-        {dBusy && <ThinkingBar ticker={dTicker.trim().toUpperCase()} form={dForm} />}
-
-        {!dBusy && dMsg && (
-          <p className="footnote" style={{ marginTop: 14, color: dMsg.kind === "err" ? "var(--bad-text)" : dMsg.kind === "ok" ? "var(--good-text)" : dMsg.kind === "warn" ? "var(--warn)" : "var(--ink-2)" }}>
-            {dMsg.text}
-          </p>
-        )}
+      <div className="section-gap rise d2">
+        <DigestDemo />
       </div>
 
-      <AccessKeyModal
-        open={keyModal}
-        initialKey={dKey}
-        request={{ ticker: dTicker.trim().toUpperCase(), form: dForm }}
-        onCancel={() => setKeyModal(false)}
-        onConfirm={digest}
-      />
-
-      <div className="card section-gap">
+      <div className="card section-gap rise d3">
         <p className="card-title">All reports</p>
         <p className="card-sub">Search or filter below.</p>
         <div className="filter-row">
@@ -195,7 +107,15 @@ export function Filings() {
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={9} className="empty-row">No filings match these filters.</td></tr>
+                <tr>
+                  <td colSpan={9} className="empty-row">
+                    {FILINGS.length === 0
+                      ? DATA_STATUS === "offline"
+                        ? "No filings loaded — the backend isn't running. Start it and reload to browse what the AI has read."
+                        : "No filings in the library yet — nothing has been read so far."
+                      : "No filings match these filters. Clear a filter to see more."}
+                  </td>
+                </tr>
               ) : (
                 rows.map((f) => (
                   <tr
@@ -205,9 +125,9 @@ export function Filings() {
                   >
                     <td><span className="tk">{f.ticker}</span></td>
                     <td>{f.company}</td>
-                    <td className="mono" style={{ fontSize: 12 }}>{f.form}</td>
-                    <td className="mono" style={{ fontSize: 12, color: "var(--ink-2)" }}>{f.filingDate}</td>
-                    <td style={{ fontSize: 12.5, color: "var(--ink-2)" }}>{f.materials.join(", ")}</td>
+                    <td className="mono" style={{ fontSize: 14.5 }}>{f.form}</td>
+                    <td className="mono" style={{ fontSize: 14.5, color: "var(--ink-2)" }}>{f.filingDate}</td>
+                    <td style={{ fontSize: 15, color: "var(--ink-2)" }}>{f.materials.join(", ")}</td>
                     <td><PerspectivePill perspective={f.perspective} /></td>
                     <td><StatusBadge status={f.status} /></td>
                     <td className="num">{f.confidence === null ? "—" : f.confidence.toFixed(2)}</td>

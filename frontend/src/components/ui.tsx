@@ -25,16 +25,6 @@ export function AiTag({ children = "AI" }: { children?: ReactNode }) {
   );
 }
 
-/* ---- Live badge: pulsing dot for data that is still moving ---- */
-export function LiveBadge({ label = "Live" }: { label?: string }) {
-  return (
-    <span className="live-badge">
-      <span className="live-dot" aria-hidden="true" />
-      {label}
-    </span>
-  );
-}
-
 /* ---- KPI tile ---- */
 export function Kpi({ label, value, unit, note, noteUp }: {
   label: string; value: ReactNode; unit?: string; note?: ReactNode; noteUp?: boolean;

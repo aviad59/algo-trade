@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { PredictionSlope } from "../components/charts/PredictionSlope";
+import { CompareBars } from "../components/charts/CompareBars";
+import { EquityCurve } from "../components/charts/EquityCurve";
 import { AiMark } from "../components/ui";
-import { QUARTER_REPORTS } from "../data/fixtures";
+import { METRICS, QUARTER_REPORTS } from "../data/fixtures";
 import type { EvidenceItem, QuarterReport } from "../data/types";
 import { pct, signed } from "../lib/format";
 
@@ -21,7 +22,7 @@ function madeMoney(r: QuarterReport): boolean {
   return r.pick.return >= 0;
 }
 
-/* -------- ① quarter picker strip --------
+/* -------- quarter picker strip --------
    Two independent facts per quarter, never conflated:
      dot colour = did the pick make money
      ring       = did it beat owning all six metals
@@ -73,7 +74,9 @@ function PredVsActual({ report }: { report: QuarterReport }) {
     <div className="split" style={{ gridTemplateColumns: "1fr 1fr", gap: 14 }}>
       <div className="card">
         <p className="card-title">What we predicted</p>
-        <p className="card-sub">Ranked on {fmtDate(report.decisionDate)}, before the quarter began.</p>
+        <p className="card-sub">
+          Our ranking on {fmtDate(report.decisionDate)}, before the quarter started.
+        </p>
         <div className="table-wrap">
           <table>
             <thead>
@@ -109,7 +112,9 @@ function PredVsActual({ report }: { report: QuarterReport }) {
 
       <div className="card">
         <p className="card-title">What actually happened</p>
-        <p className="card-sub">Best to worst, {fmtDate(report.windowStart)} – {fmtDate(report.windowEnd)}.</p>
+        <p className="card-sub">
+          Real price moves, {fmtDate(report.windowStart)} – {fmtDate(report.windowEnd)}, best to worst.
+        </p>
         <div className="table-wrap">
           <table>
             <thead>
@@ -132,7 +137,7 @@ function PredVsActual({ report }: { report: QuarterReport }) {
           </table>
         </div>
         <p className="footnote" style={{ marginTop: 10 }}>
-          Our pick finished <strong style={{ color: "var(--ink)" }}>#{report.pick.actualRank ?? "—"} of {n}</strong>
+          Our pick finished <strong style={{ color: "var(--ink)" }}>#{report.pick.actualRank ?? "—"} of {n}</strong>.
         </p>
       </div>
     </div>
@@ -154,8 +159,8 @@ function Evidence({ items, material }: { items: EvidenceItem[]; material: string
               <span className="tk">{e.ticker}</span>
               <span className="chip">{e.form}</span>
               <span className={`ev-tag ${tag}`}>{e.direction === "increase" ? "▲" : "▼"} {e.magnitude}</span>
-              <span className={`pill ${e.perspective === "producer" ? "persp-p" : "persp-c"}`}>{e.perspective}</span>
-              <span className="ev-weight mono">weight {signed(e.weight, 2)}</span>
+              <span className={`pill ${e.perspective === "producer" ? "persp-p" : "persp-c"}`}>{e.perspective === "producer" ? "miner" : "buyer"}</span>
+              <span className="ev-weight mono">pull on the score {signed(e.weight, 2)}</span>
               <span className="ev-date mono">{fmtDate(e.filingDate)}</span>
             </div>
             <div className="ev-quote">{e.quote}<span className="src">{e.company}</span></div>
@@ -166,6 +171,67 @@ function Evidence({ items, material }: { items: EvidenceItem[]; material: string
   );
 }
 
+/** Plain-English gloss for each overall metric, keyed by the API's label. */
+const METRIC_GLOSS: Record<string, string> = {
+  "CAGR": "average yearly growth of the $100",
+  "Sharpe": "return earned per unit of risk taken",
+  "Max drawdown": "worst fall from a high point along the way",
+  "Hit rate": "how often the pick beat owning all six",
+  "Mean rank-IC": "how well predicted order matched reality (1 = perfect, 0 = guessing)",
+  "Regret vs best": "yearly gap to a picker with perfect foresight",
+};
+
+/* -------- the whole run, collapsed at the bottom -------- */
+function WholeRun({ quarters }: { quarters: number }) {
+  return (
+    <details className="card disclose section-gap">
+      <summary>
+        <span>
+          <span className="disclose-title">The whole run — every quarter added up</span>
+          <span className="disclose-sub">
+            $100 into every pick{quarters ? `, across ${quarters} finished quarters` : ""}, against the market — plus the honest fine print
+          </span>
+        </span>
+        <span className="disclose-chev" aria-hidden="true" />
+      </summary>
+      <div className="disclose-body">
+        <EquityCurve />
+        <p className="footnote" style={{ marginTop: 12 }}>
+          Real dividend-adjusted prices, trading costs included. Every pick used only filings public
+          before its quarter began.
+        </p>
+
+        {METRICS.length > 0 && (
+          <div className="metric-row section-gap">
+            {METRICS.map((m) => (
+              <div className="metric" key={m.label}>
+                <div className="metric-label">{m.label}</div>
+                <div className={`metric-value mono${m.bad ? " bad" : ""}`}>{m.value}</div>
+                {METRIC_GLOSS[m.label] && <div className="metric-gloss">{METRIC_GLOSS[m.label]}</div>}
+                {m.note && <div className="metric-note">{m.note}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <hr className="rule" />
+        <p className="card-title">What these numbers don't prove</p>
+        <ul className="tight">
+          <li>
+            {quarters > 0
+              ? `Only ${quarters} finished quarters — enough to be promising, not enough to be proof.`
+              : "Few finished quarters so far — enough to be promising, not enough to be proof."}
+            {" "}The permutation p-value above says how easily luck alone could match this.
+          </li>
+          <li>Filings are public the moment they land and markets price them within minutes — this hunts the slow drift afterwards, which is a genuinely hard bet.</li>
+          <li>Reports from non-US miners yield fewer usable clues, so the evidence leans on US companies.</li>
+          <li>The strategy has never been tested through a broad mining downturn.</li>
+        </ul>
+      </div>
+    </details>
+  );
+}
+
 export function Backtest() {
   const reports = QUARTER_REPORTS;
   const [active, setActive] = useState(Math.max(0, reports.length - 1));
@@ -173,34 +239,45 @@ export function Backtest() {
   if (!reports.length) {
     return (
       <div className="page">
-        <div className="page-head">
-          <div className="eyebrow">Step 5 — the scorecard</div>
+        <div className="page-head rise">
+          <div className="eyebrow">The scorecard</div>
           <h1>Did the picks actually work?</h1>
         </div>
-        <div className="card"><p className="empty-row">No finished quarters to score yet.</p></div>
+        <div className="card rise d1">
+          <p className="empty-note">
+            <strong>No finished quarters loaded.</strong>
+            The backend isn't running, or the backtest hasn't been computed yet — nothing is shown
+            rather than something made up. Start the backend and reload.
+          </p>
+        </div>
       </div>
     );
   }
 
-  const r = reports[active];
+  const r = reports[Math.min(active, reports.length - 1)];
   const win = isWin(r);
   const n = r.actual.filter((a) => a.rank != null).length;
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div className="eyebrow">Step 5 — the scorecard</div>
+      <div className="page-head rise">
+        <div className="eyebrow">The scorecard</div>
         <h1>Did the picks actually work?</h1>
-        <p className="page-desc">What we predicted at the time, and what the price actually did.</p>
+        <p className="page-desc">
+          For each past quarter: what we predicted at the time, what the price actually did,
+          and how that compares with just buying the market.
+        </p>
       </div>
 
       {/* ① pick a quarter */}
-      <p className="pick-hint">Choose a quarter</p>
-      <QuarterPicker reports={reports} active={active} onPick={setActive} />
+      <div className="rise d1">
+        <p className="pick-hint">Choose a quarter</p>
+        <QuarterPicker reports={reports} active={active} onPick={setActive} />
+      </div>
 
-      {/* the call */}
-      <div className="card call-hero section-gap" style={{ borderLeft: `3px solid var(${win ? "--good" : "--bad"})` }}>
-        <div className="split" style={{ gridTemplateColumns: "1.5fr 1fr", gap: 26 }}>
+      {/* ② the call, and the one comparison that matters */}
+      <div className="card call-hero section-gap rise d2" style={{ borderLeft: `3px solid var(${win ? "--good" : "--bad"})` }}>
+        <div className="split" style={{ gridTemplateColumns: "1.2fr 1fr", gap: 26 }}>
           <div>
             <div className="kpi-label" style={{ marginBottom: 8 }}>
               {r.quarter} · {fmtDate(r.windowStart)} – {fmtDate(r.windowEnd)}
@@ -208,67 +285,64 @@ export function Backtest() {
             <div className="verdict-line">
               We picked <strong style={{ color: "var(--ink)" }}>{r.pick.material}</strong>{" "}
               <span className="tk">{r.pick.etf}</span>. It returned{" "}
-              <span className={r.pick.realized != null && r.pick.realized >= 0 ? "pos" : "neg"}>
-                {r.pick.realized == null ? "—" : pct(r.pick.realized)}
-              </span> and finished <strong style={{ color: "var(--ink)" }}>#{r.pick.actualRank ?? "—"} of {n}</strong>{" "}
-              — <span className={win ? "pos" : "neg"}>{win ? "better" : "worse"}</span> than owning all six.
+              <span className={r.pick.return >= 0 ? "pos" : "neg"}>{pct(r.pick.return)}</span>{" "}
+              and finished <strong style={{ color: "var(--ink)" }}>#{r.pick.actualRank ?? "—"} of {n}</strong>.
             </div>
             {r.rating?.prose && (
               <div className="ev-quote" style={{ marginTop: 12 }}>
                 {r.rating.prose}
                 <span className="src">
-                  <AiMark size={11} /> What our AI wrote at the time, {fmtDate(r.decisionDate)} — before any of this had happened
+                  <AiMark size={13} /> What our AI wrote on {fmtDate(r.decisionDate)} — before any of this had happened
                 </span>
               </div>
             )}
             <p className="footnote" style={{ marginTop: 10 }}>
-              Yahoo Finance prices, trading costs included. Nothing filed after {fmtDate(r.decisionDate)} informed the pick.
+              Real prices from Yahoo Finance, trading costs included. Nothing filed after {fmtDate(r.decisionDate)} was
+              used to make the pick.
             </p>
           </div>
-          <div className="call-hero-num">
-            <div className="kpi-label">Pick return</div>
-            <div className="hero-num" style={{ color: `var(${r.pick.return >= 0 ? "--good-text" : "--bad-text"})`, fontSize: 40 }}>
-              {pct(r.pick.return)}
-            </div>
-            <div className="kpi-note">
-              market {pct(r.baselines.spy)} · all six metals {pct(r.baselines.eqweight)}
-            </div>
+          <div>
+            <div className="kpi-label" style={{ marginBottom: 10 }}>Against what else you could have done</div>
+            <CompareBars
+              rows={[
+                { label: `${r.pick.material} — our pick`, value: r.pick.return, colorVar: "--c-strategy", emphasis: true },
+                { label: "The market (SPY)", value: r.baselines.spy, colorVar: "--c-market" },
+                { label: "All six metals", value: r.baselines.eqweight, colorVar: "--c-basket" },
+                { label: "Random guess (median)", value: r.baselines.random, colorVar: "--c-random" },
+              ]}
+              note="Same three months, same $ start. Our pick includes trading costs."
+            />
           </div>
         </div>
       </div>
 
-      {/* why the AI picked it — sits right under the headline number, collapsed */}
-      <details className="card section-gap disclose">
+      {/* ③ why the AI picked it — collapsed */}
+      <details className="card section-gap disclose rise d3">
         <summary>
           <span>
             <span className="disclose-title">
-              <AiMark size={13} /> Find out why our AI picked {r.pick.material}
+              <AiMark size={15} /> The filings behind the {r.pick.material.toLowerCase()} call
             </span>
             <span className="disclose-sub">
-              {r.evidence.length} filing{r.evidence.length === 1 ? "" : "s"} drove this call
+              {r.evidence.length} filing{r.evidence.length === 1 ? "" : "s"} pushed the score, quotes included
             </span>
           </span>
-          <span className="disclose-chev" aria-hidden="true">▾</span>
+          <span className="disclose-chev" aria-hidden="true" />
         </summary>
         <div className="disclose-body">
           <Evidence items={r.evidence} material={r.pick.material} />
         </div>
       </details>
 
-      {/* the first graph: what we predicted vs how the ETF actually moved */}
-      <div className="card section-gap">
-        <p className="card-title">Our call vs what the price did</p>
-        <p className="card-sub">
-          Solid = how {r.pick.etf} moved. Dashed = how confident we were. Same direction = right call.
-        </p>
-        <PredictionSlope report={r} />
-      </div>
-
-      {/* prediction vs reality */}
-      <div className="section-gap">
+      {/* ④ prediction vs reality */}
+      <div className="section-gap rise d3">
         <PredVsActual report={r} />
       </div>
 
+      {/* ⑤ the whole run + honest fine print, collapsed */}
+      <div className="rise d3">
+        <WholeRun quarters={reports.length} />
+      </div>
     </div>
   );
 }

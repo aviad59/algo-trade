@@ -9,10 +9,9 @@ import { Backtest } from "./pages/Backtest";
 import { Filings } from "./pages/Filings";
 import { Forecast } from "./pages/Forecast";
 import { Home } from "./pages/Home";
-import { Statistics } from "./pages/Statistics";
 
 const KEY_TO_PAGE: Record<string, Page> = {
-  "1": "home", "2": "forecast", "3": "filings", "4": "backtest", "5": "statistics",
+  "1": "home", "2": "forecast", "3": "filings", "4": "backtest",
 };
 
 export default function App() {
@@ -20,11 +19,10 @@ export default function App() {
 
   // computed at render (after hydration) so the forecast quarter rolls with the data
   const TITLES: Record<Page, string> = {
-    home: "Home",
-    forecast: `Forecast · ${FORECAST_QUARTER}`,
+    home: "How it works",
+    forecast: FORECAST_QUARTER ? `Forecast · ${FORECAST_QUARTER}` : "Forecast",
     filings: "Filings",
     backtest: "Backtest",
-    statistics: "Statistics",
   };
 
   useEffect(() => {
@@ -44,11 +42,10 @@ export default function App() {
         <Rail page={page} navigate={navigate} />
         <div className="main">
           <TopBar title={TITLES[page]} />
-          {page === "home" && <Home />}
+          {page === "home" && <Home navigate={navigate} />}
           {page === "forecast" && <Forecast />}
           {page === "filings" && <Filings />}
           {page === "backtest" && <Backtest />}
-          {page === "statistics" && <Statistics />}
           <Footer />
         </div>
       </div>

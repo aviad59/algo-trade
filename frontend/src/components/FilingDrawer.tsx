@@ -24,20 +24,20 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
         <h3>{filing.company} <span className="tk" style={{ color: "var(--accent-ink)" }}>{filing.ticker}</span></h3>
 
         <div className="kv">
-          <span className="k">Form</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.form}</span>
-          <span className="k">Filed</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.filingDate}</span>
+          <span className="k">Form</span><span className="mono" style={{ fontSize: 15 }}>{filing.form}</span>
+          <span className="k">Filed</span><span className="mono" style={{ fontSize: 15 }}>{filing.filingDate}</span>
           <span className="k">Materials</span><span>{filing.materials.join(", ")}</span>
           <span className="k">Perspective</span><span style={{ textTransform: "capitalize" }}>{filing.perspective}</span>
           <span className="k">Status</span><span><StatusBadge status={filing.status} /></span>
-          <span className="k">Confidence</span><span className="mono" style={{ fontSize: 12.5 }}>{filing.confidence === null ? "—" : filing.confidence.toFixed(2)}</span>
+          <span className="k">Confidence</span><span className="mono" style={{ fontSize: 15 }}>{filing.confidence === null ? "—" : filing.confidence.toFixed(2)}</span>
         </div>
 
         <hr className="rule" />
-        <p className="card-title"><AiMark size={13} /> What our AI made of it</p>
-        <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 4 }}>{filing.summary}</p>
+        <p className="card-title"><AiMark size={15} /> What our AI made of it</p>
+        <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 4 }}>{filing.summary}</p>
 
         <hr className="rule" />
-        <p className="card-title"><AiMark size={13} /> The clues it found</p>
+        <p className="card-title"><AiMark size={15} /> The clues it found</p>
         {filing.effects.length === 0 ? (
           <p className="footnote" style={{ marginTop: 8 }}>Nothing here was specific enough about dates to count as a clue.</p>
         ) : (

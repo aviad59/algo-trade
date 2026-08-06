@@ -207,7 +207,7 @@ export function PipelineExplorer() {
   return (
     <div>
       <div className="pipex-head">
-        <p className="card-title">The five steps</p>
+        <p className="card-title">The pipeline</p>
         <p className="card-sub" style={{ marginBottom: 0 }}>
           Click any step to see what it does.
         </p>
@@ -250,7 +250,7 @@ export function PipelineExplorer() {
             <span className="ps-top">
               <span className={`ps-icon${s.ai ? " ai" : ""}`}>{s.icon}</span>
               <span className="ps-title">{s.title}</span>
-              {s.ai && <span className="ps-ai" title="This step is done by an AI"><AiMark size={12} /></span>}
+              {s.ai && <span className="ps-ai" title="This step is done by an AI"><AiMark size={14} /></span>}
             </span>
           </button>
         ))}
@@ -262,7 +262,7 @@ export function PipelineExplorer() {
             <div className="pd-block">
               <div className="pd-label">
                 Step {stage.num} · {stage.title}
-                {stage.ai && <span className="pd-ai-tag"><AiMark size={10} /> done by AI</span>}
+                {stage.ai && <span className="pd-ai-tag"><AiMark size={12} /> done by AI</span>}
               </div>
               <p className="pd-summary">{stage.summary}</p>
               <div className="mini-flow">

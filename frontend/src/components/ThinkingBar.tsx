@@ -28,7 +28,7 @@ export function ThinkingBar({ ticker, form }: { ticker: string; form: string }) 
   return (
     <div className="thinking" role="status" aria-live="polite">
       <div className="thinking-head">
-        <AiMark size={14} className="spin-soft" />
+        <AiMark size={16} className="spin-soft" />
         <span className="thinking-label">{STAGES[step].label}</span>
         <span className="thinking-dots" aria-hidden="true"><i /><i /><i /></span>
       </div>

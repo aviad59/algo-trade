@@ -13,42 +13,90 @@ const ETF_NAMES: Record<string, string> = {
   REMX: "VanEck Rare Earth & Strategic Metals ETF",
 };
 
+/** Inline score bar: shared scale across the six rows, zero in the middle. */
+function ScoreBar({ z, max }: { z: number; max: number }) {
+  const half = 50; // % of track on each side of zero
+  const w = Math.min(Math.abs(z) / max, 1) * half;
+  return (
+    <span className="score-track" aria-hidden="true">
+      <span className="score-zero" />
+      <span
+        className="score-fill"
+        style={{
+          left: z >= 0 ? "50%" : `${50 - w}%`,
+          width: `${w}%`,
+          background: z >= 0 ? "var(--c-strategy)" : "var(--axis)",
+        }}
+      />
+    </span>
+  );
+}
+
 export function Forecast() {
+  if (!MATERIALS.length) {
+    return (
+      <div className="page">
+        <div className="page-head rise">
+          <div className="eyebrow">The pick</div>
+          <h1>This quarter's pick</h1>
+        </div>
+        <div className="card rise d1">
+          <p className="empty-note">
+            <strong>No forecast loaded.</strong>
+            The backend isn't running, or no quarter has been scored yet — so there is nothing to show,
+            and nothing here is made up. Start the backend and reload to see the current ranking.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const pick = MATERIALS[0];
   const margin = MATERIALS.length > 1 ? pick.z - MATERIALS[1].z : 0;
   const confidence = margin >= 0.5 ? "High" : margin >= 0.25 ? "Moderate" : "Low";
+  const zmax = Math.max(...MATERIALS.map((m) => Math.abs(m.z)), 0.01);
   // Agent #2's stored recommendation — only shown if it's actually about this pick
   const rating = PICK_RATING && PICK_RATING.material === pick.material ? PICK_RATING : null;
+  const quote = rating?.supporting?.[0] ?? null;
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div className="eyebrow">Steps 3 &amp; 4 — the pick</div>
-        <h1>This quarter's pick — {FORECAST_QUARTER}</h1>
-        <p className="page-desc">
-          Decided on {PUBLISHED_DATE} from {FILINGS_DIGESTED} reports filed up to the end of {PRIOR_QUARTER}.
-        </p>
+      <div className="page-head rise">
+        <div className="eyebrow">The pick</div>
+        <h1>This quarter's pick{FORECAST_QUARTER ? ` — ${FORECAST_QUARTER}` : ""}</h1>
+        {PUBLISHED_DATE && (
+          <p className="page-desc">
+            Decided on {PUBLISHED_DATE} from {FILINGS_DIGESTED.toLocaleString()} reports filed up to the end of {PRIOR_QUARTER}.
+            Nothing filed later was used.
+          </p>
+        )}
       </div>
 
-      <div className="card hero-card">
+      <div className="card hero-card rise d1">
         <div className="hero-grid">
           <div>
-            <div className="kpi-label">Top pick · {FORECAST_QUARTER}</div>
+            <div className="kpi-label">Buy one metal's miner fund — this one</div>
             <div className="hero-num" style={{ marginTop: 8 }}>{pick.material}</div>
             <div className="hero-etf">
-              <span className="tk" style={{ fontSize: 15, color: "var(--accent-ink)" }}>{pick.etf}</span>
-              <span style={{ color: "var(--ink-3)", fontSize: 12.5 }}>{ETF_NAMES[pick.etf] ?? ""}</span>
+              <span className="tk" style={{ fontSize: 18, color: "var(--accent-ink)" }}>{pick.etf}</span>
+              <span style={{ color: "var(--ink-3)", fontSize: 15 }}>{ETF_NAMES[pick.etf] ?? ""}</span>
             </div>
             <div className="hero-stats">
-              <div><div className="kpi-label">Score</div><div className="kpi-value mono" style={{ fontSize: 22 }}>{signed(pick.z)}</div></div>
-              <div><div className="kpi-label">Confidence</div><div className="kpi-value" style={{ fontSize: 22 }}>{confidence}</div></div>
-              <div><div className="kpi-label">Lead over #2</div><div className="kpi-value mono" style={{ fontSize: 22 }}>{signed(margin)}</div></div>
+              <div><div className="kpi-label">Score</div><div className="kpi-value mono" style={{ fontSize: 27 }}>{signed(pick.z)}</div></div>
+              <div><div className="kpi-label">Confidence</div><div className="kpi-value" style={{ fontSize: 27 }}>{confidence}</div></div>
+              <div><div className="kpi-label">Lead over #2</div><div className="kpi-value mono" style={{ fontSize: 27 }}>{signed(margin)}</div></div>
             </div>
+            {quote && (
+              <div className="ev-quote" style={{ marginTop: 18 }}>
+                “{quote.quote.replace(/^[“"]|[”"]$/g, "")}”
+                <span className="src">{quote.ticker} — one of the filings behind this score</span>
+              </div>
+            )}
           </div>
 
-          {/* who it beat — the compact standings, right in the pick card */}
+          {/* the full standings, right in the pick card */}
           <div className="mini-rank">
-            <div className="kpi-label" style={{ marginBottom: 8 }}>What it beat</div>
+            <div className="kpi-label" style={{ marginBottom: 8 }}>All six, ranked</div>
             <table className="mini-rank-table">
               <tbody>
                 {MATERIALS.map((m) => (
@@ -56,11 +104,16 @@ export function Forecast() {
                     <td><span className={`rank-chip${m.rank === 1 ? " top" : ""}`}>{m.rank}</span></td>
                     <td style={{ fontWeight: m.rank === 1 ? 650 : 500 }}>{m.material}</td>
                     <td><span className="tk">{m.etf}</span></td>
+                    <td className="score-cell"><ScoreBar z={m.z} max={zmax} /></td>
                     <td className={`num ${m.z >= 0 ? "pos" : "neg"}`}>{signed(m.z)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <p className="footnote" style={{ marginTop: 10 }}>
+              Score = how far each metal's filing evidence sits above or below the average of the six.
+              Positive means stronger than the pack.
+            </p>
           </div>
         </div>
 
@@ -70,37 +123,51 @@ export function Forecast() {
             <summary>
               <span>
                 <span className="disclose-title">
-                  <AiMark size={13} /> See why our AI picked {pick.material.toLowerCase()}
+                  <AiMark size={15} /> Why {pick.material.toLowerCase()}? Read the write-up
                 </span>
-                <span className="disclose-sub">Its write-up for {FORECAST_QUARTER}</span>
+                <span className="disclose-sub">What our AI wrote about this ranking</span>
               </span>
-              <span className="disclose-chev" aria-hidden="true">▾</span>
+              <span className="disclose-chev" aria-hidden="true" />
             </summary>
             <div className="disclose-body">
-              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.65, color: "var(--ink-2)" }}>{rating.prose}</p>
+              <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)" }}>{rating.prose}</p>
+              {rating.supporting.length > 1 && (
+                <div style={{ marginTop: 12 }}>
+                  {rating.supporting.slice(1).map((s, i) => (
+                    <div className="ev-quote" key={`${s.ticker}-${i}`}>
+                      “{s.quote.replace(/^[“"]|[”"]$/g, "")}”
+                      <span className="src">{s.ticker} · cited by our AI</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="footnote" style={{ marginTop: 10 }}>
-                Written by our AI{rating.model ? ` · ${rating.model}` : ""}. It explains the ranking, it can't change it.
+                Written by our AI{rating.model ? ` · ${rating.model}` : ""}. It explains the ranking — it can't change it.
               </p>
             </div>
           </details>
         ) : (
           <p className="footnote" style={{ marginTop: 18 }}>
-            No AI write-up yet. The ranking stands on its own.
+            No AI write-up stored for this quarter. The ranking stands on its own.
           </p>
         )}
       </div>
 
-      <ForecastTracker />
+      <div className="rise d2">
+        <ForecastTracker />
 
-      <div className="card section-gap">
-        <p className="card-title">Where each score came from</p>
-        <p className="card-sub">Split by who said it: miners, or the companies that buy from them.</p>
-        <div className="table-wrap">
+        <div className="card section-gap">
+          <p className="card-title">Where each score came from</p>
+          <p className="card-sub">
+            Two kinds of clues: from the companies that mine each metal, and from the ones that buy it.
+            “—” means no buyer-side reports mention that metal.
+          </p>
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Rank</th><th>Metal</th><th>Fund</th>
-                  <th className="num">Score</th><th className="num">Miners</th><th className="num">Buyers</th><th className="num">Reports</th>
+                  <th className="num">Score</th><th className="num">From miners</th><th className="num">From buyers</th><th className="num">Reports</th>
                 </tr>
               </thead>
               <tbody>
@@ -114,43 +181,10 @@ export function Forecast() {
                     <td className="num" style={{ color: m.consumerScore === null ? "var(--ink-3)" : undefined }}>{m.consumerScore === null ? "—" : m.consumerScore.toFixed(2)}</td>
                     <td className="num">{m.filings}</td>
                   </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="section-gap split">
-        <div className="card">
-          <p className="card-title"><AiMark size={13} /> The quotes our AI leaned on</p>
-          <p className="card-sub">Straight from the filings.</p>
-          {rating && rating.supporting.length > 0 ? (
-            <div>
-              {rating.supporting.map((s, i) => (
-                <div className="ev-quote" key={`${s.ticker}-${i}`}>
-                  “{s.quote.replace(/^[“"]|[”"]$/g, "")}”
-                  <span className="src">{s.ticker} · cited by our AI</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="footnote">No quotes stored yet.</p>
-          )}
-        </div>
-        <div className="card" style={{ borderLeft: "3px solid var(--bad)" }}>
-          <p className="card-title">What could go wrong</p>
-          <p className="card-sub">The evidence pointing the other way.</p>
-          <span className="ev-tag bear">▼ Negative · a miner</span>
-          <div className="ev-quote">
-            “We are experiencing softening demand in Chinese construction end-markets and expect volume headwinds to persist through fiscal 2026.”
-            <span className="src">SCCO · 10-Q · 2026-06-30</span>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <hr className="rule" />
-          <ul className="tight">
-            <li>Filings are public instantly and markets move fast — any edge is in the slow drift after.</li>
-            <li>The fund isn't the metal: ~28% of COPX sits in one company.</li>
-            <li>The demand signal rests on a handful of reports. One revision could shift it.</li>
-          </ul>
         </div>
       </div>
     </div>

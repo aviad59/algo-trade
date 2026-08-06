@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EQUITY_SERIES, QUARTERS, RETURNS } from "../../data/fixtures";
 import { cumulative, money } from "../../lib/format";
 import { useTooltip } from "../../lib/tooltip";
@@ -12,15 +12,52 @@ function prevShortQuarter(short: string): string {
   return `${String(yy).padStart(2, "0")}Q${q}`;
 }
 
-/** Growth of $100: strategy vs four baselines, with hover crosshair. */
+/** Nice y ticks for a dollar range. */
+function dollarTicks(ymin: number, ymax: number): number[] {
+  const span = ymax - ymin;
+  const step = span <= 120 ? 25 : span <= 260 ? 50 : span <= 520 ? 100 : 200;
+  const out: number[] = [];
+  for (let t = Math.ceil(ymin / step) * step; t <= ymax; t += step) out.push(t);
+  return out;
+}
+
+/**
+ * Growth of $100: our picks vs the market and the other baselines. The one
+ * chart the whole project builds to. Baseline lines draw first, then the
+ * strategy line separates from the bundle (once; final state under
+ * prefers-reduced-motion).
+ */
 export function EquityCurve() {
   const tip = useTooltip();
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [crossX, setCrossX] = useState<number | null>(null);
+  const [drawn, setDrawn] = useState(false);
+
+  const series = EQUITY_SERIES.filter((s) => Array.isArray(RETURNS[s.key]) && RETURNS[s.key].length > 0);
+
+  // draw-in when the chart first becomes visible (scroll or disclosure open)
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || drawn) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) setDrawn(true);
+    }, { threshold: 0.35 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [drawn]);
+
+  if (!QUARTERS.length || !series.length) {
+    return (
+      <p className="empty-note">
+        <strong>No finished quarters loaded.</strong>
+        The growth curve appears once the backend has backtest results to serve.
+      </p>
+    );
+  }
 
   const W = 980, H = 340, padL = 52, padR = 118, padT = 16, padB = 32;
   const curves: Record<string, number[]> = {};
-  for (const s of EQUITY_SERIES) curves[s.key] = cumulative(RETURNS[s.key]);
+  for (const s of series) curves[s.key] = cumulative(RETURNS[s.key]);
   const all = Object.values(curves).flat();
   const ymax = Math.max(...all) * 1.04;
   const ymin = Math.min(...all) * 0.92;
@@ -28,8 +65,8 @@ export function EquityCurve() {
   const x = (i: number) => padL + (i * (W - padL - padR)) / (N - 1);
   const y = (v: number) => padT + (1 - (v - ymin) / (ymax - ymin)) * (H - padT - padB);
 
-  const yTicks = [100, 150, 200, 250].filter((t) => t <= ymax);
-  const startShort = QUARTERS.length ? prevShortQuarter(QUARTERS[0]) : "start";
+  const yTicks = dollarTicks(ymin, ymax);
+  const startShort = prevShortQuarter(QUARTERS[0]);
 
   function onMove(e: React.MouseEvent) {
     const svg = svgRef.current;
@@ -42,7 +79,7 @@ export function EquityCurve() {
     tip.show(
       <>
         <div className="tt-title">{label}</div>
-        {EQUITY_SERIES.map((s) => (
+        {series.map((s) => (
           <div className="tt-row" key={s.key}>
             <span className="tt-sw" style={{ background: `var(${s.colorVar})` }} />
             {s.label}
@@ -61,7 +98,7 @@ export function EquityCurve() {
   return (
     <>
       <figure className="chart-box">
-        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Growth of one hundred dollars, strategy versus baselines">
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Growth of one hundred dollars: our picks versus the market and other baselines">
           {yTicks.map((t) => (
             <g key={t}>
               <line x1={padL} y1={y(t)} x2={W - padR} y2={y(t)} stroke="var(--grid)" strokeWidth={1} />
@@ -74,24 +111,26 @@ export function EquityCurve() {
             </text>
           ))}
           <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="var(--axis)" strokeWidth={1} />
-          {EQUITY_SERIES.map((s) => {
+          {series.map((s) => {
             const c = curves[s.key];
             const pts = c.map((v, i) => `${x(i)},${y(v)}`).join(" ");
             return (
               <g key={s.key}>
                 <polyline
+                  className={`curve-line${drawn ? " drawn" : ""}${s.emphasis ? " late" : ""}`}
+                  pathLength={1}
                   points={pts} fill="none" stroke={`var(${s.colorVar})`}
-                  strokeWidth={s.emphasis ? 2.6 : 1.8}
-                  strokeDasharray={s.dashed ? "5 4" : undefined}
+                  strokeWidth={s.emphasis ? 2.8 : 1.7}
+                  strokeOpacity={s.emphasis ? 1 : 0.8}
                   strokeLinejoin="round"
                 />
                 {s.directLabel && (
-                  <>
+                  <g className={`curve-end${drawn ? " drawn" : ""}`}>
                     <circle cx={x(N - 1)} cy={y(c[c.length - 1])} r={3.5} fill={`var(${s.colorVar})`} stroke="var(--chart-surface)" strokeWidth={2} />
                     <text className="dlabel" x={x(N - 1) + 9} y={y(c[c.length - 1]) + 4}>
                       {s.directLabel} {money(c[c.length - 1])}
                     </text>
-                  </>
+                  </g>
                 )}
               </g>
             );
@@ -106,7 +145,7 @@ export function EquityCurve() {
         </svg>
       </figure>
       <div className="legend">
-        {EQUITY_SERIES.map((s) => (
+        {series.map((s) => (
           <span className="li" key={s.key}>
             <span className="swatch" style={{ background: `var(${s.colorVar})` }} />{s.label}
           </span>
