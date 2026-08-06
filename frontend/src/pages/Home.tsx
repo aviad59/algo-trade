@@ -7,7 +7,7 @@ export function Home() {
         <div className="eyebrow">How it works</div>
         <h1>We read what mining companies tell the SEC — then guess which metal does best next.</h1>
         <p className="page-desc">
-          Every quarter we pick one metal out of six, then check whether we were right.
+          Every quarter we pick one metal out of six, then check if we were right.
         </p>
       </div>
 

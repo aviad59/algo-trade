@@ -13,14 +13,14 @@ export function Statistics() {
         <div className="eyebrow">Under the hood</div>
         <h1>The numbers behind the picks</h1>
         <p className="page-desc">
-          How our confidence in each metal moved, and what the picks were worth end to end.
+          How confidence moved, and what the picks were worth end to end.
         </p>
       </div>
 
       <div className="card">
         <p className="card-title">How the scores moved</p>
         <p className="card-sub">
-          Each metal, quarter by quarter. Above the line = we expected it to beat the others.
+          Above the line = we expected it to beat the others.
         </p>
         <TrendLines />
       </div>
@@ -28,13 +28,11 @@ export function Statistics() {
       <div className="card section-gap">
         <p className="card-title">All the quarters together</p>
         <p className="card-sub">
-          What $100 would have become, following every pick — against the market, all six metals, and
-          random guessing.
+          $100 following every pick, against the market, all six metals, and random guessing.
         </p>
         <EquityCurve />
         <p className="footnote" style={{ marginTop: 14 }}>
-          Real dividend-adjusted prices, trading costs included. Every pick used only filings public
-          before its quarter began.
+          Real dividend-adjusted prices, trading costs included. Every pick used only filings public before its quarter began.
         </p>
       </div>
     </div>

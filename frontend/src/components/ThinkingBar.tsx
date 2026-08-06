@@ -41,9 +41,7 @@ export function ThinkingBar({ ticker, form }: { ticker: string; form: string }) 
         ))}
       </div>
 
-      <p className="thinking-note">
-        Reading {ticker} {form} · usually 10–40 seconds. The result is saved either way.
-      </p>
+      <p className="thinking-note">Reading {ticker} {form} · usually 10–40 seconds.</p>
     </div>
   );
 }

@@ -46,7 +46,7 @@ export function AccessKeyModal({
         <h3 id="akm-title">Access key required</h3>
 
         <p className="modal-lede">
-          You're about to have our AI read{" "}
+          Our AI is about to read{" "}
           <strong style={{ color: "var(--ink)" }}>{request.ticker || "this company"}'s {request.form}</strong>{" "}
           live from the SEC.
         </p>
@@ -55,8 +55,7 @@ export function AccessKeyModal({
           <AiMark size={14} />
           <p>
             Reading a new filing calls a paid AI model on the owner's account, so it costs real money.
-            This key is the owner's password to stop strangers running up that bill — nothing is charged
-            to you. Everything else here is free.
+            The key is their password to stop strangers running up that bill — nothing is charged to you.
           </p>
         </div>
 
@@ -71,7 +70,7 @@ export function AccessKeyModal({
         />
         {err && <p className="modal-err">Enter the key to continue.</p>}
         <p className="footnote" style={{ marginTop: 8 }}>
-          Don't have one? Ask whoever shared this project with you, or browse the filings we've already read.
+          Don't have one? Ask whoever shared this project with you.
         </p>
 
         <div className="modal-actions">

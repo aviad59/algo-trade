@@ -39,7 +39,7 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
         <hr className="rule" />
         <p className="card-title"><AiMark size={13} /> The clues it found</p>
         {filing.effects.length === 0 ? (
-          <p className="footnote" style={{ marginTop: 8 }}>Nothing in this filing was specific enough about a date to count as a clue.</p>
+          <p className="footnote" style={{ marginTop: 8 }}>Nothing here was specific enough about dates to count as a clue.</p>
         ) : (
           <div style={{ marginTop: 6 }}>
             {filing.effects.map((e, i) => (

@@ -73,9 +73,7 @@ function PredVsActual({ report }: { report: QuarterReport }) {
     <div className="split" style={{ gridTemplateColumns: "1fr 1fr", gap: 14 }}>
       <div className="card">
         <p className="card-title">What we predicted</p>
-        <p className="card-sub">
-          Our ranking on {fmtDate(report.decisionDate)}, before the quarter started.
-        </p>
+        <p className="card-sub">Ranked on {fmtDate(report.decisionDate)}, before the quarter began.</p>
         <div className="table-wrap">
           <table>
             <thead>
@@ -111,9 +109,7 @@ function PredVsActual({ report }: { report: QuarterReport }) {
 
       <div className="card">
         <p className="card-title">What actually happened</p>
-        <p className="card-sub">
-          Real price moves, {fmtDate(report.windowStart)} – {fmtDate(report.windowEnd)}, best to worst.
-        </p>
+        <p className="card-sub">Best to worst, {fmtDate(report.windowStart)} – {fmtDate(report.windowEnd)}.</p>
         <div className="table-wrap">
           <table>
             <thead>
@@ -136,7 +132,7 @@ function PredVsActual({ report }: { report: QuarterReport }) {
           </table>
         </div>
         <p className="footnote" style={{ marginTop: 10 }}>
-          Our pick finished <strong style={{ color: "var(--ink)" }}>#{report.pick.actualRank ?? "—"} of {n}</strong>.
+          Our pick finished <strong style={{ color: "var(--ink)" }}>#{report.pick.actualRank ?? "—"} of {n}</strong>
         </p>
       </div>
     </div>
@@ -195,9 +191,7 @@ export function Backtest() {
       <div className="page-head">
         <div className="eyebrow">Step 5 — the scorecard</div>
         <h1>Did the picks actually work?</h1>
-        <p className="page-desc">
-          For each past quarter: what we predicted at the time, and what the price actually did.
-        </p>
+        <p className="page-desc">What we predicted at the time, and what the price actually did.</p>
       </div>
 
       {/* ① pick a quarter */}
@@ -228,8 +222,7 @@ export function Backtest() {
               </div>
             )}
             <p className="footnote" style={{ marginTop: 10 }}>
-              Real prices from Yahoo Finance, trading costs included. Nothing filed after {fmtDate(r.decisionDate)} was
-              used to make the pick.
+              Yahoo Finance prices, trading costs included. Nothing filed after {fmtDate(r.decisionDate)} informed the pick.
             </p>
           </div>
           <div className="call-hero-num">
@@ -266,7 +259,7 @@ export function Backtest() {
       <div className="card section-gap">
         <p className="card-title">Our call vs what the price did</p>
         <p className="card-sub">
-          Solid = how {r.pick.etf} moved. Dashed = how confident we were. Same direction means the call was right.
+          Solid = how {r.pick.etf} moved. Dashed = how confident we were. Same direction = right call.
         </p>
         <PredictionSlope report={r} />
       </div>

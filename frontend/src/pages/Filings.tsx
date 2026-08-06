@@ -98,46 +98,43 @@ export function Filings() {
       <div className="page-head">
         <div className="eyebrow">Step 1 &amp; 2 — the reading</div>
         <h1>Every report we've read</h1>
-        <p className="page-desc">
-          Click any row to see what our AI found inside — the company's own sentences, and what each says
-          about a metal.
-        </p>
+        <p className="page-desc">Click any row to see what our AI found inside.</p>
       </div>
 
       <div className="grid g4">
         <Kpi label="Reports read" value={<span className="mono">{META.filings.toLocaleString()}</span>} note={`${companies} companies · ${materials} metals`} />
         <Kpi label="Clues found" value={<span className="mono">{totalEffects.toLocaleString()}</span>} note={shownNote} />
         <Kpi label="Companies" value={<span className="mono">{companies}</span>} note="miners and buyers" />
-        <Kpi label="Avg confidence" value={<span className="mono">{avgConf === null ? "—" : avgConf.toFixed(2)}</span>} note={`how sure the AI was, across ${withConf} reports`} />
+        <Kpi label="Avg confidence" value={<span className="mono">{avgConf === null ? "—" : avgConf.toFixed(2)}</span>} note="how sure our AI was" />
       </div>
 
       <div className="card section-gap" style={{ borderLeft: "3px solid var(--accent)" }}>
         <p className="card-title"><AiMark size={13} /> Try it yourself — watch our AI read a filing</p>
-        <p className="card-sub">Pick a company and a report type. We fetch it from the SEC and read it live.</p>
+        <p className="card-sub">We fetch it from the SEC and read it live.</p>
 
         <div className="digest-form">
           <div className="df-field">
             <label className="f-label" htmlFor="d-ticker">1 · Company</label>
             <input id="d-ticker" type="text" placeholder="FCX" value={dTicker} onChange={(e) => setDTicker(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !dBusy) requestDigest(); }} />
-            <span className="df-hint">Stock symbol — try FCX, TECK or ETN</span>
+            <span className="df-hint">Try FCX, TECK or ETN</span>
           </div>
           <div className="df-field">
             <label className="f-label" htmlFor="d-form">2 · Report type</label>
             <select id="d-form" value={dForm} onChange={(e) => setDForm(e.target.value)}>
               {FORMS.map((f) => <option key={f} value={f}>{f} — {FORM_NAMES[f]}</option>)}
             </select>
-            <span className="df-hint">News releases (8-K) are the quickest read</span>
+            <span className="df-hint">8-K is the quickest</span>
           </div>
           <div className="df-field">
             <label className="f-label" htmlFor="d-before">3 · Filed before <span className="df-opt">optional</span></label>
             <input id="d-before" type="date" value={dBefore} onChange={(e) => setDBefore(e.target.value)} />
-            <span className="df-hint">Leave empty for the most recent one</span>
+            <span className="df-hint">Empty = most recent</span>
           </div>
           <div className="df-field df-go">
             <button className="btn primary" onClick={requestDigest} disabled={dBusy}>
               {dBusy ? "Reading…" : "Read this filing"}
             </button>
-            <span className="df-hint">Asks for an access key</span>
+            <span className="df-hint">Needs an access key</span>
           </div>
         </div>
 
@@ -160,7 +157,7 @@ export function Filings() {
 
       <div className="card section-gap">
         <p className="card-title">All reports</p>
-        <p className="card-sub">Click a row to see what was found inside it.</p>
+        <p className="card-sub">Search or filter below.</p>
         <div className="filter-row">
           <div>
             <label className="f-label" htmlFor="f-search">Search</label>

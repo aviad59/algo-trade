@@ -85,7 +85,7 @@ export function Forecast() {
           </details>
         ) : (
           <p className="footnote" style={{ marginTop: 18 }}>
-            No AI write-up for {FORECAST_QUARTER} yet. The ranking stands on its own.
+            No AI write-up yet. The ranking stands on its own.
           </p>
         )}
       </div>
@@ -94,7 +94,7 @@ export function Forecast() {
 
       <div className="card section-gap">
         <p className="card-title">Where each score came from</p>
-        <p className="card-sub">Clues from the companies that mine each metal, and from the ones that buy it.</p>
+        <p className="card-sub">Split by who said it: miners, or the companies that buy from them.</p>
         <div className="table-wrap">
             <table>
               <thead>
@@ -134,7 +134,7 @@ export function Forecast() {
               ))}
             </div>
           ) : (
-            <p className="footnote">No cited quotes stored for this quarter yet.</p>
+            <p className="footnote">No quotes stored yet.</p>
           )}
         </div>
         <div className="card" style={{ borderLeft: "3px solid var(--bad)" }}>
@@ -147,9 +147,9 @@ export function Forecast() {
           </div>
           <hr className="rule" />
           <ul className="tight">
-            <li>Filings are public the moment they land, and markets move fast. Any edge is in the slow drift afterwards.</li>
-            <li>The fund isn't the metal — about 28% of COPX sits in one company, so it won't track copper exactly.</li>
-            <li>The demand-side signal rests on only a handful of reports. One revision could shift the score.</li>
+            <li>Filings are public instantly and markets move fast — any edge is in the slow drift after.</li>
+            <li>The fund isn't the metal: ~28% of COPX sits in one company.</li>
+            <li>The demand signal rests on a handful of reports. One revision could shift it.</li>
           </ul>
         </div>
       </div>

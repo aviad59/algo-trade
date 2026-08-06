@@ -87,7 +87,7 @@ export function ForecastTracker() {
         </table>
       </div>
       <p className="footnote" style={{ marginTop: 10 }}>
-        Not final — the order can still change. When {FORECAST_QUARTER} closes it moves to the Backtest page.
+        Not final — the order can still change until {FORECAST_QUARTER} closes.
       </p>
     </div>
   );
