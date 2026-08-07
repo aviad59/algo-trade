@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AiMark } from "./ui";
 
 /**
  * Asked for on every run, because every run spends the owner's model credits.
  * Prefilled from the last successful key so a repeat run is one click, but the
  * confirmation step is never skipped.
+ *
+ * Portalled to <body>: this renders from inside a page card, and a fixed
+ * element resolves against the nearest transformed ancestor, not the viewport.
  */
 export function AccessKeyModal({
   open, initialKey, request, onCancel, onConfirm,
@@ -36,7 +40,7 @@ export function AccessKeyModal({
     onConfirm(key.trim());
   }
 
-  return (
+  return createPortal(
     <>
       <div className="overlay" onClick={onCancel} />
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="akm-title">
@@ -78,6 +82,7 @@ export function AccessKeyModal({
           <button className="btn primary" onClick={submit}>Unlock and read</button>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

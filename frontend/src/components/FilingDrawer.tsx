@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { DatedEffect, Filing } from "../data/types";
 import { AiMark, StatusBadge } from "./ui";
 
@@ -15,7 +16,9 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // Portalled to <body>: the demo renders this from inside a page card, where a
+  // fixed element would resolve against that card instead of the viewport.
+  return createPortal(
     <>
       <div className="overlay" onClick={onClose} />
       <aside className="drawer" role="dialog" aria-label={`Filing detail: ${filing.company}`}>
@@ -68,6 +71,7 @@ export function FilingDrawer({ filing, onClose }: { filing: Filing; onClose: () 
           </>
         )}
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }

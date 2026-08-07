@@ -183,7 +183,11 @@ h1 {
 .claim-sub { margin-top: 12px; }
 
 /* ============ LOAD SEQUENCE (once, short, no loops) ============ */
-.rise { animation: rise 0.45s ease both; }
+/* `backwards`, not `both`: a forwards-filling transform keeps the element a
+   containing block for fixed children forever, which trapped overlays inside
+   whichever card they were declared in. The end frame equals the base style,
+   so dropping the forwards fill changes nothing visually. */
+.rise { animation: rise 0.45s ease backwards; }
 .rise.d1 { animation-delay: 0.1s; }
 .rise.d2 { animation-delay: 0.22s; }
 .rise.d3 { animation-delay: 0.34s; }
