@@ -1,10 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>FilingSignal</title>
+    <!-- Applies the saved theme before the first paint. Inline and blocking on
+         purpose: run this from the bundle instead and a light-theme frame
+         flashes before React mounts. Dark is the default, so the attribute is
+         already on <html> above and this only has to handle "they chose light". -->
+    <script>
+      try {
+        if (localStorage.getItem("fs_theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch (e) { /* private mode — keep the default */ }
+    </script>
   </head>
   <body>
     <div id="root"></div>

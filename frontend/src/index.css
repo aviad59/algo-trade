@@ -10,6 +10,12 @@
      --c-basket    equal-weight, all six metals
      --c-random    random-pick baseline
    Semantic green/red mark outcomes only — never a data series.
+
+   Theme is chosen by the reader, not the OS: <html data-theme> is set
+   before first paint (see index.html) and toggled from the topbar, with
+   the choice kept in localStorage. Dark is the default. Every rule past
+   this block reads the tokens, never a literal color, so the two themes
+   stay one stylesheet.
    ============================================================ */
 
 :root {
@@ -52,39 +58,40 @@
   --s5: #e87ba4;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --page: #141412;
-    --surface: #1d1d1a;
-    --surface-2: #262620;
-    --ink: #efede6;
-    --ink-2: #c7c4ba;
-    --ink-3: #98948a;
-    --hairline: #2c2b27;
-    --border: rgba(255, 255, 255, 0.13);
-    --accent: #c87a3b;
-    --accent-ink: #d98a4e;
-    --accent-wash: rgba(200, 122, 59, 0.12);
-    --on-accent: #1a0f05;
-    --good-text: #3fbf3f;
-    --good: #0ca30c;
-    --bad-text: #e67070;
-    --bad: #d04b4b;
-    --warn: #d9a419;
-    --chart-surface: #1d1d1a;
-    --grid: #2c2b27;
-    --axis: #3a3934;
-    --c-strategy: #c87a3b;
-    --c-market: #3987e5;
-    --c-basket: #199e70;
-    --c-random: #c98500;
-    --s1: #3987e5;
-    --s2: #d95926;
-    --s3: #199e70;
-    --s4: #c98500;
-    --s5: #d55181;
-  }
+/* Attribute-scoped, not @media (prefers-color-scheme): the toggle has to be
+   able to put a reader on a light OS into dark and vice versa, and a media
+   query would keep overriding whichever one it disagreed with. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #141412;
+  --surface: #1d1d1a;
+  --surface-2: #262620;
+  --ink: #efede6;
+  --ink-2: #c7c4ba;
+  --ink-3: #98948a;
+  --hairline: #2c2b27;
+  --border: rgba(255, 255, 255, 0.13);
+  --accent: #c87a3b;
+  --accent-ink: #d98a4e;
+  --accent-wash: rgba(200, 122, 59, 0.12);
+  --on-accent: #1a0f05;
+  --good-text: #3fbf3f;
+  --good: #0ca30c;
+  --bad-text: #e67070;
+  --bad: #d04b4b;
+  --warn: #d9a419;
+  --chart-surface: #1d1d1a;
+  --grid: #2c2b27;
+  --axis: #3a3934;
+  --c-strategy: #c87a3b;
+  --c-market: #3987e5;
+  --c-basket: #199e70;
+  --c-random: #c98500;
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+  --s5: #d55181;
 }
 
 /* ============ BASE ============ */
@@ -165,6 +172,22 @@ button { font: inherit; cursor: pointer; color: inherit; }
 .chip.accent { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-wash); }
 .chip.quiet { color: var(--ink-3); background: none; }
 
+/* ---- theme toggle ---- */
+/* keeps the freshness chips and the toggle together on the right, so the
+   title still owns the left edge under the topbar's space-between */
+.topbar-meta { margin-left: auto; }
+.theme-toggle {
+  flex: none; display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border: 1px solid var(--border); border-radius: 2px;
+  background: var(--surface-2); color: var(--ink-2);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.theme-toggle:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-wash); }
+.theme-toggle svg { flex: none; }
+
 .page { padding: 36px 40px 110px; max-width: 1460px; }
 .page-head { margin-bottom: 30px; }
 .eyebrow {
@@ -230,6 +253,11 @@ h1 {
 @media (max-width: 640px) { .g3, .g4 { grid-template-columns: 1fr; } }
 .split { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
 @media (max-width: 1120px) { .split { grid-template-columns: 1fr; } }
+/* Two splits that deliberately stay side-by-side further down than the base
+   .split does. Written as classes (not inline styles) so the phone tier can
+   still stack them — an inline style would outrank every media query. */
+.split.split-call { grid-template-columns: 1.2fr 1fr; gap: 26px; }
+.split.split-pva { grid-template-columns: 1fr 1fr; gap: 14px; }
 
 /* ============ KPI ============ */
 .kpi { padding: 18px 20px; }
@@ -604,7 +632,8 @@ tr.row-pick td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 @keyframes slideIn { from { transform: translateX(30px); opacity: 0.4; } to { transform: none; opacity: 1; } }
 .drawer h3 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
 .drawer-close {
-  position: absolute; top: 18px; right: 18px; border: 1px solid var(--border); background: var(--surface);
+  position: absolute; top: 18px; right: 18px; z-index: 1;
+  border: 1px solid var(--border); background: var(--surface);
   width: 34px; height: 34px; border-radius: 2px; color: var(--ink-2); font-size: 17px; line-height: 1;
 }
 .kv { display: grid; grid-template-columns: 150px 1fr; gap: 7px 16px; font-size: 15.5px; margin: 18px 0; }
@@ -792,6 +821,9 @@ details.disclose-inline .disclose-body { padding: 16px 18px 18px; }
 }
 @keyframes toastIn { from { transform: translateX(-50%) translateY(8px); opacity: 0; } to { transform: translateX(-50%); opacity: 1; } }
 
+/* The phone tier swaps this for a shorter label; hidden until then. */
+.nav-text-short { display: none; }
+
 /* ============ RESPONSIVE RAIL ============ */
 @media (max-width: 980px) {
   .app { grid-template-columns: 1fr; }
@@ -809,4 +841,230 @@ details.disclose-inline .disclose-body { padding: 16px 18px 18px; }
   .topbar { padding: 14px 20px; }
   .claim { font-size: 30px; }
   .cbar-row { grid-template-columns: 130px 1fr 82px; }
+}
+
+/* ============================================================
+   PHONE TIER — 640px and below
+   ------------------------------------------------------------
+   Everything past this line lives inside one media query, so no
+   rule here can reach a desktop or tablet viewport. The tier
+   starts at 640px because that is where the four-item rail stops
+   fitting on one line; the largest phone in portrait is ~430px,
+   so 640 covers phones (and phones in landscape at ~600–850 fall
+   back to the 980px tablet tier, which already works).
+
+   Three rules govern this block:
+     1. nothing may be wider than the viewport — one axis of
+        scroll only, except inside .table-wrap where sideways
+        scrolling is the point;
+     2. anything you tap is at least ~44px tall;
+     3. side-by-side layouts that assume a desk stack instead.
+   ============================================================ */
+@media (max-width: 640px) {
+
+  /* ---- frame ----
+     `1fr` is minmax(auto, 1fr): the rail's min-content width (four
+     nav labels in a row) was propping the whole app open past the
+     viewport, which is what put a horizontal scrollbar on every
+     page. minmax(0, 1fr) lets the columns actually shrink. */
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail, .main { min-width: 0; }
+
+  /* rail becomes a header: wordmark, then a four-up tab bar */
+  .rail {
+    flex-direction: column; align-items: stretch; flex-wrap: nowrap;
+    padding: 11px 0 0; gap: 11px;
+    border-right: 0; border-bottom: 1px solid var(--hairline);
+  }
+  .brand { padding: 0 16px; }
+  .brand-name { font-size: 16.5px; }
+  .nav {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0; border-top: 1px solid var(--hairline);
+  }
+  .nav-item {
+    flex-direction: column; justify-content: center; gap: 5px;
+    text-align: center; padding: 9px 4px 8px; width: 100%; min-height: 52px;
+    font-size: 12px; line-height: 1.25;
+  }
+  .nav-item svg { width: 16px; height: 16px; }
+  .nav-text { display: none; }
+  .nav-text-short { display: inline; }
+
+  /* topbar: title and the toggle share the first line, freshness chips wrap
+     onto a second one. Grid rather than the desktop flex row, so the toggle
+     stays pinned to the top-right instead of dropping below the chips. */
+  .topbar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; gap: 7px 10px; padding: 10px 16px;
+  }
+  .topbar-title { grid-area: 1 / 1; font-size: 14.5px; }
+  .topbar-meta { grid-area: 2 / 1 / 3 / -1; margin-left: 0; gap: 6px; font-size: 12.5px; }
+  .chip { font-size: 11.5px; padding: 3px 8px; }
+  /* icon only — the label is the first thing worth losing at this width */
+  .theme-toggle {
+    grid-area: 1 / 2; justify-content: center;
+    width: 40px; height: 40px; padding: 0;
+  }
+  .theme-toggle-text { display: none; }
+
+  /* ---- page rhythm ---- */
+  .page { padding: 20px 16px 32px; }
+  h1 { font-size: 26px; }
+  .claim { font-size: 25px; max-width: none; }
+  .page-head { margin-bottom: 22px; }
+  .page-desc { font-size: 15.5px; }
+  .card { padding: 18px 16px; }
+  .card-title { font-size: 16px; }
+  .card-sub { font-size: 14.5px; }
+  .section-gap { margin-top: 22px; }
+  .grid { gap: 12px; }
+
+  /* ---- KPI strip: 2x2 beats a 4-storey tower ---- */
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi { padding: 14px 13px; }
+  .kpi-label { font-size: 11.5px; letter-spacing: 0.02em; }
+  .kpi-value { font-size: 23px; margin-top: 5px; }
+  .kpi-note { font-size: 12.5px; }
+
+  /* ---- link cards ---- */
+  .link-card { padding: 16px; gap: 12px; }
+  .link-card-title { font-size: 16px; }
+  .link-card-sub { font-size: 13.5px; }
+  .link-card-arrow { width: 32px; height: 32px; }
+
+  /* ---- splits that hold two columns down to 640 now stack ---- */
+  .split.split-call, .split.split-pva { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .hero-card { padding: 20px 16px; }
+  .hero-num { font-size: 40px; }
+  .hero-stats { gap: 16px 26px; margin-top: 18px; }
+  .call-hero { padding: 18px 16px; }
+
+  /* ---- comparison bars: label + value on one line, bar beneath,
+          so the bar always gets the full card width ---- */
+  .cbar-row { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; }
+  .cbar-name { grid-row: 1; grid-column: 1; white-space: normal; font-size: 14px; }
+  .cbar-val { grid-row: 1; grid-column: 2; font-size: 14px; }
+  .cbar-track { grid-row: 2; grid-column: 1 / -1; height: 16px; }
+  .cbar { gap: 14px; }
+
+  /* ---- tables: sideways scroll inside the card, never the page ----
+     One line per row and a swipe, rather than squeezing nine columns into
+     330px and getting three-line rows. The two `local` gradients paint the
+     card colour over the edges and the two `scroll` ones leave a shadow
+     behind — so a shadow only shows on a side that has more table off past
+     it. That is the swipe affordance; no JS, and it disappears at the ends. */
+  .table-wrap {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    background:
+      linear-gradient(to right, var(--surface) 40%, transparent) left / 26px 100% no-repeat local,
+      linear-gradient(to left, var(--surface) 40%, transparent) right / 26px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, var(--axis), transparent) left / 9px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--axis), transparent) right / 9px 100% no-repeat scroll;
+  }
+  .table-wrap th, .table-wrap td { white-space: nowrap; }
+  table { font-size: 14.5px; }
+  th { font-size: 11.5px; padding: 8px 10px; }
+  td { padding: 9px 10px; }
+  td.num { font-size: 14px; }
+  .tk { font-size: 13.5px; }
+  /* the row itself opens the drawer, so the trailing button is redundant */
+  .col-view { display: none; }
+  .mini-rank-table td { padding: 7px 6px; }
+  .score-cell { min-width: 54px; }
+
+  /* ---- filters: one control per line, 16px inputs so iOS Safari
+          does not zoom the page on focus ---- */
+  .filter-row { gap: 12px; }
+  .filter-row > div { flex: 1 1 100%; }
+  input[type="text"], input[type="date"], input[type="password"], select {
+    font-size: 16px; padding: 10px 12px; width: 100%;
+  }
+  .count-note { margin-left: 0; font-size: 13px; }
+  .df-go .btn { width: 100%; }
+
+  /* ---- disclosures ---- */
+  details.disclose > summary { padding: 14px 16px; gap: 12px; }
+  .disclose-title { font-size: 15.5px; }
+  .disclose-sub { font-size: 13.5px; }
+  .disclose-body { padding: 4px 16px 18px; }
+  details.disclose-inline > summary { padding: 12px 14px; }
+  details.disclose-inline .disclose-body { padding: 14px 14px 16px; }
+
+  /* ---- pipeline explorer ---- */
+  .pipex-stage { padding: 13px 14px; }
+  .pipex-detail-inner { padding: 20px 16px; gap: 20px; }
+  .pd-summary { font-size: 16px; }
+  .pd-why, .pd-rule-text, .pd-example { font-size: 14.5px; }
+  /* the three-box mini diagram reads top-to-bottom when it can't fit across */
+  .mini-flow { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .mf-box { white-space: normal; }
+  .mf-arrow { transform: rotate(90deg); margin-left: 14px; }
+
+  /* ---- quarter picker ---- */
+  .qpick { padding: 10px; gap: 6px; }
+  /* fixed width, not flex-grow: a short last row must not inflate its chips
+     to twice the size of the ones above it */
+  .qpick-chip { flex: 0 0 auto; min-width: 56px; padding: 9px 6px 8px; }
+  .qpick-legend { gap: 7px 16px; font-size: 13px; }
+
+  /* ---- metrics ---- */
+  .metric-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { padding: 13px 12px; }
+  .metric-value { font-size: 21px; }
+  .metric-gloss { font-size: 12.5px; }
+  .metric-note { font-size: 12px; }
+
+  /* ---- charts: sizes are SVG user units on the phone canvas (560 wide,
+          drawn at ~330 CSS px), so 19 units lands near 11px on screen ---- */
+  .axis-t { font-size: 19px; }
+  .legend { gap: 10px 16px; font-size: 13.5px; }
+
+  /* ---- evidence ---- */
+  .ev-quote { font-size: 14.5px; padding-left: 12px; }
+  .ev-item-head { gap: 7px; }
+  .ev-date { margin-left: 0; }
+  .tracker-asof { margin-left: 0; }
+
+  /* ---- drawer: full-bleed sheet ---- */
+  .drawer { width: 100%; padding: 22px 16px 40px; }
+  .drawer h3 { font-size: 19px; padding-right: 44px; }
+  .drawer .eyebrow { padding-right: 44px; }
+  .drawer-close { top: 12px; right: 12px; width: 40px; height: 40px; }
+  .kv { grid-template-columns: 96px minmax(0, 1fr); font-size: 14.5px; gap: 6px 12px; }
+  .effect-row { grid-template-columns: minmax(0, 1fr); gap: 6px; font-size: 14.5px; }
+  /* the desktop column is 110px, so this inline span wraps on its own there;
+     full-width it would run straight into the quarter above it */
+  .effect-meta { display: block; }
+
+  /* ---- modal ---- */
+  .modal { width: min(560px, 94vw); padding: 22px 18px 20px; }
+  .modal h3 { font-size: 20px; }
+  .modal-lede, .modal-why p { font-size: 14.5px; }
+  .modal-actions { gap: 10px; }
+  .modal-actions .btn { flex: 1; }
+
+  /* ---- footer: in the flow, not pinned. A fixed four-line footer
+          costs ~15% of a phone screen on every page. ---- */
+  .site-footer {
+    position: static; left: auto; right: auto; padding: 16px;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+
+  /* ---- tap targets ---- */
+  .btn { padding: 11px 16px; }
+  .btn.sm { padding: 8px 12px; font-size: 14px; }
+  .nav-item, .qpick-chip, details.disclose > summary { min-height: 44px; }
+  .tooltip { max-width: calc(100vw - 32px); }
+}
+
+/* Narrow phones (SE-class and older Androids). Nothing restructures here —
+   the 640 tier already stacked what needed stacking — the type just steps
+   down one notch so headlines and tab labels stop wrapping awkwardly. */
+@media (max-width: 380px) {
+  .nav-item { font-size: 11px; padding: 8px 2px; }
+  h1 { font-size: 24px; }
+  .claim { font-size: 23px; }
+  .hero-num { font-size: 35px; }
+  .kpi-value { font-size: 21px; }
 }

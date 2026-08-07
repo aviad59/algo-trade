@@ -71,7 +71,7 @@ function PredVsActual({ report }: { report: QuarterReport }) {
   const n = report.actual.filter((a) => a.rank != null).length;
 
   return (
-    <div className="split" style={{ gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+    <div className="split split-pva">
       <div className="card">
         <p className="card-title">What we predicted</p>
         <p className="card-sub">
@@ -277,7 +277,7 @@ export function Backtest() {
 
       {/* ② the call, and the one comparison that matters */}
       <div className="card call-hero section-gap rise d2" style={{ borderLeft: `3px solid var(${win ? "--good" : "--bad"})` }}>
-        <div className="split" style={{ gridTemplateColumns: "1.2fr 1fr", gap: 26 }}>
+        <div className="split split-call">
           <div>
             <div className="kpi-label" style={{ marginBottom: 8 }}>
               {r.quarter} · {fmtDate(r.windowStart)} – {fmtDate(r.windowEnd)}

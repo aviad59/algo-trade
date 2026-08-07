@@ -102,7 +102,7 @@ export function Filings() {
           <table>
             <thead>
               <tr>
-                <th>Symbol</th><th>Company</th><th>Type</th><th>Filed</th><th>Metal(s)</th><th>Role</th><th>Status</th><th className="num">Conf.</th><th />
+                <th>Symbol</th><th>Company</th><th>Type</th><th>Filed</th><th>Metal(s)</th><th>Role</th><th>Status</th><th className="num">Conf.</th><th className="col-view" />
               </tr>
             </thead>
             <tbody>
@@ -131,7 +131,7 @@ export function Filings() {
                     <td><PerspectivePill perspective={f.perspective} /></td>
                     <td><StatusBadge status={f.status} /></td>
                     <td className="num">{f.confidence === null ? "—" : f.confidence.toFixed(2)}</td>
-                    <td><button className="btn sm" onClick={(e) => { e.stopPropagation(); setSelected(f); }}>View</button></td>
+                    <td className="col-view"><button className="btn sm" onClick={(e) => { e.stopPropagation(); setSelected(f); }}>View</button></td>
                   </tr>
                 ))
               )}

@@ -21,14 +21,35 @@ function dollarTicks(ymin: number, ymax: number): number[] {
   return out;
 }
 
+/** true while the viewport is in the phone tier (same 640px line as the CSS). */
+function usePhone(): boolean {
+  const [phone, setPhone] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return phone;
+}
+
 /**
  * Growth of $100: our picks vs the market and the other baselines. The one
  * chart the whole project builds to. Baseline lines draw first, then the
  * strategy line separates from the bundle (once; final state under
  * prefers-reduced-motion).
+ *
+ * The canvas has two geometries. On a phone the SVG scales down to ~330 CSS px,
+ * where the desktop 980x340 box would render its axis type at about 4px and
+ * reserve a fifth of the width for end-of-line labels; the phone box is nearly
+ * square, spends almost nothing on right padding, and drops the end labels in
+ * favour of the legend that already sits underneath.
  */
 export function EquityCurve() {
   const tip = useTooltip();
+  const phone = usePhone();
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [crossX, setCrossX] = useState<number | null>(null);
   const [drawn, setDrawn] = useState(false);
@@ -55,7 +76,9 @@ export function EquityCurve() {
     );
   }
 
-  const W = 980, H = 340, padL = 52, padR = 118, padT = 16, padB = 32;
+  const [W, H, padL, padR, padT, padB] = phone
+    ? [560, 380, 58, 14, 14, 34]
+    : [980, 340, 52, 118, 16, 32];
   const curves: Record<string, number[]> = {};
   for (const s of series) curves[s.key] = cumulative(RETURNS[s.key]);
   const all = Object.values(curves).flat();
@@ -124,7 +147,7 @@ export function EquityCurve() {
                   strokeOpacity={s.emphasis ? 1 : 0.8}
                   strokeLinejoin="round"
                 />
-                {s.directLabel && (
+                {s.directLabel && !phone && (
                   <g className={`curve-end${drawn ? " drawn" : ""}`}>
                     <circle cx={x(N - 1)} cy={y(c[c.length - 1])} r={3.5} fill={`var(${s.colorVar})`} stroke="var(--chart-surface)" strokeWidth={2} />
                     <text className="dlabel" x={x(N - 1) + 9} y={y(c[c.length - 1]) + 4}>
