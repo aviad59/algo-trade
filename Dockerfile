@@ -17,9 +17,11 @@ FROM python:3.12-slim AS app
 WORKDIR /app
 
 # Install the package (deps resolve from manylinux wheels; no compilers needed).
+# The [backtest] extra is required, not optional: it carries yfinance, without
+# which the price fetch below cannot run at all.
 COPY pyproject.toml ./
 COPY src/ ./src/
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir -e ".[backtest]"
 
 COPY universe/ ./universe/
 COPY scripts/ ./scripts/
@@ -27,7 +29,13 @@ COPY scripts/ ./scripts/
 # Bake the dataset into the image: mock extractions + a synthetic-price fallback,
 # then overwrite the fallback with REAL ETF/SPY prices from yfinance when the
 # build has network. Offline builds keep the synthetic fallback (build still succeeds).
+#
+# The import is checked separately, and fatally, on purpose: a missing yfinance
+# is a packaging bug that `|| echo` would otherwise disguise as a routine offline
+# build - which is exactly how it went unnoticed through several deploys. Only a
+# genuine fetch failure (no network, rate limit) is allowed to fall back.
 RUN python scripts/seed_mock.py \
+ && python -c "import yfinance" \
  && (filingsignal fetch-prices --start 2019-01-01 \
      || echo "offline build: keeping synthetic price fallback")
 

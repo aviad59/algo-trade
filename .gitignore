@@ -27,3 +27,8 @@ node_modules/
 server.log
 *.log
 .DS_Store
+
+# --- presentation film: renders and its own toolchain live on disk only ---
+# 700+ MB of Remotion node_modules and a 73 MB 1080p render. The film is a
+# deliverable in its own right, not part of the application.
+video/

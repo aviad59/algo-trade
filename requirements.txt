@@ -7,7 +7,7 @@
 #
 #     pip install -r requirements.txt
 #
-# (installing this way does NOT create the `filingsignal` console script —
+# (installing this way does NOT create the `filingsignal` console script;
 # use `python -m filingsignal.cli ...` or the editable install above.)
 
 pydantic>=2.0

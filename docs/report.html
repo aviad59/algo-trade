@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FilingSignal: Spec &amp; Summary</title>
+<style>
+  @page { size: A4; margin: 12mm 13mm; }
+
+  :root{
+    --ink:#14181d; --muted:#5b6570; --line:#d7dce2; --soft:#f4f6f8;
+    --accent:#b06a34; --good:#1f6f43; --bad:#a4392c;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:"Segoe UI",Inter,Arial,sans-serif;
+    font-size:9.6pt; line-height:1.38; color:var(--ink); background:#fff;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .page{ page-break-after:always; }
+  .page:last-child{ page-break-after:auto; }
+
+  code,.mono{ font-family:Consolas,"Courier New",monospace; font-size:.92em; }
+  code{ background:var(--soft); padding:0 .25em; border-radius:3px; }
+  a{ color:var(--accent); text-decoration:none; }
+
+  h1{ font-size:17.5pt; margin:0 0 1.5mm; letter-spacing:-.015em; line-height:1.18; }
+  h2{ font-size:11.5pt; margin:3.4mm 0 1.4mm; padding-bottom:1mm;
+      border-bottom:1.6pt solid var(--accent); }
+  h3{ font-size:10pt; margin:2.6mm 0 .8mm; color:var(--accent); }
+  p{ margin:0 0 1.5mm; }
+  ul{ margin:0 0 1.5mm; padding-left:4.6mm; }
+  li{ margin-bottom:.6mm; }
+  em{ color:var(--ink); }
+
+  .sub{ color:var(--muted); font-size:9.4pt; margin:0 0 2mm; }
+  .meta{ display:flex; flex-wrap:wrap; gap:0 5mm; font-size:8.6pt;
+         color:var(--muted); border-top:1px solid var(--line);
+         border-bottom:1px solid var(--line); padding:1.3mm 0; margin-bottom:3mm; }
+  .meta b{ color:var(--ink); font-weight:600; }
+
+  table{ width:100%; border-collapse:collapse; margin:1.5mm 0 2mm; font-size:8.8pt; }
+  th,td{ border:1px solid var(--line); padding:.7mm 1.8mm; text-align:left; vertical-align:top; }
+  thead th{ background:var(--soft); font-weight:600; }
+  td.num,th.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  tbody tr:nth-child(even){ background:#fbfcfd; }
+  .hi{ background:#fdf3ea !important; font-weight:600; }
+  .note{ font-size:8.8pt; color:var(--muted); margin-top:-.6mm; }
+  .tk{ font-family:Consolas,monospace; font-size:.95em; color:var(--accent); }
+
+  .call{ border:1px solid var(--line); border-left:3.5pt solid var(--accent);
+         background:var(--soft); padding:2mm 2.6mm; margin:2mm 0; }
+  .call.warn{ border-left-color:var(--bad); background:#fdf4f2; }
+  .call h3{ margin-top:0; }
+  .call ul{ margin-bottom:0; }
+  .call p:last-child{ margin-bottom:0; }
+
+  pre.flow{ font-family:Consolas,"Courier New",monospace; font-size:7.2pt;
+            line-height:1.32; background:var(--soft); border:1px solid var(--line);
+            border-radius:3px; padding:2mm 2.5mm; margin:1.5mm 0 2mm;
+            white-space:pre; overflow:hidden; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 5mm; }
+
+  .foot{ margin-top:3mm; padding-top:1.2mm; border-top:1px solid var(--line);
+         font-size:7.8pt; color:var(--muted); }
+  .tag{ display:inline-block; background:var(--accent); color:#fff; font-size:7.6pt;
+        padding:.3mm 1.8mm; border-radius:3px; vertical-align:middle; }
+  .stage{ font-weight:600; white-space:nowrap; }
+
+  @media screen{
+    body{ background:#eceff2; }
+    .page{ width:210mm; height:297mm; margin:8mm auto; padding:12mm 13mm;
+           background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.18); overflow:hidden; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ PAGE 1 ══════════════════════════ -->
+<section class="page" id="p1">
+
+  <h1>Can an LLM extract meaningful trading signals from SEC filings?</h1>
+  <p class="sub">FilingSignal, spec &amp; summary · Final project: AI &amp; Innovation in Capital Markets ·
+     <span class="tag">Track 3: AI application for investors</span></p>
+
+  <div class="meta">
+    <span><b>Submitted by:</b> Ron Kadosh, Idan Aviad, Barak Tubul</span>
+    <span><b>Live app:</b> <a href="https://filingsignal.livelyground-2a3fc950.francecentral.azurecontainerapps.io/">filingsignal.livelyground-2a3fc950.francecentral.azurecontainerapps.io</a></span>
+    <span><b>Code:</b> <a href="https://github.com/aviad59/algo-trade">github.com/aviad59/algo-trade</a></span>
+  </div>
+
+  <h2>1. The question</h2>
+  <p>
+    Every quarter, thousands of companies file hundreds of pages each with the SEC. The
+    <em>historical</em> content of those filings, revenue and balance sheet, is priced within
+    minutes. What is not priced instantly is the <b>forward-looking layer</b>: capex plans,
+    offtake agreements, mine expansions and restarts, guidance on volumes. That layer is
+    unstructured prose, scattered across dozens of companies, and reading all of it is exactly
+    the kind of work nobody does at scale.
+  </p>
+  <p>
+    So the question this project puts to a real test is narrow and falsifiable:
+    <b>can a large language model read EDGAR filings, extract genuine forward-looking signals,
+    and turn them into a market forecast that survives an honest backtest?</b> Not "can an LLM
+    talk about stocks", but can it produce something measurable that beats the alternatives you
+    could actually trade.
+  </p>
+
+  <h2>2. What FilingSignal is</h2>
+  <p>FilingSignal is two things in one codebase, and the pairing is the point:</p>
+  <ul>
+    <li>an <b>interactive web application</b>: a four-page React dashboard where an investor sees
+      the current quarter's ranking, the filings and quotes behind it, and how every past
+      prediction actually performed;</li>
+    <li>a <b>research platform</b>: a point-in-time scoring engine, an evaluation suite, and a
+      backtest harness deliberately built to be able to <em>reject</em> the hypothesis.</li>
+  </ul>
+  <p>
+    The governing design rule is <b>"math rates, the LLM explains."</b> The language model never
+    ranks anything and never sees a price. It only converts filing prose into structured, quoted
+    records. A deterministic scorer, pure arithmetic with no LLM in it, turns those records into
+    the ranking. That is what separates the project from a chatbot that opines about stocks:
+    every ranking is reproducible from the database, and every input traces back to a verbatim
+    sentence in a real filing.
+  </p>
+
+  <h2>3. The pipeline, five stages</h2>
+  <p>
+    A filing enters as prose and leaves as a rank. Only stages 3 and 4 touch a language model,
+    and only stage 3 reads the filing itself. Each stage writes to the next through the SQLite
+    buffer, so the expensive step runs once and the cheap steps can be re-run forever.
+  </p>
+
+  <table>
+    <thead><tr><th>Stage</th><th>What happens</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td class="stage">1 · Ingest</td>
+          <td>Fetch filings from EDGAR, isolate the relevant sections (MD&amp;A, risk factors, selected 8-K items), condense to forward-looking text.</td>
+          <td>A full 10-K is far too large and mostly boilerplate. Condensing cuts tokens by about 5.7x.</td></tr>
+      <tr><td class="stage">2 · Filter</td>
+          <td>A two-part gate: allowed forms and items, then a material keyword test.</td>
+          <td>Routine filings are rejected <em>before</em> any spend, and already-digested filings are skipped.</td></tr>
+      <tr><td class="stage">3 · Extract</td>
+          <td><b>Agent #1</b> returns structured records only. Each effect carries a date window, a confidence, and a verbatim quote.</td>
+          <td>The quote is the anti-hallucination anchor: no textual anchor, no effect.</td></tr>
+      <tr><td class="stage">4 · Score</td>
+          <td>Deterministic scoring and ranking. <b>Agent #2</b> writes the human-readable rationale afterwards.</td>
+          <td>The decision is reproducible and auditable; the prose sits downstream of it, never upstream.</td></tr>
+      <tr><td class="stage">5 · Evaluate</td>
+          <td>Rank-IC with a permutation test, plus a four-baseline backtest.</td>
+          <td>Return alone can be luck. This stage is what makes the answer trustworthy, or negative.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="foot">FilingSignal · spec &amp; summary · page 1 of 5</div>
+</section>
+
+<!-- ══════════════════════════ PAGE 2 ══════════════════════════ -->
+<section class="page" id="p2">
+
+  <h2>4. The universe: producers, consumers, and the forms we read</h2>
+  <p>
+    The experiment is scoped to <b>raw materials</b>, one of the few corners of the market where
+    the supply chain is <em>explicitly written down</em>: a miner states added tonnes and a
+    schedule, a manufacturer states demand. Each material is frozen to a liquid miner-equity ETF,
+    so a forecast converts directly into a tradeable position.
+  </p>
+  <p>
+    Every company carries a <b>perspective</b>. <b>Producers</b> are the supply side (what is
+    being dug up and when), <b>consumers</b> the demand side (who is buying it and for what).
+    Each material therefore gets evidence from two independent directions, which lets the scorer
+    ask whether unrelated companies agree instead of trusting one voice.
+  </p>
+
+  <table>
+    <thead><tr><th>Material</th><th class="num">ETF</th><th>Producers (supply side)</th><th>Consumers (demand side)</th></tr></thead>
+    <tbody>
+      <tr><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td>FCX, GOLD, HBM, RIO, SCCO, TECK</td><td>EMR, ETN, TSLA</td></tr>
+      <tr><td>Steel</td><td class="num"><span class="tk">SLX</span></td><td>CLF, NUE, RIO, STLD, TECK</td><td>CAT, DE, F, GM</td></tr>
+      <tr><td>Rare Earths</td><td class="num"><span class="tk">REMX</span></td><td>MP, USAR, UUUU</td><td>BA, LMT, NOC</td></tr>
+      <tr><td>Gold</td><td class="num"><span class="tk">GDX</span></td><td>AEM, CDE, FCX, GOLD, KGC, NEM, WPM</td><td>none: producer-only, demand is macro and not filed</td></tr>
+      <tr><td>Uranium</td><td class="num"><span class="tk">URNM</span></td><td>CCJ, LEU, NXE, UEC, UUUU</td><td>none: utilities file too little to be usable</td></tr>
+      <tr><td>Silver</td><td class="num"><span class="tk">SIL</span></td><td>CDE, HL, PAAS, SCCO, WPM</td><td>none: producer-only</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    33 companies, several spanning two materials (Freeport files on copper and gold). The map is
+    frozen in <code>universe/materials.yaml</code>, fixed <em>before</em> the backtest ran.
+  </p>
+
+  <h3>Which filings are read</h3>
+  <p>
+    Companies split into two tiers, each with its own form set and its own extraction prompt. A
+    10-K, a 10-Q and an 8-K carry different time horizons and different meaning for the same sentence.
+  </p>
+  <table>
+    <thead><tr><th>Tier</th><th class="num">Companies</th><th>Forms read</th><th>Character of the filing</th></tr></thead>
+    <tbody>
+      <tr><td><b>US</b></td><td class="num">24</td>
+        <td><span class="tk">10-K</span> annual, <span class="tk">10-Q</span> quarterly, <span class="tk">8-K</span> event</td>
+        <td>Strategic outlook, quarterly update, discrete material events</td></tr>
+      <tr><td><b>Foreign</b></td><td class="num">9</td>
+        <td><span class="tk">40-F</span>, <span class="tk">20-F</span>, <span class="tk">6-K</span></td>
+        <td>Canadian and other foreign issuers, the equivalents of the above</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    Corpus as submitted: <b>577 filings</b> digested, yielding <b>1,102 dated effects</b>, 590
+    extraction records and 740 recorded warnings.
+  </p>
+
+  <h2>5. What the system predicts</h2>
+  <p>The output is deliberately shaped like a decision, not a commentary:</p>
+  <div class="call">
+    <p style="margin:0"><b>Given every filing that was public before this quarter began, rank the six
+    materials, and if I had to invest in exactly one of them for the coming quarter, which one is it?</b></p>
+  </div>
+  <p>
+    That question has a single answer and is measurable in hindsight. The ranking is produced as
+    follows, for a target quarter <b>Q</b> whose <b>decision date is its first day</b>:
+  </p>
+
+<pre class="flow">
+contribution(e) = sign * magnitude * confidence * recency * overlap
+  sign       = +1 (increase) | -1 (decrease)            magnitude  = {small:1, moderate:2, large:3}
+  confidence = extractor confidence in [0,1]            recency    = exp(-ln2/12 * age_months)  # 12-month half-life
+  overlap    = |effect window ∩ Q| / |Q|                                                        # share of Q covered
+
+producer_score = producer_raw * (1 - exp(-n_p / k))     # breadth gate, k = 2 ; n = distinct tickers contributing
+consumer_score = consumer_raw * (1 - exp(-n_c / k))
+combined(m,Q)  = producer_score + consumer_score        z(m,Q) = (combined - mean) / std  # cross-sectional
+pick(Q)        = argmax_m z(m,Q)
+</pre>
+
+  <p>
+    Two pieces carry the intuition. <b>Recency decay</b> means a year-old statement counts half as
+    much as a fresh one. The <b>breadth gate</b> encodes "one company is noise": the score stays
+    suppressed while a single source is talking and opens up as more independent companies say the
+    same thing. Standardizing across the six converts the question from "is copper positive" into
+    "is copper positive <em>relative to the other five</em>", which is the actual choice being made.
+  </p>
+  <p>
+    The hyperparameters are <b>modeling choices, not truths</b>: sensible defaults set up front and
+    explicitly <b>never tuned on the test period</b>, since tuning them there would empty the
+    backtest of meaning.
+  </p>
+
+  <div class="foot">FilingSignal · spec &amp; summary · page 2 of 5</div>
+</section>
+
+<!-- ══════════════════════════ PAGE 3 ══════════════════════════ -->
+<section class="page" id="p3">
+
+  <h2>6. The application: four pages</h2>
+  <p>
+    The dashboard is a React 19 and TypeScript SPA with no third-party routing, charting or
+    state-management libraries. It reads a read-only API, and the whole stack ships as a single
+    Docker image serving both the SPA and <code>/api/v1</code> on one port.
+  </p>
+
+  <h3>Home: what the machine actually does</h3>
+  <p>
+    An interactive walkthrough of the five-stage pipeline. Each stage can be opened to show what
+    enters it and what leaves it, so a reader understands where the LLM is used and, just as
+    importantly, where it is <em>not</em>, before looking at a single number.
+  </p>
+
+  <h3>Forecast: the current quarter's call</h3>
+  <p>
+    The top pick for the live quarter, with its ETF, z-score, margin over the runner-up, and a
+    rank-confidence label. Below it sit the full six-material ranking table with producer and
+    consumer sub-scores and filing counts, a diverging bar chart of this quarter's z-scores, a
+    six-quarter score-trend chart, Agent #2's written rationale for the pick, and the verbatim
+    filing quotes it cited. A live tracker card shows how the current call is doing
+    quarter-to-date: the pick's return, its standing against the baselines, and a provisional rank-IC.
+  </p>
+
+  <h3>Filings: the evidence layer, and a live extraction</h3>
+  <p>
+    Every digested filing with its summary and its extracted effects: material, perspective,
+    direction, magnitude, date window, confidence, and the quote that justifies each one, plus
+    counters for filings, extractions, effects and average confidence. Any effect can be traced
+    back to the sentence that produced it.
+  </p>
+  <p>
+    This page also hosts the <b>live extraction demo</b>. Choose a ticker, a form and a date, and
+    the app fetches that single filing from EDGAR and runs <b>Agent #1 on it in real time</b>,
+    returning the summary and the extracted effects on screen. It is the one place a reviewer can
+    watch the AI feature work end to end on a filing of their own choosing. The endpoint is gated
+    by a shared access key and returns <code>503</code> when no key is configured, so a public
+    deployment cannot be made to burn the provider key.
+  </p>
+
+  <h3>Backtest: the verdict</h3>
+  <p>
+    A quarter picker walks through history. For each quarter it shows the <b>predicted ranking as
+    it stood on day one of that quarter</b>, what actually happened, the pick's return against the
+    baselines, prediction-vs-realized slopes, and the part that makes it auditable: <b>the filings
+    that drove that specific pick</b>. Across the full window it shows the $100 equity curve
+    against all four baselines, the metric tiles, a per-quarter rank-IC chart, a hit grid, and the
+    producer-vs-consumer decomposition.
+  </p>
+
+  <h2>7. The forecast is live, not a snapshot</h2>
+  <p>
+    The Forecast page is not a frozen demo of a past quarter. It tracks the <b>real, in-progress
+    quarter</b>: the ranking was computed from filings public before the quarter began, and the
+    tracker updates against actual ETF prices as the quarter unfolds. The number on screen is a
+    standing prediction that has not yet been resolved.
+  </p>
+
+  <h3>The rollover mechanism</h3>
+  <p>
+    The whole system derives its state from one clock seam, <code>quarter_of(today())</code>, so
+    the calendar rather than a human decides what "the current quarter" means:
+  </p>
+  <ul>
+    <li><b>End-of-quarter sweep.</b> <code>filingsignal refresh</code> walks the universe
+      incrementally: it skips filings already digested, drops routine ones at the pre-LLM filter,
+      and spends a model call only on genuinely new filings. It aborts immediately if the provider
+      key is missing or exhausted, so there is no runaway spend.</li>
+    <li><b>Automatic re-anchoring.</b> The moment the calendar turns, say on Oct 1, the forecast
+      quarter moves from Q3 to Q4 on its own. The quarter label, the published date, the
+      point-in-time cutoff, the filing count and the ranking all recompute with zero code edits.</li>
+    <li><b>Hand-off between pages.</b> The Forecast page owns the unfinished quarter. The moment
+      that quarter closes it becomes one more point-in-time row on the Backtest page, so today's
+      live call is tomorrow's backtest evidence, under the same cutoff rule and with no
+      retro-fitting.</li>
+    <li><b>Testable, not promised.</b> An environment override (<code>FILINGSIGNAL_TODAY</code>)
+      moves the clock, so "what happens when the quarter turns" is covered by an automated test
+      instead of a three-month wait.</li>
+  </ul>
+
+  <div class="foot">FilingSignal · spec &amp; summary · page 3 of 5</div>
+</section>
+
+<!-- ══════════════════════════ PAGE 4 ══════════════════════════ -->
+<section class="page" id="p4">
+
+  <h2>8. The backtest: what exactly was tested</h2>
+  <p>
+    The backtest is the rollover mechanic replayed over history, so the question stays honest:
+    <em>if I had run this every quarter using only what was public at the time, what would have
+    happened?</em>
+  </p>
+  <ul>
+    <li><b>Point-in-time by construction.</b> The scorer takes the decision date as a parameter and
+      structurally drops any effect whose filing became public after it. The 2025 Q4 ranking sees
+      only filings through 2025-09-30. The live forecast and the backtest call the <em>same</em>
+      function, so there is no look-ahead switch to forget to turn off.</li>
+    <li><b>The rule.</b> On the first day of each quarter, buy the top-ranked material's miner ETF,
+      hold it for the quarter, rotate at the next quarter's open. 10 bps round-trip cost,
+      dividend-adjusted closes, $100 starting capital.</li>
+    <li><b>Window.</b> 14 quarters, <b>2023 Q1 to 2026 Q2</b>, the span the filing corpus supports,
+      chosen by data availability rather than by which quarters flattered the result.</li>
+    <li><b>Four baselines.</b> <b>SPY</b> (do nothing), <b>equal-weight</b> across all six materials
+      (does picking add anything over naive diversification?), <b>random-pick Monte-Carlo</b> over
+      2,000 sequences (the luck floor, and the source of the return p-value), and
+      <b>hindsight-best</b> (the ceiling that requires foresight).</li>
+    <li><b>A skill test, not just a return test.</b> Rank-IC is the Spearman correlation between the
+      forecast ranking and the realized ranking, judged against a 2,000-shuffle permutation test.
+      Return can be luck; rank-IC asks whether the <em>ordering</em> carried information.</li>
+  </ul>
+
+  <h2>9. Results: 14 quarters</h2>
+
+  <table>
+    <thead>
+      <tr><th>Metric</th><th class="num">FilingSignal</th><th class="num">SPY</th>
+          <th class="num">Equal-weight</th><th class="num">Random (median)</th><th class="num">Hindsight</th></tr>
+    </thead>
+    <tbody>
+      <tr class="hi"><td>Final value from $100</td><td class="num">$281</td><td class="num">$204</td><td class="num">$201</td><td class="num">$193</td><td class="num">$1,332</td></tr>
+      <tr><td>CAGR</td><td class="num">+34.4%</td><td class="num">+22.7%</td><td class="num">+22.0%</td><td class="num">+20.6%</td><td class="num">+109.5%</td></tr>
+      <tr><td>Sharpe</td><td class="num">0.94</td><td class="num"><b>1.85</b></td><td class="num">0.91</td><td class="num">0.84</td><td class="num">2.31</td></tr>
+      <tr><td>Max drawdown</td><td class="num">-19.6%</td><td class="num"><b>-4.5%</b></td><td class="num">-13.8%</td><td class="num">-14.0%</td><td class="num">-8.0%</td></tr>
+      <tr><td>Quarters beating equal-weight</td><td class="num">7 / 14 (50%)</td><td class="num">n/a</td><td class="num">n/a</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    <b>Significance:</b> mean rank-IC <b>-0.21</b> over 12 scoreable quarters, and a 2,000-shuffle
+    permutation gives <b>p = 0.95</b>. Return against 2,000 random-pick sequences gives
+    <b>p = 0.15</b>. IC decomposition: producer-only -0.24, consumer-only -0.00, combined -0.21.
+  </p>
+
+  <h3>The decisions, quarter by quarter</h3>
+  <table>
+    <thead><tr><th class="num">Quarter</th><th>Pick</th><th class="num">ETF</th><th class="num">Realized</th><th class="num">Equal-weight</th><th class="num">Excess</th></tr></thead>
+    <tbody>
+      <tr><td class="num">2024 Q1</td><td>Uranium</td><td class="num"><span class="tk">URNM</span></td><td class="num">+4.0%</td><td class="num">+0.6%</td><td class="num">+3.4</td></tr>
+      <tr><td class="num">2024 Q2</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">+5.9%</td><td class="num">-1.4%</td><td class="num">+7.3</td></tr>
+      <tr><td class="num">2024 Q3</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">+4.0%</td><td class="num">+6.7%</td><td class="num">-2.9</td></tr>
+      <tr><td class="num">2024 Q4</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">-19.5%</td><td class="num">-13.8%</td><td class="num">-5.9</td></tr>
+      <tr><td class="num">2025 Q1</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">+1.4%</td><td class="num">+5.3%</td><td class="num">-4.0</td></tr>
+      <tr><td class="num">2025 Q2</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">+15.0%</td><td class="num">+18.3%</td><td class="num">-3.3</td></tr>
+      <tr class="hi"><td class="num">2025 Q3</td><td>Rare Earths</td><td class="num"><span class="tk">REMX</span></td><td class="num">+63.2%</td><td class="num">+37.9%</td><td class="num">+25.2</td></tr>
+      <tr><td class="num">2025 Q4</td><td>Rare Earths</td><td class="num"><span class="tk">REMX</span></td><td class="num">+10.7%</td><td class="num">+12.2%</td><td class="num">-1.5</td></tr>
+      <tr><td class="num">2026 Q1</td><td>Uranium</td><td class="num"><span class="tk">URNM</span></td><td class="num">+4.5%</td><td class="num">+7.6%</td><td class="num">-3.2</td></tr>
+      <tr><td class="num">2026 Q2</td><td>Copper</td><td class="num"><span class="tk">COPX</span></td><td class="num">-1.2%</td><td class="num">-8.6%</td><td class="num">+7.3</td></tr>
+    </tbody>
+  </table>
+  <p class="note">
+    This table shows the behaviour better than any summary statistic. The system stays on copper
+    for five consecutive quarters, a consequence of slow recency decay and copper's high filing
+    volume, and its win comes from catching the rotation into rare earths early in 2025 Q3, not
+    from steady accuracy.
+  </p>
+
+  <div class="foot">FilingSignal · spec &amp; summary · page 4 of 5</div>
+</section>
+
+<!-- ══════════════════════════ PAGE 5 ══════════════════════════ -->
+<section class="page" id="p5">
+
+  <h2>10. Conclusion</h2>
+  <p>
+    Over this 14-quarter window the strategy <b>beat every tradeable baseline on raw return</b>:
+    $281 against SPY's $204, equal-weight's $201 and a random-pick median of $193. That is real,
+    and it is not the whole answer:
+  </p>
+  <div class="call warn">
+    <ul>
+      <li><b>Not statistically significant.</b> The return edge beats about 85% of random-pick
+        sequences, so <b>p = 0.15</b>, above the conventional 0.05 threshold. A result like this
+        arises by luck roughly one try in seven.</li>
+      <li><b>No cross-sectional skill.</b> The mean rank-IC is <em>negative</em> (<b>-0.21</b>,
+        p = 0.95): the full ordering of the six materials carries no information, and whatever
+        worked lived in the top pick alone.</li>
+      <li><b>Two quarters carry everything.</b> Remove 2025 Q3 (+63%) and 2023 Q3 (+41%) and $100
+        becomes <b>$122</b>, against $147 for equal-weight and $196 for SPY.</li>
+      <li><b>Risk-adjusted, it loses to doing nothing.</b> Sharpe 0.94 against SPY's 1.85, with a
+        -19.6% drawdown against -4.5%. One high-beta miner ETF per quarter is far more volatile
+        than the return line suggests.</li>
+    </ul>
+  </div>
+  <p>
+    <b>The defensible claim:</b> the top-1 rule beat its tradeable baselines over this window,
+    driven by two large correct calls, with no evidence of ranking skill and no statistical significance.
+  </p>
+  <p>
+    So the answer to the opening question is a qualified <em>not yet</em>. Extracting structured,
+    quoted, forward-looking claims from filings demonstrably works, across 577 filings and 1,102
+    effects. Turning them into a ranking that beats chance is what remains unproven. The
+    contribution is the machinery that can tell the difference: structural point-in-time cutoffs,
+    four baselines including a luck floor, and a permutation test allowed to return an unflattering
+    number, which it did.
+  </p>
+
+  <h2>11. Limitations</h2>
+  <div class="grid2">
+    <ul>
+      <li><b>Small sample:</b> 14 quarters, 6 assets, one sector, too few observations for
+        significance except at extreme effect sizes.</li>
+      <li><b>Concentration:</b> two quarters produce the entire edge, and average metrics mislead
+        on a fat-tailed profile.</li>
+      <li><b>No sector downturn tested:</b> the window overlaps a positive stretch for materials.</li>
+      <li><b>US-heavy:</b> foreign forms (40-F, 20-F, 6-K) extract thin, because section isolation
+        there is not standardized.</li>
+    </ul>
+    <ul>
+      <li><b>The model is non-deterministic:</b> the quote constrains hallucination but not
+        misinterpretation, and magnitude and date window are judgment calls.</li>
+      <li><b>Imperfect attribution chain:</b> a statement about a material need not move that
+        material's ETF, since index composition, currency and macro intervene.</li>
+      <li><b>Costs are optimistic:</b> 10 bps excludes spread, slippage, tax and financing.</li>
+      <li><b>Full concentration:</b> one asset per quarter is not a retail-appropriate risk profile.</li>
+    </ul>
+  </div>
+
+  <h2>12. Future work</h2>
+  <ul>
+    <li><b>More sample, the top priority.</b> Extend the window backwards and widen the universe
+      beyond one sector. Without it, no algorithmic improvement can be demonstrated.</li>
+    <li><b>Section isolation for foreign forms:</b> the largest coverage win available, and a direct
+      fix for the US bias.</li>
+    <li><b>Hyperparameter sensitivity sweep:</b> a heat map over {λ, k, w<sub>p</sub>, w<sub>c</sub>}.
+      Does the result survive a reasonable range, or depend on one point?</li>
+    <li><b>Portfolio instead of a bet:</b> a z-weighted or top-2 basket, or long/short of first
+      against last. This uses the <em>whole</em> ranking rather than one cell, and cuts volatility.</li>
+    <li><b>Learn from the negative IC.</b> A persistently negative IC is itself information: a
+      producer ramp may signal <em>oversupply</em> rather than demand, testable via a controlled
+      sign flip out of sample.</li>
+    <li><b>Shorter horizon:</b> measure drift 1 to 4 weeks after filing rather than at quarterly
+      resolution.</li>
+  </ul>
+
+  <h2>13. Stack, quality and reproduction</h2>
+  <ul>
+    <li><b>Stack:</b> Python 3.12, FastAPI, pydantic v2, SQLite, pandas/numpy, edgartools, the
+      anthropic and openai SDKs (Claude or Kimi) and yfinance, plus React 19, TypeScript and Vite
+      with a hand-rolled router and SVG charts.</li>
+    <li><b>Tests:</b> 34 passing, covering point-in-time cutoff enforcement, quarter rollover,
+      transaction costs and duplicate-filing skipping. <b>Reproduction:</b> the processed buffer and
+      price files ship in the repository, and <code>docker compose up --build</code> serves the
+      results in this document with no API key.</li>
+  </ul>
+
+  <div class="foot">
+    FilingSignal · spec &amp; summary · page 5 of 5 · A learning / portfolio project. Not investment advice.
+  </div>
+</section>
+
+</body>
+</html>

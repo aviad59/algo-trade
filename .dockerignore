@@ -14,3 +14,7 @@ node_modules
 venv
 *.egg-info
 tests
+
+# the presentation film is not part of the image (700+ MB of build context)
+video
+docs

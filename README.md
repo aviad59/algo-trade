@@ -1,189 +1,220 @@
 # FilingSignal
 
-**Can an LLM read SEC filings, extract genuine forward-looking signals, and turn
-them into a market forecast that actually holds up?**
+**An LLM reads SEC filings, extracts dated and cited forward-looking effects, and
+deterministic math turns them into a quarterly materials-rotation forecast. Then a
+point-in-time backtest checks whether it actually worked.**
 
-FilingSignal is an end-to-end research platform that puts that question to an
-honest test. It reads SEC filings for raw-materials producers, uses an LLM to
-extract dated, *cited* effects, scores them into a quarterly forecast with pure
-deterministic math, and then — the part most demos skip — **backtests the result
-point-in-time and reports the verdict without flinching**, permutation test and
-all.
+Final project · *AI & Innovation in Capital Markets* · **Track 3: AI application
+for investors (B2C)**. By Ron Kadosh, Idan Aviad, Barak Tubul.
 
-> **The result (first real run — 576 filings, 1,073 effects, 14 quarters):**
-> the top-1 rotation **beat every tradeable baseline**, point-in-time — $100 →
-> **$281** vs SPY's $204, equal-weight materials' $201, and a random-pick median
-> of $193 (**+34.4% CAGR** vs SPY's +22.7%). It's a small, high-beta sample
-> (Sharpe 0.94, −19.6% drawdown), so the honest read is *promising on this
-> window*, not *proven* — but it beat every baseline you'd actually trade against.
+| | |
+|---|---|
+| **Live application** | <https://filingsignal.livelyground-2a3fc950.francecentral.azurecontainerapps.io/> |
+| **Spec & summary (PDF, 5 pages)** | [`docs/report.pdf`](docs/report.pdf) · source: [`docs/report.html`](docs/report.html) |
+| **Design notes (deep dive)** | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
+| **Run locally** | `docker compose up --build` then <http://localhost:8000> |
 
-The point isn't just the number — it's that every result is **point-in-time and
-stress-tested**: measured against four baselines (SPY, equal-weight, a random-pick
-Monte-Carlo floor, and a hindsight ceiling) with a rank-IC and a permutation test.
-A result you can trust *because it's been interrogated*, not because the curve
-happens to look good.
+The dashboard is read-only and needs **no API key**: the processed research buffer
+and the ETF price history are committed, so a fresh clone reproduces the reported
+results exactly.
 
 ---
 
-## The question
+## Submission checklist
 
-Markets price public filings within minutes, so any edge lives in the slow
-**drift** after a filing — and in whether an LLM can read *forward-looking*
-language (guidance, capex plans, offtake agreements) accurately enough to matter.
-FilingSignal isolates that question to a tractable corner of the market and
-answers it with real data and real statistics.
+| Requirement | Where it is |
+|---|---|
+| Interactive web application (UI) | React 19 + TypeScript SPA, 4 pages: [`frontend/`](frontend/) |
+| Substantial AI feature | Agent #1 extractor + Agent #2 rater: [`src/filingsignal/extraction/`](src/filingsignal/extraction/), [`rating.py`](src/filingsignal/rating.py) |
+| Deployed application link | top of this file |
+| Spec & summary PDF (max 5 pages) | [`docs/report.pdf`](docs/report.pdf) |
+| Full source code | this repository |
+| `README.md` with run instructions | this file, see [Run it](#run-it) |
+| `requirements.txt` | [`requirements.txt`](requirements.txt), mirrors [`pyproject.toml`](pyproject.toml) |
+| No private API keys in public code | `.env` is git-ignored; template in [`.env.example`](.env.example); LLM endpoints return `503` without a key |
+| Financial evaluation, not just stats | point-in-time backtest vs 4 baselines, see [Results](#results) |
+| Risks & limitations | [Limitations](#limitations) and §11 of the report |
 
-## The universe — raw materials
+## What it does
 
-Six industrial materials, each frozen to its miner-equity ETF:
+Each quarter the system answers one decision-shaped question, *"if you could buy
+exactly one material's miner ETF next quarter, which one?"*, across six materials,
+each frozen to a liquid miner ETF:
 
-| Material | ETF | Material | ETF |
-|---|---|---|---|
-| Copper | COPX | Steel | SLX |
-| Gold | GDX | Silver | SIL |
-| Uranium | URNM | Rare Earths | REMX |
+| Material | ETF | Material | ETF | Material | ETF |
+|---|---|---|---|---|---|
+| Copper | COPX | Gold | GDX | Uranium | URNM |
+| Steel | SLX | Silver | SIL | Rare Earths | REMX |
 
-Behind them, ~33 companies tagged by **tier** (US → 10-K/10-Q/8-K; foreign →
-40-F/20-F/6-K) and **perspective** (*producer* = supply-side, *consumer* =
-demand-side). The whole map is frozen config in
-[`universe/materials.yaml`](universe/materials.yaml) — the reproducibility
-contract for scoring and attribution.
-
-## Core concept
-
-> *"If you could buy exactly one material's miner ETF next quarter, which one?"*
-
-Each quarter, FilingSignal ranks the six materials by a **point-in-time
-cross-sectional z-score** built only from filings public *before* the quarter
-began — then honestly checks whether the top pick actually worked. Every score
-traces back to a **verbatim quote** in a real filing, so nothing is a black box.
-
-## The pipeline
+~33 companies behind them, tagged by **tier** (US: 10-K/10-Q/8-K; foreign:
+40-F/20-F/6-K) and **perspective** (*producer* is the supply side, *consumer* the
+demand side), frozen in [`universe/materials.yaml`](universe/materials.yaml).
 
 ```
-  EDGAR filings                     ← ingest (US + foreign forms)
-      │   section isolation + guidance-focused condensing (~5.7x fewer tokens)
-      ▼
-  pre-LLM filter                    ← form/item allowlist + material keyword gate
-      │
-      ▼
-  Agent #1 — Extractor  (LLM)       ← dated, cited effects + a filing summary
-      │   {material, perspective, direction, magnitude, window, evidence_quote}
-      ▼
-  SQLite buffer                     ← the contract; incremental (skip re-digests)
-      │
-      ▼
-  Scorer  (deterministic math)      ← sign·magnitude·confidence·recency·overlap
-      │   per-perspective sub-scores → breadth gate → cross-sectional z
-      ├──────────────► Agent #2 — Rater (LLM): narrates the rank, cite-only
-      ▼
-  Evaluate + Backtest               ← rank-IC + permutation test; top-1 rotation
+  EDGAR filings                     <- ingest (US + foreign forms)
+      |   section isolation + guidance-focused condensing (~5.7x fewer tokens)
+      v
+  pre-LLM filter                    <- form/item allowlist + material keyword gate
+      v
+  Agent #1  Extractor  (LLM)        -> dated, cited effects + a filing summary
+      |   {material, perspective, direction, magnitude, window, evidence_quote}
+      v
+  SQLite buffer                     <- the contract; incremental (skip re-digests)
+      v
+  Scorer  (deterministic math)      -> sign * magnitude * confidence * recency * overlap
+      |   per-perspective sub-scores -> breadth gate -> cross-sectional z
+      |----------> Agent #2  Rater (LLM): narrates the rank, citation-only
+      v
+  Evaluate + Backtest               -> rank-IC + permutation test; top-1 rotation
                                        vs SPY / equal-weight / random / hindsight
 ```
 
-- **Math rates, LLM explains.** The deterministic scorer decides the rank; Agent
-  #2 only *narrates* it and may cite nothing that isn't in the buffer.
-- **Point-in-time by construction.** A quarter's score admits only filings public
-  before it started — there is no look-ahead mode to switch off.
-- **Provider-agnostic.** The LLM layer runs on Claude *or* Kimi (Moonshot) behind
-  one interface, with a native-schema + pydantic validate-and-retry backstop.
+Three design rules carry the project:
+
+- **Math rates, the LLM explains.** The deterministic scorer decides the rank.
+  Agent #2 only narrates it, and may cite nothing that isn't in the buffer.
+- **Point-in-time by construction.** The scorer takes the decision date as a
+  parameter and structurally drops any effect filed after it. The live forecast
+  and the backtest call the *same* function, so there is no look-ahead switch to
+  forget to turn off.
 - **Loud, never silent.** Section-isolation fallbacks, condensing, and dropped
-  effects are all recorded as warnings that flow downstream.
+  effects are recorded as warnings (740 of them) and surfaced in the UI.
 
-## The rollover mechanic
+The scoring formula, the rollover mechanic and the evaluation methodology are in
+§4 to §8 of the [report](docs/report.html), and §5 to §7 of
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
 
-The forecast is a **standing pipeline that advances with the calendar**, not a
-frozen snapshot:
+## Results
 
-- The forecast quarter is `quarter_of(today())` — a single clock seam
-  (`FILINGSIGNAL_TODAY` overrides it, which makes rollover deterministically
-  **testable** without waiting for a real quarter to turn). On Oct 1 it
-  re-anchors from Q3 to Q4 automatically — quarter label, "published" date,
-  prior-quarter, filing count, ranking all recompute with zero edits.
-- **`filingsignal refresh`** is the incremental sweep: it walks the universe,
-  skips already-digested filings, filters routine ones pre-LLM, and only new
-  filings cost a call. It aborts immediately if the provider key is missing or
-  exhausted (no spend storm).
-- The **Forecast page** tracks the *in-progress* quarter live (quarter-to-date
-  ETF moves vs the start-of-quarter ranking, with a provisional rank-IC); the
-  **Backtest page** owns the *completed* quarters and the final verdict. They
-  hand off automatically as each quarter closes.
+14 quarters, 2023 Q1 to 2026 Q2, point-in-time, 10 bps round-trip, $100 start:
 
-There's also a live **reviewer demo**: pick a ticker + form + date, and the app
-fetches that one filing, runs Agent #1 on it in real time, and shows the summary
-+ extracted effects — gated by a shared access key so the baked-in model key
-can't be abused.
+| | **FilingSignal** | SPY | Equal-weight | Random (median) | Hindsight |
+|---|---|---|---|---|---|
+| Final value from $100 | **$281** | $204 | $201 | $193 | $1,332 |
+| CAGR | **+34.4%** | +22.7% | +22.0% | +20.6% | +109.5% |
+| Sharpe | 0.94 | **1.85** | 0.91 | 0.84 | 2.31 |
+| Max drawdown | -19.6% | **-4.5%** | -13.8% | -14.0% | -8.0% |
+| Hit rate vs equal-weight | 7 / 14 | n/a | n/a | n/a | n/a |
 
-## The backtest — the rollover replayed through history
+**Mean rank-IC -0.21** (12 scoreable quarters, 2,000 permutations, **p = 0.95**) ·
+**return vs random-pick: p = 0.15** (2,000 Monte-Carlo sequences).
 
-The backtest is just the rollover mechanic **run over past quarters**, so the
-question it answers stays honest: *"if I had run this each quarter using only what
-was public at the time, what would have happened?"*
+> **The honest read.** The rotation beat every *tradeable* baseline on raw return,
+> but **p = 0.15 is not significant**; the **mean rank-IC is negative**, so there
+> is no cross-sectional skill and whatever worked lived in the top pick alone;
+> **two quarters carry everything** (strip 2023 Q3 and 2025 Q3 and $100 becomes
+> $122, against equal-weight's $147 and SPY's $196); and it **loses to SPY
+> risk-adjusted** (Sharpe 0.94 vs 1.85). The defensible claim is *promising on
+> this window*, not *skill demonstrated*. Full analysis in §9 and §10 of the report.
 
-Every historical pick is re-derived from a hard **point-in-time cutoff — the first
-day of that quarter**:
+Reproduce it: `filingsignal backtest --since "2023 Q1"`.
 
-- The **2025 Q4** ranking is scored from **only filings public on or before
-  2025-09-30** — nothing from Oct 1 onward exists for that decision. The **2026 Q1**
-  ranking uses only filings through 2025-12-31, and so on down the line.
-- There is **no look-ahead switch to forget to turn off**. The scorer for quarter
-  *Q* structurally drops any effect whose filing date is after *Q*'s start; a
-  filing that lands mid-quarter simply isn't visible to that quarter's forecast.
+## What ships in this repo
 
-It then walks forward: hold the top-ranked material's miner ETF for the quarter,
-rotate at the next quarter's open (10 bps cost, dividend-adjusted closes), repeat.
-That produces the $100 growth curve and every metric, measured against four
-baselines:
+Committed, so a fresh clone reproduces the numbers above with **no API key and no
+ingestion run**:
 
-- **SPY** — the do-nothing market alternative.
-- **Equal-weight materials** — hold all six equally (naive diversification).
-- **Random-pick (Monte-Carlo)** — the luck floor: a random material each quarter, ×10k.
-- **Hindsight-best** — the ceiling: the actual winner each quarter (needs foresight).
+- `data/buffer.sqlite`, the processed research buffer: **577 filings**,
+  **1,102 dated effects**, 590 extraction records, 740 warnings.
+- `data/prices/`, dividend-adjusted daily closes for the six ETFs plus SPY.
+- `universe/materials.yaml`, the frozen material to ETF to company map.
 
-On top of returns it runs a **rank-IC** (Spearman of forecast rank vs realized
-rank) with a **permutation test**, so the outperformance is judged for skill, not
-just size. The Forecast page shows the *current, unfinished* quarter live; the
-moment it closes, it becomes one more point-in-time row in the backtest.
+**Not** committed: `.env` or any provider key. The frontend falls back to demo
+fixtures only if the API is unreachable, and labels the data source either way.
 
-## Tech stack
-
-**Backend** — Python 3.12 · FastAPI / uvicorn · pydantic v2 · SQLite (WAL buffer)
-· pandas / numpy · [edgartools](https://github.com/dgunning/edgartools) for SEC
-filings · `anthropic` + `openai` SDKs (provider-agnostic) · yfinance for
-dividend-adjusted ETF prices.
-
-**Frontend** — React 19 · TypeScript · Vite · **zero runtime dependencies**
-(hand-rolled hash router, custom SVG charts, a design system in one CSS file).
-Reads the read-only API and falls back to demo fixtures if the backend is down.
-
-**Delivery** — a **single Docker image**: one FastAPI process serves the built
-SPA *and* the `/api/v1` API on port 8000. `docker compose` mounts the real
-`./data` buffer so the container serves live results.
+Re-running ingestion is **optional** and is the only thing that costs money:
+`filingsignal refresh` re-walks EDGAR, skips everything already digested, and
+spends one LLM call per genuinely new filing.
 
 ## Run it
 
 ```bash
-# 1) full stack, one command (serves SPA + API on :8000)
-docker compose up --build          # → http://localhost:8000
+# Docker: full stack, one command (SPA + API on :8000)
+docker compose up --build          # then http://localhost:8000
+```
 
-# --- or run the pieces directly ---
-pip install -e ".[dev]"
+```bash
+# or run the pieces directly
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"            # or: pip install -r requirements.txt
+cp .env.example .env               # optional, not needed to serve
 filingsignal serve                 # backend on :8000
+
 cd frontend && npm install && npm run dev   # frontend on :5173
 ```
 
-CLI (the pipeline is normally driven offline, then served read-only):
+Requires Python 3.11+ (3.12 used here) and Node 20+. Dependencies are declared in
+[`pyproject.toml`](pyproject.toml); [`requirements.txt`](requirements.txt) mirrors
+them for submission compatibility. Installing via `requirements.txt` does not
+create the console script, so use `python -m filingsignal.cli ...` in that case.
+
+### CLI
 
 ```bash
-filingsignal fetch-prices          # real ETF + SPY prices → data/prices
-filingsignal refresh --limit 4     # incremental sweep: fetch → filter → Agent #1
+filingsignal fetch-prices          # real ETF + SPY prices -> data/prices
+filingsignal refresh --limit 4     # incremental sweep: fetch, filter, Agent #1
 filingsignal score                 # current-quarter ranking
-filingsignal rate --quarter "2026 Q3"   # Agent #2 explanations → buffer
+filingsignal rate --quarter "2026 Q3"   # Agent #2 explanations -> buffer
 filingsignal backtest --since "2023 Q1" # point-in-time backtest vs four baselines
+filingsignal serve                 # FastAPI (serves the built SPA too)
 ```
 
 Live extraction needs `ANTHROPIC_API_KEY` (or `MOONSHOT_API_KEY`) and
-`FILINGSIGNAL_SEC_IDENTITY` in `.env`; the read-only dashboard needs neither.
+`FILINGSIGNAL_SEC_IDENTITY`; the read-only dashboard needs neither.
+
+### Configuration
+
+All of it is environment variables, see [`.env.example`](.env.example).
+
+| Variable | Purpose |
+|---|---|
+| `FILINGSIGNAL_API_KEY` | shared access key for the LLM-spending endpoints. **Unset means they return 503** |
+| `ANTHROPIC_API_KEY` / `MOONSHOT_API_KEY` | provider key (only for extraction) |
+| `FILINGSIGNAL_LLM_PROVIDER` / `_MODEL` | `claude` or `kimi`, and the model id |
+| `FILINGSIGNAL_SEC_IDENTITY` | contact identity required on every EDGAR request |
+| `FILINGSIGNAL_TODAY` | overrides the clock, which makes quarter rollover testable |
+| `FILINGSIGNAL_BACKTEST_SINCE` | first quarter shown by the API/dashboard |
+| `FILINGSIGNAL_BUFFER_PATH` / `_PRICES_DIR` / `_UNIVERSE_DIR` | data locations |
+
+## Verify it
+
+```bash
+pytest                    # 34 tests, no network and no API key required
+cd frontend
+npm run typecheck         # tsc -b --noEmit
+npm run build             # production SPA build
+```
+
+| Tests | Guarantee |
+|---|---|
+| `test_scorer.py` | **point-in-time cutoff enforcement**: a post-cutoff filing cannot enter a score; deterministic z-scores |
+| `test_rollover.py` | quarter rollover across the clock seam; `FILINGSIGNAL_TODAY` override |
+| `test_backtest.py` | transaction costs, rotation mechanics, baseline construction |
+| `test_buffer.py` | duplicate-filing skip (same accession + model means no re-spend) |
+| `test_extraction.py` | pre-LLM form/keyword filter; section isolation + fallback warnings |
+| `test_llm.py` | structured-output validation and the validate-and-retry backstop |
+| `test_api.py` | read-only endpoints; auth gate on the LLM-spending endpoints |
+
+## API
+
+Read endpoints are public; the two that spend LLM credit are gated by
+`Authorization: Bearer $FILINGSIGNAL_API_KEY`.
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| `GET` | `/api/v1/forecast` | current-quarter ranking + quarter-to-date tracking |
+| `GET` | `/api/v1/filings` | filings, summaries, extracted effects, evidence quotes |
+| `GET` | `/api/v1/backtest` | curves, per-quarter calls, metrics, rank-IC, p-values |
+| `GET` | `/api/v1/rating` | Agent #2 explanation for a quarter |
+| `GET` | `/api/v1/meta` | universe, clock, data-source labels |
+| `POST` | `/api/v1/digest` | 🔒 one filing to summary + effects, 10 to 30 s; persists, so a repeat costs no second LLM call |
+| `POST` | `/api/v1/extract` | 🔒 batch job over tickers; one at a time (`409` if busy) |
+| `GET` | `/api/v1/extract/status` | job progress |
+
+The deployed service holds the provider key in **server-side environment
+secrets**, so nothing is embedded in the image or the client bundle. If the
+provider quota is exhausted, requests fail loudly with the provider's error
+rather than returning a silent empty extraction.
 
 ## Layout
 
@@ -191,23 +222,55 @@ Live extraction needs `ANTHROPIC_API_KEY` (or `MOONSHOT_API_KEY`) and
 src/filingsignal/
   fetcher.py  prices.py  scorer.py  evaluation.py  backtest.py  refresh.py
   clock.py    rating.py  cli.py
-  llm/        base · claude · openai_compat · structured · factory   (provider-agnostic)
-  extraction/ filters · prompts (per form class) · extractor          (Agent #1)
-  buffer/     store.py + schema.sql                                   (SQLite)
+  llm/        base, claude, openai_compat, structured, factory   (provider-agnostic)
+  extraction/ filters, prompts (per form class), extractor        (Agent #1)
+  buffer/     store.py + schema.sql                               (SQLite)
   api/        FastAPI: routers (forecast/filings/backtest/rating/extract+digest/meta)
-universe/materials.yaml     frozen material→ETF map, companies, filters
-frontend/                   React + TS + Vite dashboard (4 pages)
+universe/materials.yaml     frozen material to ETF map, companies, filters
+frontend/src/pages/         Home, Forecast, Filings, Backtest
+data/                       committed buffer.sqlite + price CSVs
+docs/report.html            the 5-page spec & summary (source of the PDF)
+tests/                      34 tests: cutoff, rollover, costs, filters, API
 ```
 
-## Honest limitations
+## Tech stack
 
-- **Small sample.** 14 backtested quarters; the outperformance is promising but
-  not statistically airtight (it beat ~85% of random-pick sequences, p = 0.15),
-  and it's untested across a sector downturn.
-- **US-heavy.** Foreign filings (40-F/20-F/6-K) extract thin — section isolation
+**Backend**: Python 3.12, FastAPI / uvicorn, pydantic v2, SQLite (WAL buffer),
+pandas / numpy, [edgartools](https://github.com/dgunning/edgartools), the
+`anthropic` and `openai` SDKs (provider-agnostic), yfinance.
+
+**Frontend**: React 19, TypeScript, Vite, with **no third-party routing, charting
+or state-management libraries**: a hand-rolled hash router, custom SVG charts, and
+a design system in one CSS file.
+
+**Delivery**: a single Docker image; one FastAPI process serves the built SPA
+*and* `/api/v1` on port 8000.
+
+## Screenshots
+
+<!-- Add four PNGs to docs/screenshots/ with exactly these filenames. -->
+
+| Forecast (live quarter) | Backtest verdict |
+|---|---|
+| ![Forecast page](docs/screenshots/forecast.png) | ![Backtest page](docs/screenshots/backtest.png) |
+| **Filing + evidence quotes** | **Live extraction demo** |
+| ![Filings page](docs/screenshots/filings.png) | ![Extraction demo](docs/screenshots/extract.png) |
+
+## Limitations
+
+- **Not statistically significant.** Random-pick permutation p = 0.15; rank-IC
+  permutation p = 0.95 on a *negative* mean IC of -0.21.
+- **Concentrated in two quarters** (2023 Q3 +41%, 2025 Q3 +63%). Without them the
+  strategy trails both equal-weight and SPY.
+- **No cross-sectional skill.** The ordering below the top pick is uninformative.
+- **Worse risk-adjusted than doing nothing.** Sharpe 0.94 vs SPY's 1.85, and a
+  -19.6% drawdown vs -4.5%.
+- **Small sample.** 14 quarters, 6 assets, one sector, no sector downturn tested.
+- **US-heavy.** Foreign filings (40-F/20-F/6-K) extract thin; section isolation
   for foreign forms is the next coverage win.
-- **The bet is genuinely hard.** Public filings are priced fast; this is a
-  post-filing-drift experiment, and the result reflects that honestly.
+
+Full discussion, plus future work, in §11 and §12 of the
+[report](docs/report.html).
 
 ---
 
